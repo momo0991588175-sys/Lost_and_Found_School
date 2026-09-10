@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost & Found School - ระบบแจ้งและติดตามของหาย</title>
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        /* =========================================
+           1. CSS Variables & Reset
+           ========================================= */
+        :root {
+            --primary: #6366F1; --primary-dark: #4F46E5;
+            --success: #10B981; --danger: #EF4444; --warning: #F59E0B;
+            --bg: #F8FAFC; --card: #FFFFFF; --text: #1E293B; --text-muted: #64748B;
+            --border: #E2E8F0;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1); --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+            --radius: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Prompt', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* =========================================
+           2. Components (Buttons, Inputs, Cards)
+           ========================================= */
+        .btn { padding: 12px 24px; border: none; border-radius: var(--radius); font-family: inherit; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #DC2626; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background: var(--primary); color: white; }
+        .btn-block { width: 100%; justify-content: center; }
+        
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-weight: 500; margin-bottom: 8px; font-size: 14px; }
+        .input-control { width: 100%; padding: 12px 16px; border: 2px solid var(--border); border-radius: var(--radius); font-family: inherit; font-size: 15px; transition: all 0.3s; background: white; }
+        .input-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        textarea.input-control { resize: vertical; min-height: 100px; }
+
+        .card { background: var(--card); border-radius: 16px; padding: 30px; box-shadow: var(--shadow); }
+
+        /* =========================================
+           3. Page: Login / Register
+           ========================================= */
+        #page-auth { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%); }
+        .auth-box { width: 100%; max-width: 450px; }
+        .auth-header { text-align: center; margin-bottom: 30px; }
+        /* แก้ไขส่วนโลโก้ให้รองรับทั้ง Icon และ รูปภาพ */
+.auth-logo-img {
+    max-width: 150px;
+    height: auto;
+    object-fit: contain;
+    margin: 0 auto 15px;
+    display: block;
+}
+.auth-logo-icon { /* เผื่ออยากสลับกลับใช้ icon */
+    width: 80px; height: 80px; background: var(--primary); color: white; 
+    border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+    font-size: 36px; margin: 0 auto 15px; 
+}
+        .auth-header h1 { font-size: 24px; margin-bottom: 5px; }
+        .auth-header p { color: var(--text-muted); }
+        .auth-switch { text-align: center; margin-top: 20px; font-size: 14px; color: var(--text-muted); }
+        .auth-switch a { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; }
+
+        /* =========================================
+           4. Page: Dashboard & Header
+           ========================================= */
+        .app-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 15px 20px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-lg); }
+        .header-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .header-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 10px 20px; border-radius: var(--radius); font-family: inherit; font-weight: 600; cursor: pointer; transition: all 0.3s; backdrop-filter: blur(5px); display: flex; align-items: center; gap: 8px; }
+        .header-btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+        .header-btn.logout { background: rgba(239, 68, 68, 0.8); }
+        
+        .main-container { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
+        
+        .profile-card { text-align: center; border-top: 4px solid var(--primary); margin-bottom: 30px; }
+        .avatar-wrapper { position: relative; width: 120px; height: 120px; margin: 0 auto 15px; }
+        .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary); }
+        .avatar-edit { position: absolute; bottom: 0; right: 0; background: var(--primary); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid white; }
+        .profile-name { font-size: 24px; font-weight: 600; margin-bottom: 5px; }
+        .profile-email { color: var(--text-muted); margin-bottom: 20px; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+        .stat-box { background: #F1F5F9; padding: 15px; border-radius: var(--radius); }
+        .stat-num { font-size: 24px; font-weight: 700; color: var(--primary); }
+        .stat-label { font-size: 12px; color: var(--text-muted); }
+
+        .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .action-card { cursor: pointer; border: 2px solid transparent; text-align: center; padding: 30px 20px; }
+        .action-card:hover { border-color: var(--primary); transform: translateY(-5px); }
+        .action-icon { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 28px; color: white; }
+        .icon-lost { background: var(--danger); }
+        .icon-found { background: var(--success); }
+        .icon-view { background: var(--primary); }
+        .icon-claim { background: var(--warning); }
+
+        /* =========================================
+           5. Page: Forms (Report Lost/Found)
+           ========================================= */
+        .page-header { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
+        .back-btn { background: var(--border); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+        .back-btn:hover { background: #CBD5E1; }
+        .page-title { font-size: 24px; font-weight: 600; }
+        .form-card { max-width: 700px; margin: 0 auto; }
+        .file-upload-box { border: 2px dashed var(--border); border-radius: var(--radius); padding: 30px; text-align: center; cursor: pointer; transition: all 0.3s; background: #F8FAFC; }
+        .file-upload-box:hover { border-color: var(--primary); background: #EEF2FF; }
+        .file-upload-box i { font-size: 32px; color: var(--text-muted); margin-bottom: 10px; }
+        .preview-area { margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .preview-area img, .preview-area video { max-width: 150px; border-radius: 8px; border: 1px solid var(--border); }
+
+        /* =========================================
+           6. Page: View Lists (Lost Items / Claims)
+           ========================================= */
+        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .item-card { overflow: hidden; display: flex; flex-direction: column; }
+        .item-img { width: 100%; height: 180px; object-fit: cover; background: #F1F5F9; }
+        .item-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+        .item-tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 10px; width: fit-content; }
+        .tag-lost { background: #FEE2E2; color: var(--danger); }
+        .tag-found { background: #D1FAE5; color: var(--success); }
+        .item-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+        .item-loc { font-size: 14px; color: var(--text-muted); margin-bottom: 15px; display: flex; align-items: center; gap: 5px; }
+        .item-desc { font-size: 14px; color: var(--text); flex: 1; margin-bottom: 15px; line-height: 1.5; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 48px; margin-bottom: 15px; opacity: 0.5; }
+
+        /* =========================================
+           7. Toast & Loading
+           ========================================= */
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: white; padding: 15px 20px; border-radius: var(--radius); box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 12px; min-width: 300px; border-left: 4px solid var(--primary); animation: slideIn 0.3s ease; }
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--danger); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        #loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.8); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; z-index: 9998; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 768px) {
+            .header-inner { flex-direction: column; gap: 10px; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Toast & Loading -->
+    <div id="toast-container"></div>
+    <div id="loading-overlay" class="hidden"><div class="spinner"></div></div>
+
+    <!-- ==========================================
+         PAGE 1: AUTH (Login / Register)
+         ========================================== -->
+    <div id="page-auth" class="page-section">
+        <div class="card auth-box fade-in">
+            <div class="auth-header">
+                <img src="/images/logo.png" alt="Logo โรงเรียน" class="auth-logo-img">
+                <h1 id="auth-title">เข้าสู่ระบบ</h1>
+                <p id="auth-subtitle">ระบบแจ้งและติดตามของหาย</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="form-login" class="fade-in">
+                <div class="input-group">
+                    <label>อีเมล</label>
+                    <input type="email" id="login-email" class="input-control" placeholder="name@hwp.ac.th" required>
+                </div>
+                <div class="input-group">
+                    <label>รหัสผ่าน</label>
+                    <input type="password" id="login-pass" class="input-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ</button>
+                <div class="auth-switch">ยังไม่มีบัญชี? <a onclick="App.toggleAuth('register')">สร้างบัญชีใหม่</a></div>
+            </form>
+
+            <!-- Register Form -->
+            <form id="form-register" class="hidden fade-in">
+                <div class="input-group">
+                    <label>ชื่อ-นามสกุล</label>
+                    <input type="text" id="reg-name" class="input-control" placeholder="กรอกชื่อ-นามสกุล" required>
+                </div>
+                <div class="input-group">
+                    <label>อีเมล</label>
+                    <input type="email" id="reg-email" class="input-control" placeholder="name@hwp.ac.th" required>
+                </div>
+                <div class="input-group">
+                    <label>รหัสผ่าน (อย่างน้อย 6 ตัว)</label>
+                    <input type="password" id="reg-pass" class="input-control" placeholder="••••••••" minlength="6" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-user-plus"></i> สร้างบัญชี</button>
+                <div class="auth-switch">มีบัญชีแล้ว? <a onclick="App.toggleAuth('login')">เข้าสู่ระบบ</a></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         PAGE 2: DASHBOARD (Main Page)
+         ========================================== -->
+    <div id="page-dashboard" class="page-section hidden">
+        <header class="app-header">
+            <div class="header-inner">
+                <button class="header-btn" onclick="App.nav('report-lost')"><i class="fa-solid fa-circle-exclamation"></i> แจ้งของหาย</button>
+                <button class="header-btn" onclick="App.nav('report-found')"><i class="fa-solid fa-hand-holding-heart"></i> แจ้งเก็บของได้</button>
+                <button class="header-btn logout" onclick="App.logout()"><i class="fa-solid fa-right-from-bracket"></i> ออก</button>
+            </div>
+        </header>
+
+        <div class="main-container fade-in">
+            <!-- Profile Section -->
+            <div class="card profile-card">
+                <div class="avatar-wrapper">
+                    <img src="" id="dash-avatar" class="avatar-img" alt="Profile">
+                    <label for="avatar-input" class="avatar-edit" title="เปลี่ยนรูปโปรไฟล์"><i class="fa-solid fa-camera"></i></label>
+                    <input type="file" id="avatar-input" accept="image/png,image/jpeg" class="hidden">
+                </div>
+                <h2 class="profile-name" id="dash-name">กำลังโหลด...</h2>
+                <p class="profile-email" id="dash-email">-</p>
+                
+                <div class="stats-grid">
+                    <div class="stat-box"><div class="stat-num" id="stat-lost">0</div><div class="stat-label">แจ้งของหาย</div></div>
+                    <div class="stat-box"><div class="stat-num" id="stat-found">0</div><div class="stat-label">แจ้งเก็บได้</div></div>
+                    <div class="stat-box"><div class="stat-num" id="stat-resolved">0</div><div class="stat-label">สำเร็จแล้ว</div></div>
+                </div>
+            </div>
+
+            <!-- Action Cards -->
+            <div class="action-grid">
+                <div class="card action-card" onclick="App.nav('view-lost')">
+                    <div class="action-icon icon-view"><i class="fa-solid fa-magnifying-glass"></i></div>
+                    <h3>ดูของที่หาย</h3>
+                    <p style="color:var(--text-muted); font-size:14px; margin-top:5px;">ค้นหารายการของหายทั้งหมด</p>
+                </div>
+                <div class="card action-card" onclick="App.nav('view-claims')">
+                    <div class="action-icon icon-claim"><i class="fa-solid fa-bell"></i></div>
+                    <h3>ดูคำร้องขอ</h3>
+                    <p style="color:var(--text-muted); font-size:14px; margin-top:5px;">ตรวจสอบคนที่เก็บของได้</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         PAGE 3: REPORT LOST
+         ========================================== -->
+    <div id="page-report-lost" class="page-section hidden">
+        <header class="app-header">
+            <div class="header-inner" style="justify-content: flex-start;">
+                <button class="back-btn" onclick="App.nav('dashboard')" style="background:rgba(255,255,255,0.2); color:white;"><i class="fa-solid fa-arrow-left"></i></button>
+                <h2 style="color:white; margin-left:10px;">แจ้งของหาย</h2>
+            </div>
+        </header>
+        <div class="main-container fade-in">
+            <div class="card form-card">
+                <form id="form-lost">
+                    <div class="input-group">
+                        <label>ชื่อสิ่งของ <span style="color:var(--danger)">*</span></label>
+                        <input type="text" id="lost-title" class="input-control" placeholder="เช่น กระเป๋าสีดำ, นาฬิกา" required>
+                    </div>
+                    <div class="input-group">
+                        <label>หมวดหมู่ <span style="color:var(--danger)">*</span></label>
+                        <select id="lost-category" class="input-control" required>
+                            <option value="">เลือกหมวดหมู่</option>
+                            <option>อุปกรณ์การเรียน</option><option>กระเป๋า</option><option>อิเล็กทรอนิกส์</option>
+                            <option>เครื่องแต่งกาย</option><option>อุปกรณ์กีฬา</option><option>อื่นๆ</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>สถานที่ที่ทำหาย <span style="color:var(--danger)">*</span></label>
+                        <input type="text" id="lost-location" class="input-control" placeholder="เช่น ห้อง 10/3, โรงอาหาร" required>
+                    </div>
+                    <div class="input-group">
+                        <label>รายละเอียดลักษณะ <span style="color:var(--danger)">*</span></label>
+                        <textarea id="lost-desc" class="input-control" placeholder="บอกลักษณะเฉพาะ สี ยี่ห้อ รอยตำหนิ" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger btn-block"><i class="fa-solid fa-paper-plane"></i> ส่งแจ้งของหาย</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         PAGE 4: REPORT FOUND
+         ========================================== -->
+    <div id="page-report-found" class="page-section hidden">
+        <header class="app-header" style="background: linear-gradient(135deg, var(--success), #059669);">
+            <div class="header-inner" style="justify-content: flex-start;">
+                <button class="back-btn" onclick="App.nav('dashboard')" style="background:rgba(255,255,255,0.2); color:white;"><i class="fa-solid fa-arrow-left"></i></button>
+                <h2 style="color:white; margin-left:10px;">แจ้งเก็บของได้</h2>
+            </div>
+        </header>
+        <div class="main-container fade-in">
+            <div class="card form-card" style="border-top: 4px solid var(--success);">
+                <form id="form-found">
+                    <div class="input-group">
+                        <label>ชื่อสิ่งของ <span style="color:var(--danger)">*</span></label>
+                        <input type="text" id="found-title" class="input-control" required>
+                    </div>
+                    <div class="input-group">
+                        <label>หมวดหมู่ <span style="color:var(--danger)">*</span></label>
+                        <select id="found-category" class="input-control" required>
+                            <option value="">เลือกหมวดหมู่</option>
+                            <option>อุปกรณ์การเรียน</option><option>กระเป๋า</option><option>อิเล็กทรอนิกส์</option>
+                            <option>เครื่องแต่งกาย</option><option>อุปกรณ์กีฬา</option><option>อื่นๆ</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>สถานที่ที่เก็บได้ <span style="color:var(--danger)">*</span></label>
+                        <input type="text" id="found-location" class="input-control" required>
+                    </div>
+                    <div class="input-group">
+                        <label>รายละเอียด <span style="color:var(--danger)">*</span></label>
+                        <textarea id="found-desc" class="input-control" required></textarea>
+                    </div>
+                    
+                    <!-- File Upload -->
+                    <div class="input-group">
+                        <label>รูปภาพ (PNG, JPG) หรือ วิดีโอ</label>
+                        <label for="found-file" class="file-upload-box">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <p>คลิกเพื่อเลือกรูปภาพหรือวิดีโอ</p>
+                            <small style="color:var(--text-muted)">รองรับ PNG, JPG, MP4 (สูงสุด 10MB)</small>
+                        </label>
+                        <input type="file" id="found-file" accept="image/png,image/jpeg,video/mp4" class="hidden">
+                        <div id="found-preview" class="preview-area"></div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-block"><i class="fa-solid fa-hand-holding-heart"></i> ส่งแจ้งเก็บของได้</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         PAGE 5: VIEW LOST ITEMS
+         ========================================== -->
+    <div id="page-view-lost" class="page-section hidden">
+        <header class="app-header">
+            <div class="header-inner" style="justify-content: flex-start;">
+                <button class="back-btn" onclick="App.nav('dashboard')" style="background:rgba(255,255,255,0.2); color:white;"><i class="fa-solid fa-arrow-left"></i></button>
+                <h2 style="color:white; margin-left:10px;">รายการของหายทั้งหมด</h2>
+            </div>
+        </header>
+        <div class="main-container fade-in">
+            <div id="lost-list" class="items-grid">
+                <!-- Items will be injected here by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         PAGE 6: VIEW CLAIMS
+         ========================================== -->
+    <div id="page-view-claims" class="page-section hidden">
+        <header class="app-header" style="background: linear-gradient(135deg, var(--warning), #D97706);">
+            <div class="header-inner" style="justify-content: flex-start;">
+                <button class="back-btn" onclick="App.nav('dashboard')" style="background:rgba(255,255,255,0.2); color:white;"><i class="fa-solid fa-arrow-left"></i></button>
+                <h2 style="color:white; margin-left:10px;">คำร้องขอ (คนที่เก็บของได้)</h2>
+            </div>
+        </header>
+        <div class="main-container fade-in">
+            <div id="claims-list" class="items-grid">
+                <!-- Claims will be injected here by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         JAVASCRIPT LOGIC
+         ========================================== -->
+    <script>
+        // 1. Supabase Configuration (⚠️ ใส่ค่าของคุณที่นี่)
+        const SUPABASE_URL = 'https://hecopmejblulnsnrmcmg.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhlY29wbWVqYmx1bG5zbnJtY21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMDgwMDUsImV4cCI6MjEwNDU4NDAwNX0.ad_EFeHFhoFJAvVCycc0E_fZ-kYozNdvK_wy-x6slFA';
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // 2. App State & Router
+        const App = {
+            user: null,
+            profile: null,
+
+            init: async () => {
+                // Check session
+                const { data: { session } } = await sb.auth.getSession();
+                if (session) {
+                    App.user = session.user;
+                    await App.loadProfile();
+                    App.nav('dashboard');
+                } else {
+                    App.nav('auth');
+                }
+
+                // Listen to auth changes
+                sb.auth.onAuthStateChange((event, session) => {
+                    if (event === 'SIGNED_IN') {
+                        App.user = session.user;
+                        App.loadProfile().then(() => App.nav('dashboard'));
+                    } else if (event === 'SIGNED_OUT') {
+                        App.user = null;
+                        App.nav('auth');
+                    }
+                });
+            },
+
+            nav: (pageId) => {
+                document.querySelectorAll('.page-section').forEach(p => p.classList.add('hidden'));
+                document.getElementById(`page-${pageId}`).classList.remove('hidden');
+                window.scrollTo(0, 0);
+                
+                // Load data when entering specific pages
+                if (pageId === 'dashboard') App.loadDashboardStats();
+                if (pageId === 'view-lost') App.loadLostItems();
+                if (pageId === 'view-claims') App.loadClaims();
+            },
+
+            toggleAuth: (mode) => {
+                if (mode === 'register') {
+                    document.getElementById('form-login').classList.add('hidden');
+                    document.getElementById('form-register').classList.remove('hidden');
+                    document.getElementById('auth-title').textContent = 'สร้างบัญชีใหม่';
+                } else {
+                    document.getElementById('form-register').classList.add('hidden');
+                    document.getElementById('form-login').classList.remove('hidden');
+                    document.getElementById('auth-title').textContent = 'เข้าสู่ระบบ';
+                }
+            },
+
+            logout: async () => {
+                await sb.auth.signOut();
+            },
+
+            // 3. Profile & Dashboard Logic
+            loadProfile: async () => {
+                let { data: profile } = await sb.from('profiles').select('*').eq('id', App.user.id).single();
+                if (!profile) {
+                    // Create profile if not exists
+                    await sb.from('profiles').insert({ id: App.user.id, email: App.user.email, full_name: App.user.email.split('@')[0] });
+                    profile = { full_name: App.user.email.split('@')[0], avatar_url: null };
+                }
+                App.profile = profile;
+                App.updateProfileUI();
+            },
+
+            updateProfileUI: () => {
+                document.getElementById('dash-name').textContent = App.profile.full_name || 'ผู้ใช้';
+                document.getElementById('dash-email').textContent = App.user.email;
+                const avatar = document.getElementById('dash-avatar');
+                if (App.profile.avatar_url) {
+                    avatar.src = App.profile.avatar_url;
+                } else {
+                    const initial = (App.profile.full_name || 'U').charAt(0).toUpperCase();
+                    avatar.src = `https://ui-avatars.com/api/?name=${initial}&background=6366F1&color=fff&size=150`;
+                }
+            },
+
+            loadDashboardStats: async () => {
+                const { count: lost } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'lost');
+                const { count: found } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'found');
+                const { count: resolved } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('status', 'resolved');
+                
+                document.getElementById('stat-lost').textContent = lost || 0;
+                document.getElementById('stat-found').textContent = found || 0;
+                document.getElementById('stat-resolved').textContent = resolved || 0;
+            },
+
+            // 4. Form Submissions
+            handleLogin: async (e) => {
+                e.preventDefault();
+                App.showLoading(true);
+                const { error } = await sb.auth.signInWithPassword({
+                    email: document.getElementById('login-email').value,
+                    password: document.getElementById('login-pass').value
+                });
+                App.showLoading(false);
+                if (error) App.toast('error', 'เข้าสู่ระบบไม่สำเร็จ', error.message);
+            },
+
+            handleRegister: async (e) => {
+                e.preventDefault();
+                App.showLoading(true);
+                const { data, error } = await sb.auth.signUp({
+                    email: document.getElementById('reg-email').value,
+                    password: document.getElementById('reg-pass').value,
+                    options: { data: { full_name: document.getElementById('reg-name').value } }
+                });
+                App.showLoading(false);
+                if (error) {
+                    App.toast('error', 'สมัครไม่สำเร็จ', error.message);
+                } else {
+                    App.toast('success', 'สมัครสำเร็จ', 'กรุณาเข้าสู่ระบบ');
+                    App.toggleAuth('login');
+                }
+            },
+
+            handleLost: async (e) => {
+                e.preventDefault();
+                App.showLoading(true);
+                const { error } = await sb.from('items').insert({
+                    user_id: App.user.id, type: 'lost', status: 'active',
+                    title: document.getElementById('lost-title').value,
+                    category: document.getElementById('lost-category').value,
+                    location: document.getElementById('lost-location').value,
+                    description: document.getElementById('lost-desc').value
+                });
+                App.showLoading(false);
+                if (error) App.toast('error', 'เกิดข้อผิดพลาด', error.message);
+                else {
+                    App.toast('success', 'ส่งข้อมูลสำเร็จ', 'ระบบบันทึกการแจ้งของหายแล้ว');
+                    e.target.reset();
+                    App.nav('dashboard');
+                }
+            },
+
+                        handleFound: async (e) => {
+                e.preventDefault();
+                App.showLoading(true);
+                
+                let image_url = null, video_url = null;
+                const fileInput = document.getElementById('found-file');
+                const file = fileInput.files[0];
+
+                if (file) {
+                    const ext = file.name.split('.').pop();
+                    const fileName = `${App.user.id}_${Date.now()}.${ext}`;
+                    
+                    // ใช้ bucket เดียวชื่อ 'item-images' สำหรับทั้งรูปและวิดีโอ เพื่อความง่าย
+                    const { data, error: uploadError } = await sb.storage
+                        .from('item-images')
+                        .upload(fileName, file);
+                        
+                    if (uploadError) { 
+                        App.showLoading(false); 
+                        App.toast('error', 'อัปโหลดไฟล์ไม่สำเร็จ', uploadError.message); 
+                        return; 
+                    }
+                    
+                    const { data: { publicUrl } } = sb.storage.from('item-images').getPublicUrl(fileName);
+                    
+                    // แยกเก็บตามประเภทไฟล์
+                    if (file.type.startsWith('video/')) {
+                        video_url = publicUrl;
+                    } else {
+                        image_url = publicUrl;
+                    }
+                }
+
+                const { error } = await sb.from('items').insert({
+                    user_id: App.user.id, type: 'found', status: 'active',
+                    title: document.getElementById('found-title').value,
+                    category: document.getElementById('found-category').value,
+                    location: document.getElementById('found-location').value,
+                    description: document.getElementById('found-desc').value,
+                    image_url, video_url
+                });
+                
+                App.showLoading(false);
+                if (error) App.toast('error', 'เกิดข้อผิดพลาด', error.message);
+                else {
+                    App.toast('success', 'ส่งข้อมูลสำเร็จ', 'ขอบคุณที่แจ้งเก็บของได้');
+                    e.target.reset();
+                    document.getElementById('found-preview').innerHTML = '';
+                    App.nav('dashboard');
+                }
+            },
+
+            // 5. View Lists Logic
+                        loadLostItems: async () => {
+                const container = document.getElementById('lost-list');
+                container.innerHTML = '<div class="spinner" style="margin:50px auto;"></div>';
+                
+                const { data, error } = await sb.from('items').select('*').eq('type', 'lost').eq('status', 'active').order('created_at', {ascending: false});
+                
+                if (error || !data.length) {
+                    container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-box-open"></i><p>ไม่พบรายการของหายในระบบ</p></div>';
+                    return;
+                }
+
+                container.innerHTML = data.map(item => `
+                    <div class="card item-card">
+                        ${item.image_url ? `<img src="${item.image_url}" class="item-img">` : `<div class="item-img" style="display:flex;align-items:center;justify-content:center;color:#ccc;"><i class="fa-solid fa-image fa-3x"></i></div>`}
+                        <div class="item-body">
+                            <span class="item-tag tag-lost">ของหาย</span>
+                            <h3 class="item-title">${item.title}</h3>
+                            <div class="item-loc"><i class="fa-solid fa-location-dot"></i> ${item.location}</div>
+                            <p class="item-desc">${item.description}</p小>
+                            <small style="color:var(--text-muted)">${new Date(item.created_at).toLocaleDateString('th-TH')}</small>
+                            
+                            <!-- เพิ่มปุ่มนี้: ถ้าไม่ใช่เจ้าของโพสต์ ให้แสดงปุ่มแจ้งว่าเก็บได้ -->
+                            ${item.user_id !== App.user.id ? `
+                                <button class="btn btn-primary btn-block" style="margin-top:15px; font-size:14px;" onclick="App.createClaim('${item.id}')">
+                                    <i class="fa-solid fa-hand-holding-heart"></i> แจ้งว่าฉันเก็บสิ่งนี้ได้
+                                </button>
+                            ` : '<small style="color:var(--primary); margin-top:10px; display:block; text-align:center;">* นี่คือประกาศของคุณ</small>'}
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            loadClaims: async () => {
+                const container = document.getElementById('claims-list');
+                container.innerHTML = '<div class="spinner" style="margin:50px auto;"></div>';
+
+                // ดึงคำร้องที่คนอื่นส่งมาหาของที่เราลงประกาศไว้
+                const { data, error } = await sb.from('claims').select('*, items(title, type)').eq('items.user_id', App.user.id).order('created_at', {ascending: false});
+
+                if (error || !data.length) {
+                    container.innerHTML = '<div class="empty-state"><i class="fa-regular fa-bell-slash"></i><p>ยังไม่มีคำร้องขอเข้ามา</p></div>';
+                    return;
+                }
+
+                container.innerHTML = data.map(claim => `
+                    <div class="card item-card">
+                        <div class="item-body">
+                            <span class="item-tag tag-found">คำร้องจากคนเก็บได้</span>
+                            <h3 class="item-title">เกี่ยวกับ: ${claim.items?.title || 'ไม่ระบุ'}</h3>
+                            <p class="item-desc">${claim.description || 'ไม่มีความเห็นเพิ่มเติม'}</p>
+                            <div style="margin-top:auto; display:flex; gap:10px;">
+                                <button class="btn btn-success" style="flex:1; font-size:14px;" onclick="App.resolveClaim('${claim.id}', '${claim.item_id}')"><i class="fa-solid fa-check"></i> รับคืนแล้ว</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            resolveClaim: async (claimId, itemId) => {
+                if(!confirm('ยืนยันว่าได้รับของคืนแล้ว? ระบบจะปิดประกาศนี้')) return;
+                App.showLoading(true);
+                await sb.from('claims').update({status: 'approved'}).eq('id', claimId);
+                await sb.from('items').update({status: 'resolved'}).eq('id', itemId);
+                App.showLoading(false);
+                App.toast('success', 'สำเร็จ', 'อัปเดตสถานะเรียบร้อยแล้ว');
+                App.loadClaims();
+                
+            },
+
+            // 6. Utilities
+            showLoading: (show) => document.getElementById('loading-overlay').classList.toggle('hidden', !show),
+            toast: (type, title, msg) => {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `<i class="fa-solid ${type==='success'?'fa-circle-check':'fa-circle-xmark'}" style="font-size:20px; color:${type==='success'?'var(--success)':'var(--danger)'}"></i><div><div style="font-weight:600">${title}</div><div style="font-size:13px; color:var(--text-muted)">${msg}</div></div>`;
+                container.appendChild(toast);
+                setTimeout(() => toast.remove(), 4000);
+            }
+        };
+
+        // 3. Event Listeners
+        document.getElementById('form-login').addEventListener('submit', App.handleLogin);
+        document.getElementById('form-register').addEventListener('submit', App.handleRegister);
+        document.getElementById('form-lost').addEventListener('submit', App.handleLost);
+        document.getElementById('form-found').addEventListener('submit', App.handleFound);
+
+        // Avatar Upload
+        document.getElementById('avatar-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (!['image/png', 'image/jpeg'].includes(file.type)) { App.toast('error', 'ไฟล์ไม่รองรับ', 'กรุณาใช้ PNG หรือ JPG'); return; }
+            
+            App.showLoading(true);
+            const fileName = `${App.user.id}.png`;
+            await sb.storage.from('avatars').upload(fileName, file, {upsert: true});
+            const { data: { publicUrl } } = sb.storage.from('avatars').getPublicUrl(fileName);
+            await sb.from('profiles').update({avatar_url: publicUrl}).eq('id', App.user.id);
+            App.profile.avatar_url = publicUrl;
+            App.updateProfileUI();
+            App.showLoading(false);
+            App.toast('success', 'สำเร็จ', 'อัปเดตรูปโปรไฟล์แล้ว');
+        });
+
+        // Preview file on Report Found
+        document.getElementById('found-file').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const preview = document.getElementById('found-preview');
+            preview.innerHTML = '';
+            if (file) {
+                const url = URL.createObjectURL(file);
+                if (file.type.startsWith('video/')) {
+                    preview.innerHTML = `<video src="${url}" controls style="max-width:200px;"></video>`;
+                } else {
+                    preview.innerHTML = `<img src="${url}" style="max-width:150px;">`;
+                }
+            }
+        });
+
+        // Start App
+        App.init();
+    </script>
+</body>
+</html>
