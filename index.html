@@ -649,6 +649,58 @@
                 
             },
 
+            createClaim: async (itemId) => {
+                // ใช้ prompt ง่ายๆ เพื่อรับข้อความ (สามารถเปลี่ยนเป็น Modal ได้ในอนาคต)
+                const desc = prompt("กรุณากรอกรายละเอียดเพิ่มเติม (เช่น สถานที่ที่พบ, เบอร์ติดต่อ):");
+                
+                if (!desc || desc.trim() === "") {
+                    App.toast('warning', 'ยกเลิก', 'กรุณากรอกรายละเอียดเพื่อส่งคำร้อง');
+                    return;
+                }
+
+                App.showLoading(true);
+                
+                const { error } = await sb.from('claims').insert({
+                    item_id: itemId,
+                    claimer_id: App.user.id,
+                    description: desc,
+                    status: 'pending'
+                });
+                
+                App.showLoading(false);
+                
+                if (error) {
+                    App.toast('error', 'ส่งคำร้องไม่สำเร็จ', error.message);
+                } else {
+                    App.toast('success', 'ส่งคำร้องสำเร็จ', 'เจ้าของสิ่งของจะเห็นคำร้องของคุณในเร็วๆ นี้');
+                }
+            },createClaim: async (itemId) => {
+                // ใช้ prompt ง่ายๆ เพื่อรับข้อความ (สามารถเปลี่ยนเป็น Modal ได้ในอนาคต)
+                const desc = prompt("กรุณากรอกรายละเอียดเพิ่มเติม (เช่น สถานที่ที่พบ, เบอร์ติดต่อ):");
+                
+                if (!desc || desc.trim() === "") {
+                    App.toast('warning', 'ยกเลิก', 'กรุณากรอกรายละเอียดเพื่อส่งคำร้อง');
+                    return;
+                }
+
+                App.showLoading(true);
+                
+                const { error } = await sb.from('claims').insert({
+                    item_id: itemId,
+                    claimer_id: App.user.id,
+                    description: desc,
+                    status: 'pending'
+                });
+                
+                App.showLoading(false);
+                
+                if (error) {
+                    App.toast('error', 'ส่งคำร้องไม่สำเร็จ', error.message);
+                } else {
+                    App.toast('success', 'ส่งคำร้องสำเร็จ', 'เจ้าของสิ่งของจะเห็นคำร้องของคุณในเร็วๆ นี้');
+                }
+            },
+
             // 6. Utilities
             showLoading: (show) => document.getElementById('loading-overlay').classList.toggle('hidden', !show),
             toast: (type, title, msg) => {
