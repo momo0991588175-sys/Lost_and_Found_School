@@ -180,8 +180,7 @@
                 <button class="nav-btn" onclick="App.nav('report-lost')"><i class="fa-solid fa-circle-exclamation"></i><span>แจ้งของหาย</span></button>
                 <button class="nav-btn" onclick="App.nav('view-lost')"><i class="fa-solid fa-magnifying-glass"></i><span>ดูของหาย</span></button>
                 <div style="flex: 1;"></div>
-                <!-- เปลี่ยนปุ่ม Logout เป็น Settings -->
-                <button class="nav-btn" onclick="App.nav('settings')"><i class="fa-solid fa-gear"></i><span>ตั้งค่าบัญชี</span></ a></button>
+                <button class="nav-btn" onclick="App.nav('settings')"><i class="fa-solid fa-gear"></i><span>ตั้งค่าบัญชี</span></button>
             </nav>
 
             <main class="main-content">
@@ -247,7 +246,7 @@
                     <div id="lost-list" class="items-grid"></div>
                 </div>
 
-                <!-- SETTINGS (ใหม่) -->
+                <!-- SETTINGS -->
                 <div id="page-settings" class="page-section hidden fade-in">
                     <div class="page-header">
                         <button class="back-btn" onclick="App.nav('home')"><i class="fa-solid fa-arrow-left"></i></button>
@@ -299,7 +298,7 @@
                             <h3 class="settings-title" style="color: var(--danger);"><i class="fa-solid fa-right-from-bracket"></i> โซนอันตราย</h3>
                             <button class="btn btn-danger" style="max-width: 300px;" onclick="App.logout()">
                                 <i class="fa-solid fa-power-off"></i> ออกจากระบบ
-                            </button an>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -319,7 +318,7 @@
         const App = {
             user: null, 
             profile: null,
-            editingItemId: null, // ใช้สำหรับโหมดแก้ไข
+            editingItemId: null,
 
             init: async () => {
                 try {
@@ -405,7 +404,6 @@
                 const avatarUrl = App.profile.avatar_url || `https://ui-avatars.com/api/?name=${(App.profile.full_name || 'U').charAt(0).toUpperCase()}&background=6366F1&color=fff&size=150`;
                 document.getElementById('dash-avatar').src = avatarUrl;
                 
-                // อัปเดตรูปในหน้าตั้งค่าด้วย
                 const settingsAvatar = document.getElementById('settings-avatar-preview');
                 if(settingsAvatar) settingsAvatar.src = avatarUrl;
                 
@@ -423,7 +421,7 @@
                     document.getElementById('stat-claims').textContent = claims || 0;
                 } catch (err) { console.error('Stats error:', err); }
             },
-            
+
             handleLogin: async (e) => {
                 e.preventDefault(); 
                 App.showLoading(true);
@@ -459,8 +457,6 @@
                 }
             },
 
-            // --- จัดการของหาย (เพิ่ม/แก้ไข/ลบ) ---
-            // --- จัดการของหาย (เพิ่ม/แก้ไข/ลบ) ---
             handleLost: async (e) => {
                 e.preventDefault(); 
                 App.showLoading(true);
@@ -477,11 +473,9 @@
                     
                     let error;
                     if (App.editingItemId) {
-                        // โหมดแก้ไข
                         const { error: updateError } = await sb.from('items').update(itemData).eq('id', App.editingItemId);
                         error = updateError;
                     } else {
-                        // โหมดสร้างใหม่
                         const { error: insertError } = await sb.from('items').insert(itemData);
                         error = insertError;
                     }
@@ -489,7 +483,7 @@
                     if (error) throw error;
                     
                     App.toast('success', 'สำเร็จ', App.editingItemId ? 'แก้ไขข้อมูลเรียบร้อยแล้ว' : 'ระบบบันทึกการแจ้งของหายแล้ว');
-                    App.cancelEdit(); // รีเซ็ตฟอร์ม
+                    App.cancelEdit();
                     App.nav('home');
                 } catch (err) {
                     App.toast('error', 'เกิดข้อผิดพลาด', err.message);
@@ -532,18 +526,16 @@
                 if (!confirm('คุณแน่ใจว่าต้องการลบรายการนี้? การกระทำนี้ไม่สามารถย้อนกลับได้')) return;
                 App.showLoading(true);
                 try {
-                    // ลบรูปจาก Storage ก่อน (ถ้ามี)
                     const { data: item } = await sb.from('items').select('image_url').eq('id', itemId).single();
                     if (item && item.image_url) {
                         const fileName = item.image_url.split('/').pop();
                         await sb.storage.from('item-images').remove([fileName]);
                     }
-                    // ลบข้อมูลในตาราง
                     const { error } = await sb.from('items').delete().eq('id', itemId);
                     if (error) throw error;
                     
                     App.toast('success', 'สำเร็จ', 'ลบรายการเรียบร้อยแล้ว');
-                    App.loadLostItems(); // โหลดใหม่
+                    App.loadLostItems();
                 } catch (err) {
                     App.toast('error', 'ลบไม่สำเร็จ', err.message);
                 } finally {
@@ -617,9 +609,8 @@
                 }
             },
 
-            // --- จัดการตั้งค่า (Settings) ---
             loadSettingsData: () => {
-                App.updateProfileUI(); // อัปเดตค่าเริ่มต้นในฟอร์ม
+                App.updateProfileUI();
             },
 
             handleAvatarUpload: async (e) => {
@@ -630,19 +621,16 @@
                 }
                 App.showLoading(true);
                 try {
-                    // 1. ลบรูปเก่าออก (ถ้ามี)
                     if (App.profile.avatar_url) {
                         const oldFileName = App.profile.avatar_url.split('/').pop();
                         await sb.storage.from('avatars').remove([oldFileName]);
                     }
-                    // 2. อัปโหลดรูปใหม่
                     const fileName = `${App.user.id}_${Date.now()}.png`;
                     const { error: uploadError } = await sb.storage.from('avatars').upload(fileName, file);
                     if (uploadError) throw uploadError;
                     
                     const { data: { publicUrl } } = sb.storage.from('avatars').getPublicUrl(fileName);
                     
-                    // 3. อัปเดตฐานข้อมูล
                     const { error: updateError } = await sb.from('profiles').update({ avatar_url: publicUrl }).eq('id', App.user.id);
                     if (updateError) throw updateError;
                     
@@ -653,7 +641,7 @@
                     App.toast('error', 'อัปโหลดไม่สำเร็จ', err.message);
                 } finally {
                     App.showLoading(false);
-                    e.target.value = ''; // รีเซ็ต input
+                    e.target.value = '';
                 }
             },
 
