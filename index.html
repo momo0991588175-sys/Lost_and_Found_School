@@ -66,7 +66,7 @@
     margin: 0 auto 15px;
     display: block;
 }
-.auth-logo-icon { /* เผื่ออยากสลับกลับใช้ icon */
+.auth-logo-icon 
     width: 80px; height: 80px; background: var(--primary); color: white; 
     border-radius: 50%; display: flex; align-items: center; justify-content: center; 
     font-size: 36px; margin: 0 auto 15px; 
@@ -385,7 +385,7 @@
          JAVASCRIPT LOGIC
          ========================================== -->
     <script>
-        // 1. Supabase Configuration (⚠️ ใส่ค่าของคุณที่นี่)
+        // 1. Supabase Configuration
         const SUPABASE_URL = 'https://hecopmejblulnsnrmcmg.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhlY29wbWVqYmx1bG5zbnJtY21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMDgwMDUsImV4cCI6MjEwNDU4NDAwNX0.ad_EFeHFhoFJAvVCycc0E_fZ-kYozNdvK_wy-x6slFA';
         const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -601,7 +601,7 @@
                             <p class="item-desc">${item.description}</p>
                             <small style="color:var(--text-muted)">${new Date(item.created_at).toLocaleDateString('th-TH')}</small>
                             
-                            <!-- เพิ่มปุ่มนี้: ถ้าไม่ใช่เจ้าของโพสต์ ให้แสดงปุ่มแจ้งว่าเก็บได้ -->
+                            
                             ${item.user_id !== App.user.id ? `
                                 <button class="btn btn-primary btn-block" style="margin-top:15px; font-size:14px;" onclick="App.createClaim('${item.id}')">
                                     <i class="fa-solid fa-hand-holding-heart"></i> แจ้งว่าฉันเก็บสิ่งนี้ได้
@@ -616,7 +616,7 @@
                 const container = document.getElementById('claims-list');
                 container.innerHTML = '<div class="spinner" style="margin:50px auto;"></div>';
 
-                // ดึงคำร้องที่คนอื่นส่งมาหาของที่เราลงประกาศไว้
+                
                 const { data, error } = await sb.from('claims').select('*, items(title, type)').eq('items.user_id', App.user.id).order('created_at', {ascending: false});
 
                 if (error || !data.length) {
