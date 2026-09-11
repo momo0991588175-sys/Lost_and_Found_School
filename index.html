@@ -5,12 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lost & Found School - ระบบแจ้งและติดตามของหาย</title>
     
+    <!-- Fonts & Icons --> 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
+        /* =========================================
+           1. CSS Variables & Reset
+           ========================================= */
         :root {
             --primary: #6366F1; --primary-dark: #4F46E5;
             --success: #10B981; --danger: #EF4444; --warning: #F59E0B;
@@ -20,148 +26,176 @@
             --radius: 12px;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Prompt', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: var(--text); min-height: 100vh; }
+        body { font-family: 'Prompt', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
         .hidden { display: none !important; }
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Components */
+        /* =========================================
+           2. Components (Buttons, Inputs, Cards)
+           ========================================= */
         .btn { padding: 10px 20px; border: none; border-radius: var(--radius); font-family: inherit; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
         .btn-danger { background: var(--danger); color: white; }
-        .btn-danger:hover { background: #DC2626; transform: translateY(-2px); }
+        .btn-danger:hover { background: #DC2626; }
         .btn-success { background: var(--success); color: white; }
-        .btn-success:hover { background: #059669; transform: translateY(-2px); }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background: var(--primary); color: white; }
         .btn-sm { padding: 6px 12px; font-size: 12px; }
         .btn-block { width: 100%; justify-content: center; }
         
-        .input-group { margin-bottom: 18px; }
-        .input-group label { display: block; font-weight: 500; margin-bottom: 6px; font-size: 14px; color: var(--text); }
-        .input-control { width: 100%; padding: 11px 14px; border: 2px solid var(--border); border-radius: var(--radius); font-family: inherit; font-size: 14px; transition: all 0.3s; background: white; }
+        .input-group { margin-bottom: 16px; }
+        .input-group label { display: block; font-weight: 500; margin-bottom: 6px; font-size: 14px; }
+        .input-control { width: 100%; padding: 10px 14px; border: 2px solid var(--border); border-radius: var(--radius); font-family: inherit; font-size: 14px; transition: all 0.3s; background: white; }
         .input-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
-        textarea.input-control { resize: vertical; min-height: 90px; }
+        textarea.input-control { resize: vertical; min-height: 80px; }
 
-        .card { background: var(--card); border-radius: 20px; padding: 35px; box-shadow: var(--shadow-lg); }
+        .card { background: var(--card); border-radius: 16px; padding: 24px; box-shadow: var(--shadow); }
 
-        /* Login Page - ปรับขนาดให้เหมาะสม */
-        #page-auth { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-        .auth-box { width: 100%; max-width: 420px; background: white; border-radius: 24px; padding: 40px 35px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        .auth-header { text-align: center; margin-bottom: 30px; }
-        .auth-logo-img { max-width: 120px; height: auto; margin: 0 auto 20px; display: block; }
-        .auth-header h1 { font-size: 26px; margin-bottom: 8px; color: var(--text); font-weight: 700; }
+        /* =========================================
+           3. Page: Login / Register (ปรับปรุงขนาด)
+           ========================================= */
+        #page-auth { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%); }
+        .auth-box { width: 100%; max-width: 400px; } /* ลดจาก 450px เป็น 400px */
+        .auth-header { text-align: center; margin-bottom: 24px; }
+        .auth-logo-img {
+            max-width: 120px; /* ลดขนาดลง */
+            height: auto;
+            margin: 0 auto 12px;
+            display: block;
+        }
+        .auth-header h1 { font-size: 22px; margin-bottom: 4px; }
         .auth-header p { color: var(--text-muted); font-size: 14px; }
-        .auth-switch { text-align: center; margin-top: 20px; font-size: 14px; color: var(--text-muted); }
+        .auth-switch { text-align: center; margin-top: 16px; font-size: 13px; color: var(--text-muted); }
         .auth-switch a { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; }
-        .auth-switch a:hover { text-decoration: underline; }
 
-        /* Header & Dashboard */
-        .app-header { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 15px 25px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .header-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .header-title { font-size: 20px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 10px; }
-        .header-btn { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: var(--radius); font-family: inherit; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
-        .header-btn:hover { background: var(--primary-dark); transform: translateY(-2px); }
-        .header-btn.logout { background: var(--danger); }
-        .header-btn.logout:hover { background: #DC2626; }
+        /* =========================================
+           4. Page: Dashboard & Header (ปรับขนาด)
+           ========================================= */
+        .app-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 12px 20px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-lg); }
+        .header-inner { max-width: 1000px; margin: 0 auto; display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+        .header-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: var(--radius); font-family: inherit; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.3s; backdrop-filter: blur(5px); display: flex; align-items: center; gap: 6px; }
+        .header-btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+        .header-btn.logout { background: rgba(239, 68, 68, 0.8); }
         
-        .main-container { max-width: 1100px; margin: 0 auto; padding: 30px 20px; }
+        .main-container { max-width: 1000px; margin: 0 auto; padding: 24px 20px; }
         
-        /* Profile Section - ปรับขนาด */
-        .profile-card { text-align: center; background: white; border-radius: 24px; padding: 35px; box-shadow: var(--shadow-lg); margin-bottom: 30px; }
-        .avatar-wrapper { position: relative; width: 100px; height: 100px; margin: 0 auto 15px; }
-        .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary); box-shadow: var(--shadow); }
-        .avatar-edit { position: absolute; bottom: 0; right: 0; background: var(--primary); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid white; font-size: 14px; }
-        .profile-name { font-size: 22px; font-weight: 700; margin-bottom: 5px; color: var(--text); }
-        .profile-email { color: var(--text-muted); margin-bottom: 25px; font-size: 14px; }
-        .admin-badge { background: linear-gradient(135deg, #F59E0B, #D97706); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; margin-bottom: 10px; }
+        .profile-card { text-align: center; border-top: 4px solid var(--primary); margin-bottom: 24px; padding: 20px; }
+        .avatar-wrapper { position: relative; width: 100px; height: 100px; margin: 0 auto 12px; } /* ลดขนาด */
+        .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); }
+        .avatar-edit { position: absolute; bottom: 0; right: 0; background: var(--primary); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid white; font-size: 12px; }
+        .profile-name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+        .profile-email { color: var(--text-muted); margin-bottom: 16px; font-size: 13px; }
         
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
-        .stat-box { background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%); padding: 20px; border-radius: var(--radius); border: 2px solid rgba(99,102,241,0.1); }
-        .stat-num { font-size: 28px; font-weight: 700; color: var(--primary); margin-bottom: 5px; }
-        .stat-label { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+        /* ปุ่มแจ้งของหายกลางหน้า */
+        .report-lost-btn {
+            background: linear-gradient(135deg, var(--danger), #DC2626);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 16px auto;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        .report-lost-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+        }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+        .stat-box { background: #F1F5F9; padding: 12px; border-radius: var(--radius); }
+        .stat-num { font-size: 20px; font-weight: 700; color: var(--primary); }
+        .stat-label { font-size: 11px; color: var(--text-muted); }
 
-        /* Action Buttons - ปรับ Layout ใหม่ */
-        .action-section { display: flex; flex-direction: column; gap: 20px; align-items: center; }
-        .main-action-btn { width: 100%; max-width: 400px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; padding: 18px 30px; border-radius: var(--radius); font-family: inherit; font-weight: 700; font-size: 16px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 12px; box-shadow: 0 10px 30px rgba(99,102,241,0.3); }
-        .main-action-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(99,102,241,0.4); }
-        
-        .action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 100%; max-width: 600px; }
-        .action-card { cursor: pointer; background: white; border: 2px solid transparent; text-align: center; padding: 30px 20px; border-radius: 20px; box-shadow: var(--shadow); transition: all 0.3s; }
-        .action-card:hover { border-color: var(--primary); transform: translateY(-5px); box-shadow: var(--shadow-lg); }
-        .action-icon { width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 26px; color: white; }
-        .icon-view { background: linear-gradient(135deg, #3B82F6, #2563EB); }
-        .icon-claim { background: linear-gradient(135deg, #F59E0B, #D97706); }
-        .action-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
-        .action-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+        .action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 20px; }
+        .action-card { cursor: pointer; border: 2px solid transparent; text-align: center; padding: 24px 20px; background: white; border-radius: 16px; box-shadow: var(--shadow); transition: all 0.3s; }
+        .action-card:hover { border-color: var(--primary); transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        .action-icon { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 24px; color: white; }
+        .icon-view { background: var(--primary); }
+        .icon-claim { background: var(--warning); }
+        .action-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+        .action-desc { font-size: 12px; color: var(--text-muted); }
 
-        /* Forms */
-        .page-header { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
-        .back-btn { background: rgba(255,255,255,0.2); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; color: white; font-size: 18px; }
-        .back-btn:hover { background: rgba(255,255,255,0.3); transform: translateX(-3px); }
-        .page-title { font-size: 24px; font-weight: 700; color: white; }
-        .form-card { max-width: 650px; margin: 0 auto; }
-        
-        .file-upload-box { border: 2px dashed var(--border); border-radius: var(--radius); padding: 35px; text-align: center; cursor: pointer; transition: all 0.3s; background: #F8FAFC; }
+        /* =========================================
+           5. Page: Forms (Report Lost - เพิ่มรูป)
+           ========================================= */
+        .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+        .back-btn { background: var(--border); border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+        .back-btn:hover { background: #CBD5E1; }
+        .page-title { font-size: 20px; font-weight: 600; color: white; }
+        .form-card { max-width: 600px; margin: 0 auto; }
+        .file-upload-box { border: 2px dashed var(--border); border-radius: var(--radius); padding: 24px; text-align: center; cursor: pointer; transition: all 0.3s; background: #F8FAFC; }
         .file-upload-box:hover { border-color: var(--primary); background: #EEF2FF; }
-        .file-upload-box i { font-size: 40px; color: var(--text-muted); margin-bottom: 12px; }
-        .file-upload-box p { font-weight: 600; color: var(--text); margin-bottom: 5px; }
-        .file-upload-box small { color: var(--text-muted); font-size: 13px; }
-        .preview-area { margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap; }
-        .preview-area img { max-width: 150px; border-radius: 8px; border: 2px solid var(--border); }
+        .file-upload-box i { font-size: 28px; color: var(--text-muted); margin-bottom: 8px; }
+        .preview-area { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .preview-area img { max-width: 120px; border-radius: 8px; border: 1px solid var(--border); }
 
-        /* Items Grid */
-        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .item-card { overflow: hidden; background: white; border-radius: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; }
-        .item-img { width: 100%; height: 200px; object-fit: cover; background: #F1F5F9; }
-        .item-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
-        .item-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
-        .item-tag { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        /* =========================================
+           6. Page: View Lists (เพิ่มปุ่มแก้ไข/ลบ)
+           ========================================= */
+        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+        .item-card { overflow: hidden; display: flex; flex-direction: column; background: white; border-radius: 12px; box-shadow: var(--shadow); }
+        .item-img { width: 100%; height: 160px; object-fit: cover; background: #F1F5F9; }
+        .item-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+        .item-tag { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-bottom: 8px; width: fit-content; }
         .tag-lost { background: #FEE2E2; color: var(--danger); }
-        .item-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
-        .item-loc { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; display: flex; align-items: center; gap: 5px; }
-        .item-desc { font-size: 14px; color: var(--text); flex: 1; margin-bottom: 15px; line-height: 1.6; }
-        .item-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border); }
-        .item-date { font-size: 12px; color: var(--text-muted); }
-        .delete-btn { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 5px; transition: all 0.3s; }
-        .delete-btn:hover { background: #DC2626; transform: translateY(-1px); }
+        .item-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+        .item-loc { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 4px; }
+        .item-desc { font-size: 13px; color: var(--text); flex: 1; margin-bottom: 12px; line-height: 1.4; }
+        .item-actions { display: flex; gap: 8px; margin-top: auto; }
+        .empty-state { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
 
-        .empty-state { text-align: center; padding: 80px 20px; color: white; background: rgba(255,255,255,0.1); border-radius: 20px; backdrop-filter: blur(10px); }
-        .empty-state i { font-size: 64px; margin-bottom: 20px; opacity: 0.6; }
-        .empty-state p { font-size: 16px; font-weight: 500; }
-
-        /* Toast & Loading */
-        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background: white; padding: 16px 22px; border-radius: var(--radius); box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 12px; min-width: 320px; border-left: 4px solid var(--primary); animation: slideIn 0.3s ease; }
+        /* =========================================
+           7. Toast & Loading
+           ========================================= */
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast { background: white; padding: 12px 16px; border-radius: var(--radius); box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px; min-width: 280px; border-left: 4px solid var(--primary); animation: slideIn 0.3s ease; }
         .toast.success { border-left-color: var(--success); }
         .toast.error { border-left-color: var(--danger); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         
-        #loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 9998; }
-        .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; }
+        #loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.8); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; z-index: 9998; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         @media (max-width: 768px) {
-            .auth-box { padding: 30px 25px; }
-            .action-grid { grid-template-columns: 1fr; }
+            .header-inner { flex-direction: column; gap: 8px; }
             .stats-grid { grid-template-columns: 1fr; }
-            .items-grid { grid-template-columns: 1fr; }
+            .action-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
+    <!-- Toast & Loading -->
     <div id="toast-container"></div>
     <div id="loading-overlay" class="hidden"><div class="spinner"></div></div>
 
-    <!-- PAGE 1: AUTH -->
+    <!-- ==========================================
+         PAGE 1: AUTH (Login / Register)
+         ========================================== -->
     <div id="page-auth" class="page-section">
-        <div class="auth-box fade-in">
+        <div class="card auth-box fade-in">
             <div class="auth-header">
-                <img src="https://github.com/momo0991588175-sys/Lost_and_Found_School/raw/main/images/logo.png" alt="Logo" class="auth-logo-img">
+                <img src="https://github.com/momo0991588175-sys/Lost_and_Found_School/raw/main/images/logo.png" 
+                     alt="Logo โรงเรียน" 
+                     class="auth-logo-img">
                 <h1 id="auth-title">เข้าสู่ระบบ</h1>
                 <p id="auth-subtitle">ระบบแจ้งและติดตามของหาย</p>
             </div>
 
+            <!-- Login Form -->
             <form id="form-login" class="fade-in">
                 <div class="input-group">
                     <label>อีเมล</label>
@@ -171,10 +205,11 @@
                     <label>รหัสผ่าน</label>
                     <input type="password" id="login-pass" class="input-control" placeholder="••••••••" required>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block" style="padding: 13px;"><i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ</button>
+                <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ</button>
                 <div class="auth-switch">ยังไม่มีบัญชี? <a onclick="App.toggleAuth('register')">สร้างบัญชีใหม่</a></div>
             </form>
 
+            <!-- Register Form -->
             <form id="form-register" class="hidden fade-in">
                 <div class="input-group">
                     <label>ชื่อ-นามสกุล</label>
@@ -188,70 +223,69 @@
                     <label>รหัสผ่าน (อย่างน้อย 6 ตัว)</label>
                     <input type="password" id="reg-pass" class="input-control" placeholder="••••••••" minlength="6" required>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block" style="padding: 13px;"><i class="fa-solid fa-user-plus"></i> สร้างบัญชี</button>
+                <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-user-plus"></i> สร้างบัญชี</button>
                 <div class="auth-switch">มีบัญชีแล้ว? <a onclick="App.toggleAuth('login')">เข้าสู่ระบบ</a></div>
             </form>
         </div>
     </div>
 
-    <!-- PAGE 2: DASHBOARD -->
+    <!-- ==========================================
+         PAGE 2: DASHBOARD (Main Page)
+         ========================================== -->
     <div id="page-dashboard" class="page-section hidden">
         <header class="app-header">
             <div class="header-inner">
-                <div class="header-title">
-                    <i class="fa-solid fa-school"></i>
-                    Lost & Found School
-                </div>
                 <button class="header-btn logout" onclick="App.logout()"><i class="fa-solid fa-right-from-bracket"></i> ออก</button>
             </div>
         </header>
 
         <div class="main-container fade-in">
-            <div class="profile-card">
+            <!-- Profile Section -->
+            <div class="card profile-card">
                 <div class="avatar-wrapper">
                     <img src="" id="dash-avatar" class="avatar-img" alt="Profile">
                     <label for="avatar-input" class="avatar-edit" title="เปลี่ยนรูปโปรไฟล์"><i class="fa-solid fa-camera"></i></label>
                     <input type="file" id="avatar-input" accept="image/png,image/jpeg" class="hidden">
                 </div>
-                <div id="admin-badge-container"></div>
                 <h2 class="profile-name" id="dash-name">กำลังโหลด...</h2>
                 <p class="profile-email" id="dash-email">-</p>
                 
+                <!-- ปุ่มแจ้งของหายอยู่ตรงกลาง -->
+                <button class="report-lost-btn" onclick="App.nav('report-lost')">
+                    <i class="fa-solid fa-circle-exclamation"></i> แจ้งของหาย
+                </button>
+                
                 <div class="stats-grid">
                     <div class="stat-box"><div class="stat-num" id="stat-lost">0</div><div class="stat-label">แจ้งของหาย</div></div>
-                    <div class="stat-box"><div class="stat-num" id="stat-found">0</div><div class="stat-label">แจ้งเก็บได้</div></div>
                     <div class="stat-box"><div class="stat-num" id="stat-resolved">0</div><div class="stat-label">สำเร็จแล้ว</div></div>
+                    <div class="stat-box"><div class="stat-num" id="stat-claims">0</div><div class="stat-label">คำร้องขอ</div></div>
                 </div>
             </div>
 
-            <div class="action-section">
-                <button class="main-action-btn" onclick="App.nav('report-lost')">
-                    <i class="fa-solid fa-circle-exclamation" style="font-size: 20px;"></i>
-                    <span>แจ้งของหาย</span>
-                </button>
-
-                <div class="action-grid">
-                    <div class="action-card" onclick="App.nav('view-lost')">
-                        <div class="action-icon icon-view"><i class="fa-solid fa-magnifying-glass"></i></div>
-                        <h3 class="action-title">ดูของที่หาย</h3>
-                        <p class="action-desc">ค้นหารายการของหายทั้งหมดในระบบ</p>
-                    </div>
-                    <div class="action-card" onclick="App.nav('view-claims')">
-                        <div class="action-icon icon-claim"><i class="fa-solid fa-bell"></i></div>
-                        <h3 class="action-title">ดูคำร้องขอ</h3>
-                        <p class="action-desc">ตรวจสอบคำร้องและจัดการโดย Admin</p>
-                    </div>
+            <!-- Action Cards -->
+            <div class="action-grid">
+                <div class="action-card" onclick="App.nav('view-lost')">
+                    <div class="action-icon icon-view"><i class="fa-solid fa-magnifying-glass"></i></div>
+                    <div class="action-title">ดูของที่หาย</div>
+                    <div class="action-desc">ค้นหารายการของหายทั้งหมด</div>
+                </div>
+                <div class="action-card" onclick="App.nav('view-claims')">
+                    <div class="action-icon icon-claim"><i class="fa-solid fa-bell"></i></div>
+                    <div class="action-title">ดูคำร้องขอ</div>
+                    <div class="action-desc">ตรวจสอบคนที่เก็บของได้</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- PAGE 3: REPORT LOST (เพิ่มระบบอัปโหลดรูป) -->
+    <!-- ==========================================
+         PAGE 3: REPORT LOST (เพิ่มรูป)
+         ========================================== -->
     <div id="page-report-lost" class="page-section hidden">
-        <header class="app-header" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">
+        <header class="app-header">
             <div class="header-inner" style="justify-content: flex-start;">
-                <button class="back-btn" onclick="App.nav('dashboard')"><i class="fa-solid fa-arrow-left"></i></button>
-                <h2 class="page-title" style="margin-left:10px;">แจ้งของหาย</h2>
+                <button class="back-btn" onclick="App.nav('dashboard')" style="background:rgba(255,255,255,0.2); color:white;"><i class="fa-solid fa-arrow-left"></i></button>
+                <h2 class="page-title">แจ้งของหาย</h2>
             </div>
         </header>
         <div class="main-container fade-in">
@@ -278,65 +312,77 @@
                         <textarea id="lost-desc" class="input-control" placeholder="บอกลักษณะเฉพาะ สี ยี่ห้อ รอยตำหนิ" required></textarea>
                     </div>
                     
-                    <!-- เพิ่มระบบอัปโหลดรูป -->
+                    <!-- เพิ่มส่วนอัปโหลดรูป -->
                     <div class="input-group">
                         <label>รูปภาพ (PNG, JPG)</label>
                         <label for="lost-file" class="file-upload-box">
                             <i class="fa-solid fa-cloud-arrow-up"></i>
                             <p>คลิกเพื่อเลือกรูปภาพ</p>
-                            <small>รองรับ PNG, JPG (สูงสุด 5MB)</small>
+                            <small style="color:var(--text-muted)">รองรับ PNG, JPG (สูงสุด 5MB)</small>
                         </label>
                         <input type="file" id="lost-file" accept="image/png,image/jpeg" class="hidden">
                         <div id="lost-preview" class="preview-area"></div>
                     </div>
-
-                    <button type="submit" class="btn btn-danger btn-block" style="padding: 14px; font-size: 15px;"><i class="fa-solid fa-paper-plane"></i> ส่งแจ้งของหาย</button>
+                    
+                    <button type="submit" class="btn btn-danger btn-block"><i class="fa-solid fa-paper-plane"></i> ส่งแจ้งของหาย</button>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- PAGE 4: VIEW LOST ITEMS -->
+    <!-- ==========================================
+         PAGE 4: VIEW LOST ITEMS (เพิ่มปุ่มแก้ไข/ลบ)
+         ========================================== -->
     <div id="page-view-lost" class="page-section hidden">
-        <header class="app-header" style="background: linear-gradient(135deg, #3B82F6, #2563EB);">
+        <header class="app-header">
             <div class="header-inner" style="justify-content: flex-start;">
-                <button class="back-btn" onclick="App.nav('dashboard')"><i class="fa-solid fa-arrow-left"></i></button>
-                <h2 class="page-title" style="margin-left:10px;">รายการของหายทั้งหมด</h2>
+                <button class="back-btn" onclick="App.nav('dashboard')" style="background:rgba(255,255,255,0.2); color:white;"><i class="fa-solid fa-arrow-left"></i></button>
+                <h2 class="page-title">รายการของหายทั้งหมด</h2>
             </div>
         </header>
         <div class="main-container fade-in">
-            <div id="lost-list" class="items-grid"></div>
+            <div id="lost-list" class="items-grid">
+                <!-- Items will be injected here by JS -->
+            </div>
         </div>
     </div>
 
-    <!-- PAGE 5: VIEW CLAIMS (สำหรับ Admin) -->
+    <!-- ==========================================
+         PAGE 5: VIEW CLAIMS
+         ========================================== -->
     <div id="page-view-claims" class="page-section hidden">
-        <header class="app-header" style="background: linear-gradient(135deg, #F59E0B, #D97706);">
+        <header class="app-header" style="background: linear-gradient(135deg, var(--warning), #D97706);">
             <div class="header-inner" style="justify-content: flex-start;">
-                <button class="back-btn" onclick="App.nav('dashboard')"><i class="fa-solid fa-arrow-left"></i></button>
-                <h2 class="page-title" style="margin-left:10px;">จัดการคำร้องขอ (Admin)</h2>
+                <button class="back-btn" onclick="App.nav('dashboard')" style="background:rgba(255,255,255,0.2); color:white;"><i class="fa-solid fa-arrow-left"></i></button>
+                <h2 class="page-title">คำร้องขอ (คนที่เก็บของได้)</h2>
             </div>
         </header>
         <div class="main-container fade-in">
-            <div id="claims-list" class="items-grid"></div>
+            <div id="claims-list" class="items-grid">
+                <!-- Claims will be injected here by JS -->
+            </div>
         </div>
     </div>
 
+    <!-- ==========================================
+         JAVASCRIPT LOGIC
+         ========================================== -->
     <script>
+        // 1. Supabase Configuration
         const SUPABASE_URL = 'https://hecopmejblulnsnrmcmg.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhlY29wbWVqYmx1bG5zbnJtY21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMDgwMDUsImV4cCI6MjEwNDU4NDAwNX0.ad_EFeHFhoFJAvVCycc0E_fZ-kYozNdvK_wy-x6slFA';
         const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // 2. App State & Router
         const App = {
             user: null,
             profile: null,
-            isAdmin: false,
+            editingItemId: null, // เก็บ ID ของรายการที่กำลังแก้ไข
 
             init: async () => {
                 const { data: { session } } = await sb.auth.getSession();
                 if (session) {
                     App.user = session.user;
-                    App.isAdmin = App.user.email === 'administrator@hwp.ac.th';
                     await App.loadProfile();
                     App.nav('dashboard');
                 } else {
@@ -346,11 +392,9 @@
                 sb.auth.onAuthStateChange((event, session) => {
                     if (event === 'SIGNED_IN') {
                         App.user = session.user;
-                        App.isAdmin = App.user.email === 'administrator@hwp.ac.th';
                         App.loadProfile().then(() => App.nav('dashboard'));
                     } else if (event === 'SIGNED_OUT') {
                         App.user = null;
-                        App.isAdmin = false;
                         App.nav('auth');
                     }
                 });
@@ -382,6 +426,7 @@
                 await sb.auth.signOut();
             },
 
+            // 3. Profile & Dashboard Logic
             loadProfile: async () => {
                 let { data: profile } = await sb.from('profiles').select('*').eq('id', App.user.id).single();
                 if (!profile) {
@@ -395,15 +440,6 @@
             updateProfileUI: () => {
                 document.getElementById('dash-name').textContent = App.profile.full_name || 'ผู้ใช้';
                 document.getElementById('dash-email').textContent = App.user.email;
-                
-                // แสดง Badge Admin
-                const badgeContainer = document.getElementById('admin-badge-container');
-                if (App.isAdmin) {
-                    badgeContainer.innerHTML = '<span class="admin-badge"><i class="fa-solid fa-shield-halved"></i> ผู้ดูแลระบบ</span>';
-                } else {
-                    badgeContainer.innerHTML = '';
-                }
-                
                 const avatar = document.getElementById('dash-avatar');
                 if (App.profile.avatar_url) {
                     avatar.src = App.profile.avatar_url;
@@ -415,14 +451,15 @@
 
             loadDashboardStats: async () => {
                 const { count: lost } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'lost');
-                const { count: found } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'found');
                 const { count: resolved } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('status', 'resolved');
+                const { count: claims } = await sb.from('claims').select('*', {count:'exact', head:true}).eq('items.user_id', App.user.id);
                 
                 document.getElementById('stat-lost').textContent = lost || 0;
-                document.getElementById('stat-found').textContent = found || 0;
                 document.getElementById('stat-resolved').textContent = resolved || 0;
+                document.getElementById('stat-claims').textContent = claims || 0;
             },
 
+            // 4. Form Submissions
             handleLogin: async (e) => {
                 e.preventDefault();
                 App.showLoading(true);
@@ -463,8 +500,10 @@
                     const ext = file.name.split('.').pop();
                     const fileName = `${App.user.id}_${Date.now()}.${ext}`;
                     
-                    const { data, error: uploadError } = await sb.storage.from('item-images').upload(fileName, file);
-                    
+                    const { data, error: uploadError } = await sb.storage
+                        .from('item-images')
+                        .upload(fileName, file);
+                        
                     if (uploadError) { 
                         App.showLoading(false); 
                         App.toast('error', 'อัปโหลดไฟล์ไม่สำเร็จ', uploadError.message); 
@@ -475,25 +514,41 @@
                     image_url = publicUrl;
                 }
 
-                const { error } = await sb.from('items').insert({
-                    user_id: App.user.id, type: 'lost', status: 'active',
+                const itemData = {
+                    user_id: App.user.id,
+                    type: 'lost',
+                    status: 'active',
                     title: document.getElementById('lost-title').value,
                     category: document.getElementById('lost-category').value,
                     location: document.getElementById('lost-location').value,
                     description: document.getElementById('lost-desc').value,
                     image_url: image_url
-                });
-                
+                };
+
+                let error;
+                if (App.editingItemId) {
+                    // แก้ไขรายการเดิม
+                    const { error: updateError } = await sb.from('items').update(itemData).eq('id', App.editingItemId);
+                    error = updateError;
+                } else {
+                    // สร้างรายการใหม่
+                    const { error: insertError } = await sb.from('items').insert(itemData);
+                    error = insertError;
+                }
+
                 App.showLoading(false);
-                if (error) App.toast('error', 'เกิดข้อผิดพลาด', error.message);
-                else {
-                    App.toast('success', 'ส่งข้อมูลสำเร็จ', 'ระบบบันทึกการแจ้งของหายแล้ว');
+                if (error) {
+                    App.toast('error', 'เกิดข้อผิดพลาด', error.message);
+                } else {
+                    App.toast('success', 'ส่งข้อมูลสำเร็จ', App.editingItemId ? 'แก้ไขรายการเรียบร้อยแล้ว' : 'ระบบบันทึกการแจ้งของหายแล้ว');
                     e.target.reset();
                     document.getElementById('lost-preview').innerHTML = '';
+                    App.editingItemId = null;
                     App.nav('dashboard');
                 }
             },
 
+            // 5. View Lists Logic
             loadLostItems: async () => {
                 const container = document.getElementById('lost-list');
                 container.innerHTML = '<div class="spinner" style="margin:50px auto;"></div>';
@@ -505,52 +560,45 @@
                     return;
                 }
 
-                container.innerHTML = data.map(item => `
-                    <div class="item-card">
-                        ${item.image_url ? `<img src="${item.image_url}" class="item-img">` : `<div class="item-img" style="display:flex;align-items:center;justify-content:center;color:#ccc;"><i class="fa-solid fa-image" style="font-size:48px;"></i></div>`}
+                container.innerHTML = data.map(item => {
+                    const isOwner = item.user_id === App.user.id;
+                    const isAdmin = App.user.email === 'administrator@hwp.ac.th';
+                    const canEdit = isOwner || isAdmin;
+                    
+                    return `
+                    <div class="card item-card">
+                        ${item.image_url ? `<img src="${item.image_url}" class="item-img">` : `<div class="item-img" style="display:flex;align-items:center;justify-content:center;color:#ccc;"><i class="fa-solid fa-image fa-3x"></i></div>`}
                         <div class="item-body">
-                            <div class="item-header">
-                                <span class="item-tag tag-lost">ของหาย</span>
-                            </div>
+                            <span class="item-tag tag-lost">ของหาย</span>
                             <h3 class="item-title">${item.title}</h3>
                             <div class="item-loc"><i class="fa-solid fa-location-dot"></i> ${item.location}</div>
                             <p class="item-desc">${item.description}</p>
-                            <div class="item-footer">
-                                <span class="item-date">${new Date(item.created_at).toLocaleDateString('th-TH')}</span>
-                                ${(App.isAdmin || item.user_id === App.user.id) ? `
-                                    <button class="delete-btn" onclick="App.deleteItem('${item.id}')">
+                            <small style="color:var(--text-muted)">${new Date(item.created_at).toLocaleDateString('th-TH')}</small>
+                            
+                            ${isOwner ? `
+                                <div class="item-actions" style="margin-top:12px;">
+                                    <button class="btn btn-warning btn-sm" style="flex:1;" onclick="App.editItem('${item.id}')">
+                                        <i class="fa-solid fa-pen"></i> แก้ไข
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" style="flex:1;" onclick="App.deleteItem('${item.id}')">
                                         <i class="fa-solid fa-trash"></i> ลบ
                                     </button>
-                                ` : ''}
-                            </div>
+                                </div>
+                            ` : `
+                                <button class="btn btn-primary btn-block" style="margin-top:12px; font-size:13px;" onclick="App.createClaim('${item.id}')">
+                                    <i class="fa-solid fa-hand-holding-heart"></i> แจ้งว่าฉันเก็บสิ่งนี้ได้
+                                </button>
+                            `}
                         </div>
                     </div>
-                `).join('');
-            },
-
-            deleteItem: async (itemId) => {
-                if(!confirm('ยืนยันการลบประกาศนี้?')) return;
-                App.showLoading(true);
-                const { error } = await sb.from('items').delete().eq('id', itemId);
-                App.showLoading(false);
-                if (error) {
-                    App.toast('error', 'ลบไม่สำเร็จ', error.message);
-                } else {
-                    App.toast('success', 'สำเร็จ', 'ลบประกาศเรียบร้อยแล้ว');
-                    App.loadLostItems();
-                }
+                `}).join('');
             },
 
             loadClaims: async () => {
                 const container = document.getElementById('claims-list');
-                
-                if (!App.isAdmin) {
-                    container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-lock"></i><p>เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถดูหน้านี้ได้</p></div>';
-                    return;
-                }
-                
                 container.innerHTML = '<div class="spinner" style="margin:50px auto;"></div>';
-                const { data, error } = await sb.from('claims').select('*, items(title, type), profiles(full_name)').order('created_at', {ascending: false});
+
+                const { data, error } = await sb.from('claims').select('*, items(title, type)').eq('items.user_id', App.user.id).order('created_at', {ascending: false});
 
                 if (error || !data.length) {
                     container.innerHTML = '<div class="empty-state"><i class="fa-regular fa-bell-slash"></i><p>ยังไม่มีคำร้องขอเข้ามา</p></div>';
@@ -558,80 +606,200 @@
                 }
 
                 container.innerHTML = data.map(claim => `
-                    <div class="item-card">
+                    <div class="card item-card">
                         <div class="item-body">
-                            <span class="item-tag tag-lost">คำร้อง #${claim.id.slice(0,8)}</span>
+                            <span class="item-tag" style="background:#FEF3C7; color:var(--warning);">คำร้องจากคนเก็บได้</span>
                             <h3 class="item-title">เกี่ยวกับ: ${claim.items?.title || 'ไม่ระบุ'}</h3>
                             <p class="item-desc">${claim.description || 'ไม่มีความเห็นเพิ่มเติม'}</p>
-                            <small style="color:var(--text-muted)">ผู้แจ้ง: ${claim.profiles?.full_name || 'ไม่ระบุ'}</small>
-                            <div style="margin-top:auto; display:flex; gap:10px; padding-top:15px;">
-                                <button class="btn btn-success btn-sm" style="flex:1;" onclick="App.resolveClaim('${claim.id}')"><i class="fa-solid fa-check"></i> อนุมัติ</button>
-                                <button class="btn btn-danger btn-sm" style="flex:1;" onclick="App.rejectClaim('${claim.id}')"><i class="fa-solid fa-xmark"></i> ปฏิเสธ</button>
+                            <small style="color:var(--text-muted); margin-bottom:12px;">${new Date(claim.created_at).toLocaleDateString('th-TH')}</small>
+                            <div style="margin-top:auto; display:flex; gap:8px;">
+                                <button class="btn btn-success" style="flex:1; font-size:13px;" onclick="App.resolveClaim('${claim.id}', '${claim.item_id}')"><i class="fa-solid fa-check"></i> รับคืนแล้ว</button>
                             </div>
                         </div>
                     </div>
                 `).join('');
             },
 
-            resolveClaim: async (claimId) => {
-                if(!confirm('อนุมัติคำร้องนี้?')) return;
+            // 6. Edit & Delete Functions
+            editItem: async (itemId) => {
+                const { data: item } = await sb.from('items').select('*').eq('id', itemId).single();
+                if (!item) return;
+                
+                document.getElementById('lost-title').value = item.title;
+                document.getElementById('lost-category').value = item.category;
+                document.getElementById('lost-location').value = item.location;
+                document.getElementById('lost-desc').value = item.description;
+                
+                if (item.image_url) {
+                    document.getElementById('lost-preview').innerHTML = `<img src="${item.image_url}" style="max-width:120px;">`;
+                }
+                
+                App.editingItemId = itemId;
+                App.nav('report-lost');
+                App.toast('success', 'พร้อมแก้ไข', 'แก้ไขข้อมูลแล้วกดส่ง');
+            },
+
+            deleteItem: async (itemId) => {
+                if (!confirm('คุณแน่ใจว่าต้องการลบรายการนี้?')) return;
+                
+                App.showLoading(true);
+                
+                // ลบรูปจาก Storage ก่อน (ถ้ามี)
+                const { data: item } = await sb.from('items').select('image_url').eq('id', itemId).single();
+                if (item && item.image_url) {
+                    const fileName = item.image_url.split('/').pop();
+                    await sb.storage.from('item-images').remove([fileName]);
+                }
+                
+                const { error } = await sb.from('items').delete().eq('id', itemId);
+                App.showLoading(false);
+                
+                if (error) {
+                    App.toast('error', 'ลบไม่สำเร็จ', error.message);
+                } else {
+                    App.toast('success', 'สำเร็จ', 'ลบรายการเรียบร้อยแล้ว');
+                    App.loadLostItems();
+                }
+            },
+
+            createClaim: async (itemId) => {
+                const desc = prompt("กรุณากรอกรายละเอียดเพิ่มเติม (เช่น สถานที่ที่พบ, เบอร์ติดต่อ):");
+                if (!desc || desc.trim() === "") {
+                    App.toast('warning', 'ยกเลิก', 'กรุณากรอกรายละเอียดเพื่อส่งคำร้อง');
+                    return;
+                }
+
+                App.showLoading(true);
+                
+                const { error } = await sb.from('claims').insert({
+                    item_id: itemId,
+                    claimer_id: App.user.id,
+                    description: desc,
+                    status: 'pending'
+                });
+                
+                App.showLoading(false);
+                
+                if (error) {
+                    App.toast('error', 'ส่งคำร้องไม่สำเร็จ', error.message);
+                } else {
+                    App.toast('success', 'ส่งคำร้องสำเร็จ', 'เจ้าของสิ่งของจะเห็นคำร้องของคุณในเร็วๆ นี้');
+                }
+            },
+
+            resolveClaim: async (claimId, itemId) => {
+                if(!confirm('ยืนยันว่าได้รับของคืนแล้ว? ระบบจะปิดประกาศนี้')) return;
                 App.showLoading(true);
                 await sb.from('claims').update({status: 'approved'}).eq('id', claimId);
+                await sb.from('items').update({status: 'resolved'}).eq('id', itemId);
                 App.showLoading(false);
-                App.toast('success', 'สำเร็จ', 'อนุมัติคำร้องเรียบร้อยแล้ว');
+                App.toast('success', 'สำเร็จ', 'อัปเดตสถานะเรียบร้อยแล้ว');
                 App.loadClaims();
             },
 
-            rejectClaim: async (claimId) => {
-                if(!confirm('ปฏิเสธคำร้องนี้?')) return;
+            // 7. Avatar Upload (แก้ไขให้ลบรูปเก่าได้)
+            handleAvatarUpload: async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (!['image/png', 'image/jpeg'].includes(file.type)) { 
+                    App.toast('error', 'ไฟล์ไม่รองรับ', 'กรุณาใช้ PNG หรือ JPG'); 
+                    return; 
+                }
+                
                 App.showLoading(true);
-                await sb.from('claims').update({status: 'rejected'}).eq('id', claimId);
+                
+                // 1. ลบรูปเก่าออก (ถ้ามี)
+                if (App.profile.avatar_url) {
+                    const oldFileName = App.profile.avatar_url.split('/').pop();
+                    await sb.storage.from('avatars').remove([oldFileName]);
+                }
+                
+                // 2. อัปโหลดรูปใหม่
+                const fileName = `${App.user.id}_${Date.now()}.png`;
+                const { data: uploadData, error: uploadError } = await sb.storage.from('avatars').upload(fileName, file);
+                
+                if (uploadError) {
+                    App.showLoading(false);
+                    App.toast('error', 'อัปโหลดไม่สำเร็จ', uploadError.message);
+                    return;
+                }
+                
+                const { data: { publicUrl } } = sb.storage.from('avatars').getPublicUrl(fileName);
+                
+                // 3. อัปเดตข้อมูลในฐานข้อมูล
+                const { error: updateError } = await sb.from('profiles').update({avatar_url: publicUrl}).eq('id', App.user.id);
+                
+                if (updateError) {
+                    App.showLoading(false);
+                    App.toast('error', 'บันทึกข้อมูลไม่สำเร็จ', updateError.message);
+                    return;
+                }
+                
+                App.profile.avatar_url = publicUrl;
+                App.updateProfileUI();
                 App.showLoading(false);
-                App.toast('success', 'สำเร็จ', 'ปฏิเสธคำร้องเรียบร้อยแล้ว');
-                App.loadClaims();
+                App.toast('success', 'สำเร็จ', 'อัปเดตรูปโปรไฟล์แล้ว');
+            },
+            
+            // ฟังก์ชันลบรูปโปรไฟล์
+            deleteAvatar: async () => {
+                if (!confirm('คุณแน่ใจว่าต้องการลบรูปโปรไฟล์?')) return;
+                
+                App.showLoading(true);
+                
+                // ลบรูปจาก Storage
+                if (App.profile.avatar_url) {
+                    const fileName = App.profile.avatar_url.split('/').pop();
+                    await sb.storage.from('avatars').remove([fileName]);
+                }
+                
+                // อัปเดตฐานข้อมูล
+                const { error } = await sb.from('profiles').update({avatar_url: null}).eq('id', App.user.id);
+                
+                if (error) {
+                    App.showLoading(false);
+                    App.toast('error', 'ลบไม่สำเร็จ', error.message);
+                    return;
+                }
+                
+                App.profile.avatar_url = null;
+                App.updateProfileUI();
+                App.showLoading(false);
+                App.toast('success', 'สำเร็จ', 'ลบรูปโปรไฟล์แล้ว');
             },
 
+            // 8. Utilities
             showLoading: (show) => document.getElementById('loading-overlay').classList.toggle('hidden', !show),
             toast: (type, title, msg) => {
                 const container = document.getElementById('toast-container');
                 const toast = document.createElement('div');
                 toast.className = `toast ${type}`;
-                toast.innerHTML = `<i class="fa-solid ${type==='success'?'fa-circle-check':'fa-circle-xmark'}" style="font-size:20px; color:${type==='success'?'var(--success)':'var(--danger)'}"></i><div><div style="font-weight:600">${title}</div><div style="font-size:13px; color:var(--text-muted)">${msg}</div></div>`;
+                toast.innerHTML = `<i class="fa-solid ${type==='success'?'fa-circle-check':'fa-circle-xmark'}" style="font-size:18px; color:${type==='success'?'var(--success)':'var(--danger)'}"></i><div><div style="font-weight:600">${title}</div><div style="font-size:12px; color:var(--text-muted)">${msg}</div></div>`;
                 container.appendChild(toast);
                 setTimeout(() => toast.remove(), 4000);
             }
         };
 
+        // Event Listeners
         document.getElementById('form-login').addEventListener('submit', App.handleLogin);
         document.getElementById('form-register').addEventListener('submit', App.handleRegister);
         document.getElementById('form-lost').addEventListener('submit', App.handleLost);
 
-        document.getElementById('avatar-input').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            if (!['image/png', 'image/jpeg'].includes(file.type)) { App.toast('error', 'ไฟล์ไม่รองรับ', 'กรุณาใช้ PNG หรือ JPG'); return; }
-            
-            App.showLoading(true);
-            const fileName = `${App.user.id}.png`;
-            await sb.storage.from('avatars').upload(fileName, file, {upsert: true});
-            const { data: { publicUrl } } = sb.storage.from('avatars').getPublicUrl(fileName);
-            await sb.from('profiles').update({avatar_url: publicUrl}).eq('id', App.user.id);
-            App.profile.avatar_url = publicUrl;
-            App.updateProfileUI();
-            App.showLoading(false);
-            App.toast('success', 'สำเร็จ', 'อัปเดตรูปโปรไฟล์แล้ว');
-        });
+        // Avatar Upload
+        document.getElementById('avatar-input').addEventListener('change', App.handleAvatarUpload);
 
+        // Preview file on Report Lost
         document.getElementById('lost-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
             const preview = document.getElementById('lost-preview');
             preview.innerHTML = '';
             if (file) {
                 const url = URL.createObjectURL(file);
-                preview.innerHTML = `<img src="${url}" style="max-width:150px; border-radius:8px;">`;
+                preview.innerHTML = `<img src="${url}" style="max-width:120px; border-radius:8px;">`;
             }
         });
 
+        // Start App
         App.init();
     </script>
 </body>
