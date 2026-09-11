@@ -423,7 +423,43 @@
                     document.getElementById('stat-claims').textContent = claims || 0;
                 } catch (err) { console.error('Stats error:', err); }
             },
+            
+            handleLogin: async (e) => {
+                e.preventDefault(); 
+                App.showLoading(true);
+                try {
+                    const { error } = await sb.auth.signInWithPassword({ 
+                        email: document.getElementById('login-email').value, 
+                        password: document.getElementById('login-pass').value 
+                    });
+                    if (error) throw error;
+                } catch (err) {
+                    App.toast('error', 'เข้าสู่ระบบไม่สำเร็จ', err.message);
+                } finally {
+                    App.showLoading(false);
+                }
+            },
 
+            handleRegister: async (e) => {
+                e.preventDefault(); 
+                App.showLoading(true);
+                try {
+                    const { error } = await sb.auth.signUp({
+                        email: document.getElementById('reg-email').value, 
+                        password: document.getElementById('reg-pass').value,
+                        options: { data: { full_name: document.getElementById('reg-name').value } }
+                    });
+                    if (error) throw error;
+                    App.toast('success', 'สมัครสำเร็จ', 'กรุณาเข้าสู่ระบบ'); 
+                    App.toggleAuth('login');
+                } catch (err) {
+                    App.toast('error', 'สมัครไม่สำเร็จ', err.message);
+                } finally {
+                    App.showLoading(false);
+                }
+            },
+
+            // --- จัดการของหาย (เพิ่ม/แก้ไข/ลบ) ---
             // --- จัดการของหาย (เพิ่ม/แก้ไข/ลบ) ---
             handleLost: async (e) => {
                 e.preventDefault(); 
