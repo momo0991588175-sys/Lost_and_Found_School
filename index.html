@@ -249,7 +249,7 @@
                 <div id="page-report" class="page-section hidden fade-in">
                     <div class="page-header">
                         <button class="back-btn" onclick="App.nav('home')"><i class="fa-solid fa-arrow-left"></i></button>
-                        <h2 class="page-title">แจ้งเหตุ</h2>
+                        <h2 class="page-title">หน้าแจ้งเหตุ</h2>
                     </div>
                     <div class="report-type-selection">
                         <div class="report-type-card lost" onclick="App.nav('report-lost')">
@@ -286,7 +286,7 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>สถานที่หาย (หากจำได้)</label>
+                                <label>สถานที่หาย</label>
                                 <input type="text" id="lost-location" class="form-control" placeholder="เช่น ห้อง 000, โรงอาหาร">
                             </div>
                             <div class="form-group">
@@ -342,11 +342,11 @@
                                 <textarea id="found-desc" class="form-control" placeholder="บอกลักษณะเฉพาะ สี ยี่ห้อ" required></textarea>
                             </div>
                             <div class="form-group">
-                                <label>รูปภาพหรือวิดีโอ <span style="color:var(--danger)">*</span></label>
+                                <label>รูปภาพหรือวิดีโอ (บังคับ)<span style="color:var(--danger)">*</span></label>
                                 <label for="found-file" class="file-upload-box">
                                     <i class="fa-solid fa-cloud-arrow-up"></i>
                                     <p style="font-weight: 600; margin-bottom: 4px;">คลิกเพื่อเลือกรูปภาพหรือวิดีโอ</p>
-                                    <small style="color: var(--text-muted)">รองรับ PNG, JPG, MP4 (บังคับ)</small>
+                                    <small style="color: var(--text-muted)">รองรับ PNG, JPG, MP4 (สูงสุด 10MB)</small>
                                 </label>
                                 <input type="file" id="found-file" accept="image/png,image/jpeg,video/mp4" class="hidden" required>
                                 <div id="found-preview" class="preview-container"></div>
