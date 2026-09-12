@@ -34,7 +34,6 @@
         .fade-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Auth Page */
         #page-auth { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
         .auth-box { width: 100%; max-width: 450px; background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
         .auth-header { text-align: center; margin-bottom: 32px; }
@@ -150,6 +149,7 @@
         .modal-close:hover { color: var(--danger); }
 
         .admin-section { background: #F9FAFB; padding: 20px; border-radius: var(--radius); margin-bottom: 20px; }
+        .admin-section h3 { margin-bottom: 16px; color: var(--text); }
         .admin-table { width: 100%; border-collapse: collapse; }
         .admin-table th, .admin-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
         .admin-table th { background: var(--primary); color: white; font-weight: 600; }
@@ -157,6 +157,8 @@
         .status-badge { padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; }
         .status-pending { background: #FEF3C7; color: #92400E; }
         .status-completed { background: #D1FAE5; color: #065F46; }
+        .error-message { color: var(--danger); text-align: center; padding: 20px; }
+        .loading-text { color: var(--text-muted); text-align: center; padding: 20px; }
 
         .settings-section { margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
         .settings-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
@@ -400,15 +402,15 @@
                     </div>
                     <div class="card">
                         <div class="admin-section">
-                            <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-users"></i> จัดการสมาชิก</h3>
+                            <h3><i class="fa-solid fa-users"></i> จัดการสมาชิก</h3>
                             <div id="admin-users-list"></div>
                         </div>
                         <div class="admin-section">
-                            <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-box"></i> จัดการโพสต์ทั้งหมด</h3>
+                            <h3><i class="fa-solid fa-box"></i> จัดการโพสต์ทั้งหมด</h3>
                             <div id="admin-items-list"></div>
                         </div>
                         <div class="admin-section">
-                            <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-clipboard-list"></i> คำร้องขอจากผู้ใช้งาน</h3>
+                            <h3><i class="fa-solid fa-clipboard-list"></i> คำร้องขอจากผู้ใช้งาน</h3>
                             <div id="admin-reports-list"></div>
                         </div>
                     </div>
@@ -629,6 +631,7 @@
             },
 
             loadDashboardStats: async () => {
+                console.log('Loading dashboard stats...');
                 try {
                     const { count: lost } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'lost');
                     const { count: found } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'found');
@@ -636,12 +639,22 @@
                     let reportsCount = 0;
                     if (App.profile.role === 'admin') {
                         // Admin: นับคำร้องขอทั้งหมดที่ยังไม่เสร็จสิ้น
-                        const { count } = await sb.from('admin_reports').select('*', {count:'exact', head:true}).eq('status', 'pending');
-                        reportsCount = count || 0;
+                        const { count, error } = await sb.from('admin_reports').select('*', {count:'exact', head:true}).eq('status', 'pending');
+                        if (error) {
+                            console.error('Error counting admin reports:', error);
+                        } else {
+                            reportsCount = count || 0;
+                            console.log('Admin reports count:', reportsCount);
+                        }
                     } else {
                         // นักเรียน: นับคำร้องขอที่ตัวเองส่ง
-                        const { count } = await sb.from('admin_reports').select('*', {count:'exact', head:true}).eq('user_id', App.user.id);
-                        reportsCount = count || 0;
+                        const { count, error } = await sb.from('admin_reports').select('*', {count:'exact', head:true}).eq('user_id', App.user.id);
+                        if (error) {
+                            console.error('Error counting user reports:', error);
+                        } else {
+                            reportsCount = count || 0;
+                            console.log('User reports count:', reportsCount);
+                        }
                     }
                     
                     document.getElementById('stat-lost').textContent = lost || 0;
@@ -931,32 +944,43 @@
 
             handleAdminReport: async (e) => {
                 e.preventDefault();
+                console.log('Submitting admin report...');
                 App.showLoading(true);
                 try {
                     const subject = document.getElementById('admin-report-subject').value;
                     const description = document.getElementById('admin-report-description').value;
                     
-                    const { error } = await sb.from('admin_reports').insert({
+                    console.log('Report data:', { user_id: App.user.id, subject, description });
+                    
+                    const { data, error } = await sb.from('admin_reports').insert({
                         user_id: App.user.id,
                         subject: subject,
                         description: description,
                         status: 'pending'
-                    });
+                    }).select();
                     
-                    if (error) throw error;
+                    if (error) {
+                        console.error('Insert error:', error);
+                        throw error;
+                    }
+                    
+                    console.log('Report inserted:', data);
                     
                     App.toast('success', 'ส่งสำเร็จ', 'ผู้ดูแลระบบจะตรวจสอบและติดต่อกลับโดยเร็ว');
                     App.closeAdminReportModal();
-                    App.loadDashboardStats();
+                    
+                    // อัปเดตตัวนับทันที
+                    await App.loadDashboardStats();
                 } catch (err) {
-                    App.toast('error', 'ส่งไม่สำเร็จ', err.message);
                     console.error('Admin report error:', err);
+                    App.toast('error', 'ส่งไม่สำเร็จ', err.message);
                 } finally {
                     App.showLoading(false);
                 }
             },
 
             loadAdminPanel: async () => {
+                console.log('Loading admin panel...');
                 if (App.profile.role !== 'admin') {
                     App.toast('error', 'ไม่มีสิทธิ์', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
                     App.nav('home');
@@ -965,11 +989,17 @@
                 
                 // Load Users
                 const usersContainer = document.getElementById('admin-users-list');
-                usersContainer.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="margin:0 auto;"></div></div>';
+                usersContainer.innerHTML = '<div class="loading-text"><div class="spinner" style="margin:0 auto 10px;"></div>กำลังโหลดข้อมูล...</div>';
                 
                 try {
+                    console.log('Loading users...');
                     const { data: users, error } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
-                    if (error) throw error;
+                    if (error) {
+                        console.error('Load users error:', error);
+                        throw error;
+                    }
+                    
+                    console.log('Users loaded:', users);
                     
                     usersContainer.innerHTML = `
                         <table class="admin-table">
@@ -1002,17 +1032,23 @@
                         </table>
                     `;
                 } catch (err) {
-                    usersContainer.innerHTML = '<div style="color:var(--danger);">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
                     console.error('Load users error:', err);
+                    usersContainer.innerHTML = '<div class="error-message"><i class="fa-solid fa-circle-exclamation"></i> เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err.message + '</div>';
                 }
                 
                 // Load Items
                 const itemsContainer = document.getElementById('admin-items-list');
-                itemsContainer.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="margin:0 auto;"></div></div>';
+                itemsContainer.innerHTML = '<div class="loading-text"><div class="spinner" style="margin:0 auto 10px;"></div>กำลังโหลดข้อมูล...</div>';
                 
                 try {
+                    console.log('Loading items...');
                     const { data: items, error } = await sb.from('items').select('*, profiles(full_name)').order('created_at', { ascending: false });
-                    if (error) throw error;
+                    if (error) {
+                        console.error('Load items error:', error);
+                        throw error;
+                    }
+                    
+                    console.log('Items loaded:', items);
                     
                     itemsContainer.innerHTML = `
                         <table class="admin-table">
@@ -1046,19 +1082,25 @@
                         </table>
                     `;
                 } catch (err) {
-                    itemsContainer.innerHTML = '<div style="color:var(--danger);">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
                     console.error('Load items error:', err);
+                    itemsContainer.innerHTML = '<div class="error-message"><i class="fa-solid fa-circle-exclamation"></i> เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err.message + '</div>';
                 }
                 
                 // Load Admin Reports
                 const reportsContainer = document.getElementById('admin-reports-list');
-                reportsContainer.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="margin:0 auto;"></div></div>';
+                reportsContainer.innerHTML = '<div class="loading-text"><div class="spinner" style="margin:0 auto 10px;"></div>กำลังโหลดข้อมูล...</div>';
                 
                 try {
+                    console.log('Loading admin reports...');
                     const { data: reports, error } = await sb.from('admin_reports')
                         .select('*, profiles(full_name, email)')
                         .order('created_at', { ascending: false });
-                    if (error) throw error;
+                    if (error) {
+                        console.error('Load reports error:', error);
+                        throw error;
+                    }
+                    
+                    console.log('Admin reports loaded:', reports);
                     
                     if (!reports || reports.length === 0) {
                         reportsContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);"><i class="fa-solid fa-inbox" style="font-size:48px; margin-bottom:16px; opacity:0.5;"></i><p>ยังไม่มีคำร้องขอ</p></div>';
@@ -1102,8 +1144,8 @@
                         </table>
                     `;
                 } catch (err) {
-                    reportsContainer.innerHTML = '<div style="color:var(--danger);">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
                     console.error('Load reports error:', err);
+                    reportsContainer.innerHTML = '<div class="error-message"><i class="fa-solid fa-circle-exclamation"></i> เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err.message + '</div>';
                 }
             },
 
@@ -1303,30 +1345,14 @@
         // Security Measures
         document.addEventListener('contextmenu', (e) => {
             e.preventDefault();
-            App.toast('warning', 'แจ้งเตือน', 'ไม่อนุญาตให้คลิกขวา');
         });
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'F12') {
-                e.preventDefault();
-                App.toast('warning', 'แจ้งเตือน', 'ไม่อนุญาตให้เปิด Developer Tools');
-            }
-            if (e.ctrlKey && e.key === 'u') {
-                e.preventDefault();
-                App.toast('warning', 'แจ้งเตือน', 'ไม่อนุญาตให้ดูซอร์สโค้ด');
-            }
-            if (e.ctrlKey && e.shiftKey && e.key === 'I') {
-                e.preventDefault();
-                App.toast('warning', 'แจ้งเตือน', 'ไม่อนุญาตให้เปิด Developer Tools');
-            }
-            if (e.ctrlKey && e.shiftKey && e.key === 'J') {
-                e.preventDefault();
-                App.toast('warning', 'แจ้งเตือน', 'ไม่อนุญาตให้เปิด Console');
-            }
-            if (e.ctrlKey && e.key === 's') {
-                e.preventDefault();
-                App.toast('warning', 'แจ้งเตือน', 'ไม่อนุญาตให้บันทึกหน้าเว็บ');
-            }
+            if (e.key === 'F12') e.preventDefault();
+            if (e.ctrlKey && e.key === 'u') e.preventDefault();
+            if (e.ctrlKey && e.shiftKey && e.key === 'I') e.preventDefault();
+            if (e.ctrlKey && e.shiftKey && e.key === 'J') e.preventDefault();
+            if (e.ctrlKey && e.key === 's') e.preventDefault();
         });
 
         document.addEventListener('dragstart', (e) => {
