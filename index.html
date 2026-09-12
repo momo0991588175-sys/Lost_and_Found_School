@@ -13,31 +13,29 @@
         :root {
             --primary: #6366F1; --primary-dark: #4F46E5;
             --success: #10B981; --danger: #EF4444; --warning: #F59E0B;
+            --admin-gold: #FFD700; --student-blue: #3B82F6;
             --bg: #F3F4F6; --sidebar-bg: #FFFFFF; --card: #FFFFFF;
             --text: #1F2937; --text-muted: #6B7280; --border: #E5E7EB;
             --shadow: 0 4px 6px rgba(0,0,0,0.1); --shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
             --radius: 12px;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* ป้องกันการเลือกข้อความ */
         body { 
             font-family: 'Prompt', sans-serif; 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             color: var(--text); 
             min-height: 100vh;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        .hidden { display: none !important; }
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* ป้องกันการเลือกข้อความ */
-        .no-select {
-            user-select: none;
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
+            user-select: none;
         }
+        
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Auth Page */
         #page-auth { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
@@ -61,6 +59,8 @@
         .btn-warning:hover { background: #D97706; transform: translateY(-2px); }
         .btn-success { background: var(--success); color: white; }
         .btn-success:hover { background: #059669; transform: translateY(-2px); }
+        .btn-admin { background: linear-gradient(135deg, var(--admin-gold), #FFA500); color: #000; box-shadow: 0 4px 12px rgba(255,215,0,0.4); }
+        .btn-admin:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,215,0,0.6); }
         .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
         .btn-outline:hover { border-color: var(--danger); color: var(--danger); background: #FEE2E2; }
         .btn-lg { padding: 18px 32px; font-size: 16px; }
@@ -69,6 +69,14 @@
         .auth-switch { text-align: center; margin-top: 24px; font-size: 14px; color: var(--text-muted); }
         .auth-switch a { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; }
         .auth-switch a:hover { text-decoration: underline; }
+
+        /* Password Strength */
+        .password-strength { margin-top: 8px; font-size: 12px; }
+        .strength-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+        .strength-fill { height: 100%; transition: all 0.3s; border-radius: 2px; }
+        .strength-weak { background: var(--danger); width: 33%; }
+        .strength-medium { background: var(--warning); width: 66%; }
+        .strength-strong { background: var(--success); width: 100%; }
 
         /* App Layout */
         #app-container { display: flex; flex-direction: column; min-height: 100vh; }
@@ -83,9 +91,6 @@
         .nav-btn:hover { background: linear-gradient(135deg, #EEF2FF, #E0E7FF); transform: translateX(6px); }
         .nav-btn.active { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 12px rgba(99,102,241,0.4); }
         .nav-btn i { font-size: 20px; width: 26px; }
-        .nav-btn.admin-btn { background: linear-gradient(135deg, #1F2937, #111827); color: white; }
-        .nav-btn.admin-btn:hover { background: linear-gradient(135deg, #111827, #000000); }
-        .nav-btn.admin-btn.active { background: linear-gradient(135deg, #1F2937, #111827); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
         .badge-notification { position: absolute; top: 8px; right: 8px; background: var(--danger); color: white; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; min-width: 20px; text-align: center; animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
@@ -99,8 +104,12 @@
         .profile-card { text-align: center; max-width: 700px; margin: 0 auto; background: linear-gradient(135deg, white, #F9FAFB); }
         .avatar-large { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 5px solid var(--primary); margin-bottom: 20px; box-shadow: 0 8px 24px rgba(99,102,241,0.3); }
         .user-name { font-size: 28px; font-weight: 700; margin-bottom: 10px; color: var(--text); }
-        .user-email { color: var(--text-muted); font-size: 15px; margin-bottom: 32px; }
-        .admin-badge { display: inline-block; background: linear-gradient(135deg, #1F2937, #111827); color: #FCD34D; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-bottom: 16px; }
+        .user-email { color: var(--text-muted); font-size: 15px; margin-bottom: 8px; }
+        
+        /* Role Badge */
+        .role-badge { display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 20px; }
+        .role-badge.student { background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; }
+        .role-badge.admin { background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; }
         
         .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 32px; }
         .stat-card { background: linear-gradient(135deg, #EEF2FF, #E0E7FF); padding: 28px; border-radius: var(--radius); border: 2px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.3s; cursor: pointer; }
@@ -120,14 +129,17 @@
         .item-actions { display: flex; gap: 10px; margin-top: auto; padding-top: 16px; flex-wrap: wrap; }
 
         /* Report Type Selection */
-        .report-type-selection { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; max-width: 700px; margin: 0 auto; }
+        .report-type-selection { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 900px; margin: 0 auto; }
         .report-type-card { background: white; border-radius: 24px; padding: 48px 32px; text-align: center; cursor: pointer; transition: all 0.3s; box-shadow: var(--shadow-lg); border: 3px solid transparent; }
         .report-type-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
         .report-type-card.lost:hover { border-color: var(--danger); }
         .report-type-card.found:hover { border-color: var(--success); }
+        .report-type-card.admin:hover { border-color: var(--admin-gold); }
         .report-type-icon { width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 48px; color: white; }
         .report-type-card.lost .report-type-icon { background: linear-gradient(135deg, var(--danger), #DC2626); }
         .report-type-card.found .report-type-icon { background: linear-gradient(135deg, var(--success), #059669); }
+        .report-type-card.admin .report-type-icon { background: linear-gradient(135deg, var(--admin-gold), #FFA500); }
+        .report-type-icon img { width: 60px; height: 60px; object-fit: contain; }
         .report-type-title { font-size: 24px; font-weight: 700; margin-bottom: 12px; color: var(--text); }
         .report-type-desc { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
 
@@ -143,25 +155,18 @@
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 10000; animation: fadeIn 0.3s ease; }
         .modal-content { background: white; border-radius: 24px; padding: 40px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
         .modal-content.large { max-width: 800px; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--border); }
         .modal-title { font-size: 22px; font-weight: 700; color: var(--text); }
         .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); transition: color 0.3s; }
         .modal-close:hover { color: var(--danger); }
 
         /* Admin Panel */
-        .admin-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
-        .admin-stat-card { background: linear-gradient(135deg, #1F2937, #111827); color: white; padding: 24px; border-radius: var(--radius); }
-        .admin-stat-value { font-size: 32px; font-weight: 700; color: #FCD34D; }
-        .admin-stat-label { font-size: 13px; opacity: 0.8; margin-top: 4px; }
-        
-        .admin-table { width: 100%; border-collapse: collapse; background: white; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
-        .admin-table th { background: #1F2937; color: white; padding: 14px; text-align: left; font-weight: 600; }
-        .admin-table td { padding: 14px; border-bottom: 1px solid var(--border); }
-        .admin-table tr:hover { background: #F9FAFB; }
-        .status-badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-        .status-pending { background: #FEF3C7; color: #92400E; }
-        .status-resolved { background: #D1FAE5; color: #065F46; }
-        .status-dismissed { background: #FEE2E2; color: #991B1B; }
+        .admin-section { background: #F9FAFB; padding: 20px; border-radius: var(--radius); margin-bottom: 20px; }
+        .admin-table { width: 100%; border-collapse: collapse; }
+        .admin-table th, .admin-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        .admin-table th { background: var(--primary); color: white; font-weight: 600; }
+        .admin-table tr:hover { background: #F3F4F6; }
+        .banned-badge { background: var(--danger); color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; }
 
         /* Settings */
         .settings-section { margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
@@ -182,30 +187,12 @@
         .spinner { width: 60px; height: 60px; border: 5px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Anti-hack warning */
-        .anti-hack-warning {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--danger);
-            color: white;
-            padding: 20px 40px;
-            border-radius: var(--radius);
-            font-size: 18px;
-            font-weight: 700;
-            z-index: 99999;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            display: none;
-        }
-
         @media (max-width: 768px) {
             .app-layout { flex-direction: column; }
             .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; flex-wrap: wrap; padding: 16px; gap: 10px; }
             .nav-btn { flex: 1; min-width: 140px; padding: 12px 16px; font-size: 13px; justify-content: center; }
             .main-content { padding: 24px; }
             .stats-row { grid-template-columns: 1fr; }
-            .admin-stats { grid-template-columns: repeat(2, 1fr); }
             .items-grid { grid-template-columns: 1fr; }
             .settings-row { flex-direction: column; align-items: stretch; }
             .settings-row .form-control { max-width: 100%; }
@@ -214,16 +201,11 @@
         }
     </style>
 </head>
-<body oncontextmenu="return false;" onkeydown="return App.preventDevTools(event);" onselectstart="return false;">
-
-    <!-- Anti-hack Warning -->
-    <div id="anti-hack-warning" class="anti-hack-warning">
-        <i class="fa-solid fa-shield-halved"></i> การกระทำนี้ไม่ได้รับอนุญาต!
-    </div>
+<body>
 
     <!-- PAGE AUTH -->
     <div id="page-auth">
-        <div class="auth-box fade-in no-select">
+        <div class="auth-box fade-in">
             <div class="auth-header">
                 <img src="https://github.com/momo0991588175-sys/Lost_and_Found_School/raw/main/images/logo.png" alt="Logo" class="auth-logo">
                 <h1 id="auth-title">เข้าสู่ระบบ</h1>
@@ -252,7 +234,11 @@
                 </div>
                 <div class="form-group">
                     <label>รหัสผ่าน (อย่างน้อย 8 ตัวอักษร)</label>
-                    <input type="password" id="reg-pass" class="form-control" placeholder="••••••••" minlength="8" required>
+                    <input type="password" id="reg-pass" class="form-control" placeholder="••••••••" minlength="8" required oninput="App.checkPasswordStrength(this.value)">
+                    <div class="password-strength hidden" id="password-strength">
+                        <div>ความแข็งแรง: <span id="strength-text">-</span></div>
+                        <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> สร้างบัญชี</button>
                 <div class="auth-switch">มีบัญชีแล้ว? <a onclick="App.toggleAuth('login')">เข้าสู่ระบบ</a></div>
@@ -262,7 +248,7 @@
 
     <!-- MAIN APP -->
     <div id="app-container" class="hidden">
-        <header class="top-header no-select">
+        <header class="top-header">
             <img src="https://github.com/momo0991588175-sys/Lost_and_Found_School/raw/main/images/logo.png" alt="Logo" class="school-logo">
             <div class="school-info">
                 <h1>โรงเรียนหอวัง ปทุมธานี</h1>
@@ -271,18 +257,14 @@
         </header>
 
         <div class="app-layout">
-            <nav class="sidebar no-select">
+            <nav class="sidebar">
                 <button class="nav-btn active" onclick="App.nav('home')"><i class="fa-solid fa-house"></i><span>หน้าหลัก</span></button>
                 <button class="nav-btn" onclick="App.nav('report')"><i class="fa-solid fa-circle-exclamation"></i><span>หน้าแจ้งเหตุ</span></button>
                 <button class="nav-btn" onclick="App.nav('view-lost')">
                     <i class="fa-solid fa-magnifying-glass"></i><span>รายการแจ้งเหตุ</span>
                 </button>
-                <button class="nav-btn" onclick="App.nav('report-admin')">
-                    <i class="fa-solid fa-user-shield"></i><span>แจ้งผู้ดูแลระบบ</span>
-                </button>
-                <button class="nav-btn admin-btn hidden" id="admin-nav-btn" onclick="App.nav('admin')">
-                    <i class="fa-solid fa-crown"></i><span>แผงควบคุม Admin</span>
-                    <span class="badge-notification hidden" id="admin-badge">0</span>
+                <button class="nav-btn hidden" id="admin-nav-btn" onclick="App.nav('admin')">
+                    <i class="fa-solid fa-shield-halved"></i><span>แผงควบคุม Admin</span>
                 </button>
                 <div style="flex: 1;"></div>
                 <button class="nav-btn" onclick="App.nav('settings')"><i class="fa-solid fa-gear"></i><span>ตั้งค่าบัญชี</span></button>
@@ -296,13 +278,11 @@
                         <img src="" id="dash-avatar" class="avatar-large" alt="Profile">
                         <h3 class="user-name" id="dash-name">กำลังโหลด...</h3>
                         <p class="user-email" id="dash-email">-</p>
-                        <div id="admin-badge-display" class="hidden">
-                            <span class="admin-badge"><i class="fa-solid fa-crown"></i> ผู้ดูแลระบบ</span>
-                        </div>
+                        <div id="role-badge-container"></div>
                         <div class="stats-row">
                             <div class="stat-card"><div class="stat-value" id="stat-lost">0</div><div class="stat-label">แจ้งของหาย</div></div>
                             <div class="stat-card"><div class="stat-value" id="stat-found">0</div><div class="stat-label">แจ้งเก็บของได้</div></div>
-                            <div class="stat-card"><div class="stat-value" id="stat-reports">0</div><div class="stat-label">การแจ้งเตือน</div></div>
+                            <div class="stat-card"><div class="stat-value" id="stat-claims">0</div><div class="stat-label">คำร้องขอ</div></div>
                         </div>
                     </div>
                 </div>
@@ -323,6 +303,13 @@
                             <div class="report-type-icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
                             <h3 class="report-type-title">แจ้งเก็บของได้</h3>
                             <p class="report-type-desc">กรอกรายละเอียดสิ่งของที่เก็บได้<br>รูปภาพ/วิดีโอบังคับ</p>
+                        </div>
+                        <div class="report-type-card admin" onclick="App.openAdminReportModal()">
+                            <div class="report-type-icon">
+                                <img src="https://github.com/momo0991588175-sys/Lost_and_Found_School/raw/main/images/Logo_Admin.png" alt="Admin Logo" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fa-solid fa-user-shield\'></i>';">
+                            </div>
+                            <h3 class="report-type-title">แจ้งผู้ดูแลระบบ</h3>
+                            <p class="report-type-desc">กรอกรายละเอียดหรือปัญหาที่พบ<br>เพื่อแจ้งให้ผู้ดูแลระบบทราบ</p>
                         </div>
                     </div>
                 </div>
@@ -429,68 +416,21 @@
                     <div id="lost-list" class="items-grid"></div>
                 </div>
 
-                <!-- REPORT TO ADMIN -->
-                <div id="page-report-admin" class="page-section hidden fade-in">
-                    <div class="page-header">
-                        <button class="back-btn" onclick="App.nav('home')"><i class="fa-solid fa-arrow-left"></i></button>
-                        <h2 class="page-title">แจ้งผู้ดูแลระบบ</h2>
-                    </div>
-                    <div class="card" style="max-width: 700px; margin: 0 auto;">
-                        <div style="text-align:center; margin-bottom:24px;">
-                            <img src="https://github.com/momo0991588175-sys/Lost_and_Found_School/raw/main/images/logo.png" alt="Admin Logo" style="width:80px; height:80px; border-radius:50%; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
-                            <h3 style="margin-top:12px; color:var(--text);">มีปัญหาหรือต้องการความช่วยเหลือ?</h3>
-                            <p style="color:var(--text-muted); font-size:14px;">กรอกรายละเอียดด้านล่าง ผู้ดูแลระบบจะติดต่อกลับโดยเร็ว</p>
-                        </div>
-                        <form id="form-report-admin">
-                            <div class="form-group">
-                                <label>หัวข้อเรื่อง <span style="color:var(--danger)">*</span></label>
-                                <input type="text" id="report-subject" class="form-control" placeholder="เช่น พบปัญหาการเข้าสู่ระบบ, รายงานผู้ใช้ไม่เหมาะสม" required>
-                            </div>
-                            <div class="form-group">
-                                <label>รายละเอียดปัญหา <span style="color:var(--danger)">*</span></label>
-                                <textarea id="report-description" class="form-control" placeholder="อธิบายรายละเอียดปัญหาหรือสิ่งที่พบ..." required style="min-height:150px;"></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fa-solid fa-paper-plane"></i> ส่งแจ้งผู้ดูแลระบบ
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
                 <!-- ADMIN PANEL -->
                 <div id="page-admin" class="page-section hidden fade-in">
                     <div class="page-header">
                         <button class="back-btn" onclick="App.nav('home')"><i class="fa-solid fa-arrow-left"></i></button>
-                        <h2 class="page-title"><i class="fa-solid fa-crown" style="color:#FCD34D;"></i> แผงควบคุม Admin</h2>
+                        <h2 class="page-title">แผงควบคุม Admin</h2>
                     </div>
-                    
-                    <div class="admin-stats">
-                        <div class="admin-stat-card">
-                            <div class="admin-stat-value" id="admin-stat-items">0</div>
-                            <div class="admin-stat-label">โพสต์ทั้งหมด</div>
-                        </div>
-                        <div class="admin-stat-card">
-                            <div class="admin-stat-value" id="admin-stat-reports">0</div>
-                            <div class="admin-stat-label">เรื่องรอจัดการ</div>
-                        </div>
-                        <div class="admin-stat-card">
-                            <div class="admin-stat-value" id="admin-stat-users">0</div>
-                            <div class="admin-stat-label">ผู้ใช้ทั้งหมด</div>
-                        </div>
-                        <div class="admin-stat-card">
-                            <div class="admin-stat-value" id="admin-stat-banned">0</div>
-                            <div class="admin-stat-label">ผู้ใช้ที่ถูกแบน</div>
-                        </div>
-                    </div>
-
                     <div class="card">
-                        <h3 style="margin-bottom:20px;"><i class="fa-solid fa-flag" style="color:var(--warning);"></i> เรื่องที่แจ้งผู้ดูแลระบบ</h3>
-                        <div id="admin-reports-list"></div>
-                    </div>
-
-                    <div class="card">
-                        <h3 style="margin-bottom:20px;"><i class="fa-solid fa-users" style="color:var(--primary);"></i> จัดการโพสต์ทั้งหมด</h3>
-                        <div id="admin-items-list"></div>
+                        <div class="admin-section">
+                            <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-users"></i> จัดการสมาชิก</h3>
+                            <div id="admin-users-list"></div>
+                        </div>
+                        <div class="admin-section">
+                            <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-box"></i> จัดการโพสต์ทั้งหมด</h3>
+                            <div id="admin-items-list"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -528,11 +468,19 @@
                         <div class="settings-section">
                             <h3 class="settings-title"><i class="fa-solid fa-key"></i> รหัสผ่าน</h3>
                             <div class="settings-row">
-                                <input type="password" id="settings-password" class="form-control" placeholder="รหัสผ่านใหม่ (อย่างน้อย 8 ตัว)">
+                                <input type="password" id="settings-password" class="form-control" placeholder="รหัสผ่านใหม่ (อย่างน้อย 8 ตัว)" oninput="App.checkPasswordStrength(this.value)">
+                                <div class="password-strength hidden" id="settings-password-strength">
+                                    <div>ความแข็งแรง: <span id="settings-strength-text">-</span></div>
+                                    <div class="strength-bar"><div class="strength-fill" id="settings-strength-fill"></div></div>
+                                </div>
                                 <button class="btn btn-primary" style="width: auto;" onclick="App.updatePassword()">
                                     <i class="fa-solid fa-save"></i> เปลี่ยนรหัสผ่าน
                                 </button>
                             </div>
+                            <small style="color: var(--text-muted); display: block; margin-top: 8px;">
+                                <i class="fa-solid fa-shield-halved"></i> 
+                                ใช้รหัสผ่านที่ผสมตัวอักษรใหญ่, เล็ก, ตัวเลข และสัญลักษณ์ เพื่อความปลอดภัย
+                            </small>
                         </div>
                         <div class="settings-section" style="border-top: 2px solid var(--border); padding-top: 32px; margin-top: 32px;">
                             <h3 class="settings-title" style="color: var(--danger);"><i class="fa-solid fa-right-from-bracket"></i> โซนอันตราย</h3>
@@ -546,15 +494,40 @@
         </div>
     </div>
 
-    <!-- Modal สำหรับ Admin Actions -->
-    <div id="admin-action-modal" class="hidden">
-        <div class="modal-overlay" onclick="App.closeAdminModal(event)">
+    <!-- Modal สำหรับแจ้งผู้ดูแลระบบ -->
+    <div id="admin-report-modal" class="hidden">
+        <div class="modal-overlay" onclick="App.closeAdminReportModal(event)">
             <div class="modal-content" onclick="event.stopPropagation()">
                 <div class="modal-header">
-                    <h3 class="modal-title" id="admin-action-title">จัดการ</h3>
-                    <button class="modal-close" onclick="App.closeAdminModal()"><i class="fa-solid fa-xmark"></i></button>
+                    <h3 class="modal-title"><i class="fa-solid fa-user-shield" style="color: var(--admin-gold);"></i> แจ้งผู้ดูแลระบบ</h3>
+                    <button class="modal-close" onclick="App.closeAdminReportModal()"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                <div id="admin-action-content"></div>
+                <form id="form-admin-report">
+                    <div class="form-group">
+                        <label>หัวข้อเรื่อง <span style="color:var(--danger)">*</span></label>
+                        <input type="text" id="admin-report-subject" class="form-control" placeholder="เช่น ปัญหาการใช้งาน, รายงานข้อผิดพลาด" required>
+                    </div>
+                    <div class="form-group">
+                        <label>รายละเอียดหรือปัญหาที่พบ <span style="color:var(--danger)">*</span></label>
+                        <textarea id="admin-report-description" class="form-control" placeholder="อธิบายรายละเอียดหรือปัญหาที่พบอย่างชัดเจน" required style="min-height: 120px;"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-admin">
+                        <i class="fa-solid fa-paper-plane"></i> ส่งแจ้งผู้ดูแลระบบ
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับดู Claim Detail -->
+    <div id="claim-detail-modal" class="hidden">
+        <div class="modal-overlay" onclick="App.closeClaimDetailModal(event)">
+            <div class="modal-content large" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h3 class="modal-title"><i class="fa-solid fa-clipboard-list" style="color: var(--primary);"></i> รายละเอียดคำร้อง</h3>
+                    <button class="modal-close" onclick="App.closeClaimDetailModal()"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div id="claim-detail-content"></div>
             </div>
         </div>
     </div>
@@ -567,12 +540,9 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhlY29wbWVqYmx1bG5zbnJtY21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMDgwMDUsImV4cCI6MjEwNDU4NDAwNX0.ad_EFeHFhoFJAvVCycc0E_fZ-kYozNdvK_wy-x6slFA';
         const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        const ADMIN_EMAIL = 'administrator@hwp.ac.th';
-
         const App = {
             user: null, 
             profile: null,
-            isAdmin: false,
             editingItemId: null,
 
             init: async () => {
@@ -581,22 +551,6 @@
                     if (error) throw error;
                     if (session) {
                         App.user = session.user;
-                        App.isAdmin = App.user.email === ADMIN_EMAIL;
-                        
-                        // ตรวจสอบว่าถูกแบนหรือไม่
-                        if (!App.isAdmin) {
-                            const { data: banData } = await sb.from('banned_users')
-                                .select('id')
-                                .eq('user_id', App.user.id)
-                                .single();
-                            if (banData) {
-                                App.toast('error', 'บัญชีถูกแบน', 'บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ');
-                                await sb.auth.signOut();
-                                App.showAuth();
-                                return;
-                            }
-                        }
-                        
                         await App.loadProfile();
                         App.showApp();
                     } else {
@@ -609,12 +563,10 @@
 
                 sb.auth.onAuthStateChange((event, session) => {
                     if (event === 'SIGNED_IN') { 
-                        App.user = session.user;
-                        App.isAdmin = App.user.email === ADMIN_EMAIL;
+                        App.user = session.user; 
                         App.loadProfile().then(() => App.showApp()); 
                     } else if (event === 'SIGNED_OUT') { 
-                        App.user = null;
-                        App.isAdmin = false;
+                        App.user = null; 
                         App.showAuth();
                     }
                 });
@@ -628,16 +580,6 @@
             showApp: () => {
                 document.getElementById('page-auth').classList.add('hidden');
                 document.getElementById('app-container').classList.remove('hidden');
-                
-                // แสดง/ซ่อนปุ่ม Admin
-                if (App.isAdmin) {
-                    document.getElementById('admin-nav-btn').classList.remove('hidden');
-                    document.getElementById('admin-badge-display').classList.remove('hidden');
-                } else {
-                    document.getElementById('admin-nav-btn').classList.add('hidden');
-                    document.getElementById('admin-badge-display').classList.add('hidden');
-                }
-                
                 App.nav('home');
             },
 
@@ -654,12 +596,6 @@
             },
 
             nav: (pageId) => {
-                // ป้องกันผู้ใช้ทั่วไปเข้าหน้า Admin
-                if (pageId === 'admin' && !App.isAdmin) {
-                    App.toast('error', 'ไม่มีสิทธิ์', 'เฉพาะผู้ดูแลระบบเท่านั้นที่เข้าถึงหน้านี้ได้');
-                    return;
-                }
-                
                 document.querySelectorAll('.page-section').forEach(p => p.classList.add('hidden'));
                 const targetPage = document.getElementById(`page-${pageId}`);
                 if (targetPage) targetPage.classList.remove('hidden');
@@ -679,19 +615,44 @@
                 try {
                     let { data: profile, error } = await sb.from('profiles').select('*').eq('id', App.user.id).single();
                     if (error || !profile) {
-                        await sb.from('profiles').insert({ id: App.user.id, email: App.user.email, full_name: App.user.email.split('@')[0] });
-                        profile = { full_name: App.user.email.split('@')[0], avatar_url: null };
+                        await sb.from('profiles').insert({ id: App.user.id, email: App.user.email, full_name: App.user.email.split('@')[0], role: 'student' });
+                        profile = { full_name: App.user.email.split('@')[0], avatar_url: null, role: 'student', is_banned: false };
                     }
+                    
+                    // ตรวจสอบว่าถูกแบนหรือไม่
+                    if (profile.is_banned && profile.role !== 'admin') {
+                        App.toast('error', 'บัญชีถูกแบน', profile.banned_reason || 'บัญชีของคุณถูกแบนโดยผู้ดูแลระบบ');
+                        await sb.auth.signOut();
+                        App.showAuth();
+                        return;
+                    }
+                    
                     App.profile = profile;
                     App.updateProfileUI();
+                    
+                    // แสดงปุ่ม Admin ถ้าเป็น admin
+                    if (profile.role === 'admin') {
+                        document.getElementById('admin-nav-btn').classList.remove('hidden');
+                    } else {
+                        document.getElementById('admin-nav-btn').classList.add('hidden');
+                    }
                 } catch (err) { 
                     console.error('Load profile error:', err);
+                    App.toast('error', 'โหลดข้อมูลไม่สำเร็จ', 'กรุณาลองใหม่อีกครั้ง');
                 }
             },
 
             updateProfileUI: () => {
                 document.getElementById('dash-name').textContent = App.profile.full_name || 'ผู้ใช้';
                 document.getElementById('dash-email').textContent = App.user.email;
+                
+                // แสดง Role Badge
+                const roleBadgeContainer = document.getElementById('role-badge-container');
+                if (App.profile.role === 'admin') {
+                    roleBadgeContainer.innerHTML = '<span class="role-badge admin"><i class="fa-solid fa-shield-halved"></i> ผู้ดูแลระบบ</span>';
+                } else {
+                    roleBadgeContainer.innerHTML = '<span class="role-badge student"><i class="fa-solid fa-user-graduate"></i> นักเรียน</span>';
+                }
                 
                 const avatarUrl = App.profile.avatar_url || `https://ui-avatars.com/api/?name=${(App.profile.full_name || 'U').charAt(0).toUpperCase()}&background=6366F1&color=fff&size=150`;
                 document.getElementById('dash-avatar').src = avatarUrl;
@@ -707,30 +668,48 @@
                 try {
                     const { count: lost } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'lost');
                     const { count: found } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'found');
-                    
-                    let reports = 0;
-                    if (App.isAdmin) {
-                        const { count } = await sb.from('admin_reports')
-                            .select('*', {count:'exact', head:true})
-                            .eq('status', 'pending');
-                        reports = count || 0;
-                        
-                        // อัปเดต badge ของ admin
-                        const adminBadge = document.getElementById('admin-badge');
-                        if (reports > 0) {
-                            adminBadge.textContent = reports > 99 ? '99+' : reports;
-                            adminBadge.classList.remove('hidden');
-                        } else {
-                            adminBadge.classList.add('hidden');
-                        }
-                    }
+                    const { count: claims } = await sb.from('claims').select('*', {count:'exact', head:true}).eq('claimer_id', App.user.id);
                     
                     document.getElementById('stat-lost').textContent = lost || 0;
                     document.getElementById('stat-found').textContent = found || 0;
-                    document.getElementById('stat-reports').textContent = reports;
+                    document.getElementById('stat-claims').textContent = claims || 0;
                 } catch (err) { 
                     console.error('Stats error:', err);
                 }
+            },
+
+            checkPasswordStrength: (password) => {
+                const strengthDiv = document.getElementById('password-strength');
+                const settingsStrengthDiv = document.getElementById('settings-password-strength');
+                const fill = document.getElementById('strength-fill');
+                const settingsFill = document.getElementById('settings-strength-fill');
+                const text = document.getElementById('strength-text');
+                const settingsText = document.getElementById('settings-strength-text');
+                
+                if (!password) {
+                    if(strengthDiv) strengthDiv.classList.add('hidden');
+                    if(settingsStrengthDiv) settingsStrengthDiv.classList.add('hidden');
+                    return;
+                }
+                
+                if(strengthDiv) strengthDiv.classList.remove('hidden');
+                if(settingsStrengthDiv) settingsStrengthDiv.classList.remove('hidden');
+                
+                let strength = 0;
+                if (password.length >= 8) strength++;
+                if (/[A-Z]/.test(password) && /[a-z]/.test(password)) strength++;
+                if (/[0-9]/.test(password)) strength++;
+                if (/[^A-Za-z0-9]/.test(password)) strength++;
+                
+                let level, levelText;
+                if (strength <= 1) { level = 'strength-weak'; levelText = 'อ่อน - ควรปรับปรุง'; }
+                else if (strength <= 2) { level = 'strength-medium'; levelText = 'ปานกลาง'; }
+                else { level = 'strength-strong'; levelText = 'แข็งแรง ✓'; }
+                
+                fill.className = `strength-fill ${level}`;
+                settingsFill.className = `strength-fill ${level}`;
+                text.textContent = levelText;
+                settingsText.textContent = levelText;
             },
 
             handleLogin: async (e) => {
@@ -862,28 +841,6 @@
                 }
             },
 
-            handleReportAdmin: async (e) => {
-                e.preventDefault();
-                App.showLoading(true);
-                try {
-                    const { error } = await sb.from('admin_reports').insert({
-                        user_id: App.user.id,
-                        subject: document.getElementById('report-subject').value,
-                        description: document.getElementById('report-description').value,
-                        status: 'pending'
-                    });
-                    if (error) throw error;
-                    
-                    App.toast('success', 'ส่งสำเร็จ', 'ผู้ดูแลระบบจะได้รับเรื่องและติดต่อกลับโดยเร็ว');
-                    e.target.reset();
-                    App.nav('home');
-                } catch (err) {
-                    App.toast('error', 'ส่งไม่สำเร็จ', err.message);
-                } finally {
-                    App.showLoading(false);
-                }
-            },
-
             editItem: async (itemId) => {
                 try {
                     const { data: item, error } = await sb.from('items').select('*').eq('id', itemId).single();
@@ -948,6 +905,8 @@
                         return;
                     }
                     
+                    const isAdmin = App.profile.role === 'admin';
+                    
                     container.innerHTML = data.map(item => {
                         const isOwner = item.user_id === App.user.id;
                         const isLost = item.type === 'lost';
@@ -967,7 +926,7 @@
                                 <div style="margin-top:12px; font-size:13px; color:var(--text-muted);">${new Date(item.created_at).toLocaleDateString('th-TH')}</div>
                                 
                                 <div class="item-actions">
-                                    ${isOwner || App.isAdmin ? `
+                                    ${(isOwner || isAdmin) ? `
                                         <button class="btn btn-warning btn-sm" style="flex:1;" onclick="App.editItem('${item.id}')">
                                             <i class="fa-solid fa-pen"></i> แก้ไข
                                         </button>
@@ -985,121 +944,166 @@
                 }
             },
 
-            // ===== ADMIN FUNCTIONS =====
-            loadAdminPanel: async () => {
-                if (!App.isAdmin) return;
-                
-                try {
-                    // โหลดสถิติ
-                    const { count: totalItems } = await sb.from('items').select('*', {count:'exact', head:true});
-                    const { count: pendingReports } = await sb.from('admin_reports').select('*', {count:'exact', head:true}).eq('status', 'pending');
-                    const { count: totalUsers } = await sb.from('profiles').select('*', {count:'exact', head:true});
-                    const { count: bannedUsers } = await sb.from('banned_users').select('*', {count:'exact', head:true});
-                    
-                    document.getElementById('admin-stat-items').textContent = totalItems || 0;
-                    document.getElementById('admin-stat-reports').textContent = pendingReports || 0;
-                    document.getElementById('admin-stat-users').textContent = totalUsers || 0;
-                    document.getElementById('admin-stat-banned').textContent = bannedUsers || 0;
-                    
-                    // โหลดรายการแจ้งผู้ดูแล
-                    const { data: reports } = await sb.from('admin_reports')
-                        .select('*, profiles(full_name, email)')
-                        .order('created_at', { ascending: false });
-                    
-                    const reportsContainer = document.getElementById('admin-reports-list');
-                    if (!reports || reports.length === 0) {
-                        reportsContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);"><i class="fa-solid fa-check-circle" style="font-size:48px; color:var(--success); margin-bottom:16px;"></i><p>ไม่มีเรื่องรอจัดการ</p></div>';
-                    } else {
-                        reportsContainer.innerHTML = `
-                            <table class="admin-table">
-                                <thead>
-                                    <tr>
-                                        <th>หัวข้อ</th>
-                                        <th>ผู้แจ้ง</th>
-                                        <th>วันที่</th>
-                                        <th>สถานะ</th>
-                                        <th>จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${reports.map(r => `
-                                        <tr>
-                                            <td><strong>${r.subject}</strong><br><small style="color:var(--text-muted);">${r.description.substring(0, 50)}...</small></td>
-                                            <td>${r.profiles?.full_name || 'ไม่ระบุ'}<br><small style="color:var(--text-muted);">${r.profiles?.email || ''}</small></td>
-                                            <td>${new Date(r.created_at).toLocaleDateString('th-TH')}</td>
-                                            <td><span class="status-badge status-${r.status}">${r.status === 'pending' ? 'รอดำเนินการ' : r.status === 'resolved' ? 'จัดการแล้ว' : 'ยกเลิก'}</span></td>
-                                            <td>
-                                                <button class="btn btn-success btn-sm" style="margin-bottom:4px;" onclick="App.resolveReport('${r.id}', 'resolved')"><i class="fa-solid fa-check"></i></button>
-                                                <button class="btn btn-danger btn-sm" onclick="App.resolveReport('${r.id}', 'dismissed')"><i class="fa-solid fa-xmark"></i></button>
-                                            </td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        `;
-                    }
-                    
-                    // โหลดโพสต์ทั้งหมด
-                    const { data: items } = await sb.from('items')
-                        .select('*, profiles(full_name, email)')
-                        .order('created_at', { ascending: false });
-                    
-                    const itemsContainer = document.getElementById('admin-items-list');
-                    if (!items || items.length === 0) {
-                        itemsContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);"><p>ไม่มีโพสต์ในระบบ</p></div>';
-                    } else {
-                        itemsContainer.innerHTML = `
-                            <table class="admin-table">
-                                <thead>
-                                    <tr>
-                                        <th>หัวข้อ</th>
-                                        <th>ประเภท</th>
-                                        <th>ผู้โพสต์</th>
-                                        <th>วันที่</th>
-                                        <th>จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${items.map(item => `
-                                        <tr>
-                                            <td><strong>${item.title}</strong></td>
-                                            <td><span class="item-badge ${item.type === 'lost' ? '' : 'found'}" style="margin:0;">${item.type === 'lost' ? 'ของหาย' : 'เก็บได้'}</span></td>
-                                            <td>${item.profiles?.full_name || 'ไม่ระบุ'}<br><small style="color:var(--text-muted);">${item.profiles?.email || ''}</small></td>
-                                            <td>${new Date(item.created_at).toLocaleDateString('th-TH')}</td>
-                                            <td>
-                                                <button class="btn btn-warning btn-sm" style="margin-bottom:4px;" onclick="App.editItem('${item.id}')"><i class="fa-solid fa-pen"></i></button>
-                                                <button class="btn btn-danger btn-sm" onclick="App.deleteItem('${item.id}')"><i class="fa-solid fa-trash"></i></button>
-                                            </td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        `;
-                    }
-                } catch (err) {
-                    console.error('Load admin panel error:', err);
-                    App.toast('error', 'โหลดข้อมูลไม่สำเร็จ', err.message);
+            // Admin Functions
+            openAdminReportModal: () => {
+                document.getElementById('admin-report-modal').classList.remove('hidden');
+            },
+
+            closeAdminReportModal: (event) => {
+                if (!event || event.target === event.currentTarget) {
+                    document.getElementById('admin-report-modal').classList.add('hidden');
+                    document.getElementById('form-admin-report').reset();
                 }
             },
 
-            resolveReport: async (reportId, status) => {
+            handleAdminReport: async (e) => {
+                e.preventDefault();
+                App.showLoading(true);
                 try {
-                    const { error } = await sb.from('admin_reports')
-                        .update({ status: status })
-                        .eq('id', reportId);
+                    const subject = document.getElementById('admin-report-subject').value;
+                    const description = document.getElementById('admin-report-description').value;
+                    
+                    // ส่งข้อมูลไปยัง claims table พร้อม flag เป็น admin report
+                    const { error } = await sb.from('claims').insert({
+                        item_id: null,
+                        claimer_id: App.user.id,
+                        description: `หัวข้อ: ${subject}\n\nรายละเอียด:\n${description}`,
+                        status: 'pending',
+                        is_admin_report: true
+                    });
+                    
                     if (error) throw error;
                     
-                    App.toast('success', 'สำเร็จ', status === 'resolved' ? 'จัดการเรื่องเรียบร้อยแล้ว' : 'ยกเลิกเรื่องแล้ว');
-                    App.loadAdminPanel();
-                    App.loadDashboardStats();
+                    App.toast('success', 'ส่งสำเร็จ', 'ผู้ดูแลระบบจะตรวจสอบและติดต่อกลับโดยเร็ว');
+                    App.closeAdminReportModal();
                 } catch (err) {
-                    App.toast('error', 'เกิดข้อผิดพลาด', err.message);
+                    App.toast('error', 'ส่งไม่สำเร็จ', err.message);
+                } finally {
+                    App.showLoading(false);
                 }
             },
 
-            closeAdminModal: (event) => {
-                if (!event || event.target === event.currentTarget) {
-                    document.getElementById('admin-action-modal').classList.add('hidden');
+            loadAdminPanel: async () => {
+                if (App.profile.role !== 'admin') {
+                    App.toast('error', 'ไม่มีสิทธิ์', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+                    App.nav('home');
+                    return;
+                }
+                
+                // Load Users
+                const usersContainer = document.getElementById('admin-users-list');
+                usersContainer.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="margin:0 auto;"></div></div>';
+                
+                try {
+                    const { data: users, error } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+                    if (error) throw error;
+                    
+                    usersContainer.innerHTML = `
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ชื่อ-นามสกุล</th>
+                                    <th>อีเมล</th>
+                                    <th>ยศ</th>
+                                    <th>สถานะ</th>
+                                    <th>จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${users.map(user => `
+                                    <tr>
+                                        <td>${user.full_name || '-'}</td>
+                                        <td>${user.email}</td>
+                                        <td><span class="role-badge ${user.role}">${user.role === 'admin' ? 'ผู้ดูแลระบบ' : 'นักเรียน'}</span></td>
+                                        <td>${user.is_banned ? '<span class="banned-badge">ถูกแบน</span>' : 'ปกติ'}</td>
+                                        <td>
+                                            ${user.role !== 'admin' ? `
+                                                <button class="btn btn-${user.is_banned ? 'success' : 'danger'} btn-sm" onclick="App.toggleBanUser('${user.id}', ${!user.is_banned})">
+                                                    <i class="fa-solid fa-${user.is_banned ? 'unlock' : 'ban'}"></i> ${user.is_banned ? 'ปลดแบน' : 'แบน'}
+                                                </button>
+                                            ` : '-'}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } catch (err) {
+                    usersContainer.innerHTML = '<div style="color:var(--danger);">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
+                }
+                
+                // Load Items
+                const itemsContainer = document.getElementById('admin-items-list');
+                itemsContainer.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="margin:0 auto;"></div></div>';
+                
+                try {
+                    const { data: items, error } = await sb.from('items').select('*, profiles(full_name)').order('created_at', { ascending: false });
+                    if (error) throw error;
+                    
+                    itemsContainer.innerHTML = `
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>หัวข้อ</th>
+                                    <th>ประเภท</th>
+                                    <th>ผู้แจ้ง</th>
+                                    <th>วันที่</th>
+                                    <th>จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${items.map(item => `
+                                    <tr>
+                                        <td>${item.title}</td>
+                                        <td><span class="item-badge ${item.type === 'lost' ? '' : 'found'}">${item.type === 'lost' ? 'ของหาย' : 'เก็บของได้'}</span></td>
+                                        <td>${item.profiles?.full_name || '-'}</td>
+                                        <td>${new Date(item.created_at).toLocaleDateString('th-TH')}</td>
+                                        <td>
+                                            <button class="btn btn-warning btn-sm" onclick="App.editItem('${item.id}')">
+                                                <i class="fa-solid fa-pen"></i> แก้ไข
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" onclick="App.deleteItem('${item.id}')">
+                                                <i class="fa-solid fa-trash"></i> ลบ
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } catch (err) {
+                    itemsContainer.innerHTML = '<div style="color:var(--danger);">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
+                }
+            },
+
+            toggleBanUser: async (userId, ban) => {
+                const reason = ban ? prompt('ระบุเหตุผลในการแบน:') : null;
+                if (ban && !reason) return;
+                
+                App.showLoading(true);
+                try {
+                    if (ban) {
+                        const { error } = await sb.from('profiles').update({ 
+                            is_banned: true, 
+                            banned_reason: reason,
+                            banned_at: new Date().toISOString()
+                        }).eq('id', userId);
+                        if (error) throw error;
+                        App.toast('success', 'สำเร็จ', 'แบนผู้ใช้เรียบร้อยแล้ว');
+                    } else {
+                        const { error } = await sb.from('profiles').update({ 
+                            is_banned: false, 
+                            banned_reason: null,
+                            banned_at: null
+                        }).eq('id', userId);
+                        if (error) throw error;
+                        App.toast('success', 'สำเร็จ', 'ปลดแบนผู้ใช้เรียบร้อยแล้ว');
+                    }
+                    App.loadAdminPanel();
+                } catch (err) {
+                    App.toast('error', 'เกิดข้อผิดพลาด', err.message);
+                } finally {
+                    App.showLoading(false);
                 }
             },
 
@@ -1193,6 +1197,7 @@
                     const { error } = await sb.auth.updateUser({ password: newPass });
                     if (error) throw error;
                     document.getElementById('settings-password').value = '';
+                    document.getElementById('settings-password-strength').classList.add('hidden');
                     App.toast('success', 'สำเร็จ', 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว');
                 } catch (err) {
                     App.toast('error', 'เปลี่ยนไม่สำเร็จ', err.message);
@@ -1229,37 +1234,54 @@
                     toast.style.animation = 'slideIn 0.4s ease reverse';
                     setTimeout(() => toast.remove(), 400);
                 }, 4000);
-            },
-
-            // ===== ANTI-HACK FUNCTIONS =====
-            preventDevTools: (e) => {
-                // ป้องกัน F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-                if (e.key === 'F12' || 
-                    (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
-                    (e.ctrlKey && e.key === 'u') ||
-                    (e.ctrlKey && e.key === 'U')) {
-                    e.preventDefault();
-                    App.showAntiHackWarning();
-                    return false;
-                }
-                return true;
-            },
-
-            showAntiHackWarning: () => {
-                const warning = document.getElementById('anti-hack-warning');
-                warning.style.display = 'block';
-                setTimeout(() => {
-                    warning.style.display = 'none';
-                }, 2000);
             }
         };
+
+        // Security Measures - ป้องกันการก๊อปปี้และแฮ็ก
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            App.toast('warning', 'แจ้งเตือน', 'ไม่อนุญาตให้คลิกขวา');
+        });
+
+        document.addEventListener('keydown', (e) => {
+            // ป้องกัน F12
+            if (e.key === 'F12') {
+                e.preventDefault();
+                App.toast('warning', 'แจ้งเตือน', 'ไม่อนุญาตให้เปิด Developer Tools');
+            }
+            // ป้องกัน Ctrl+U (View Source)
+            if (e.ctrlKey && e.key === 'u') {
+                e.preventDefault();
+                App.toast('warning', 'แจ้งเตือน', 'ไม่อนุญาตให้ดูซอร์สโค้ด');
+            }
+            // ป้องกัน Ctrl+Shift+I (DevTools)
+            if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                e.preventDefault();
+                App.toast('warning', 'แจ้งเตือน', 'ไม่อนุญาตให้เปิด Developer Tools');
+            }
+            // ป้องกัน Ctrl+Shift+J (Console)
+            if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+                e.preventDefault();
+                App.toast('warning', 'แจ้งเตือน', 'ไม่อนุญาตให้เปิด Console');
+            }
+            // ป้องกัน Ctrl+S (Save)
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                App.toast('warning', 'แจ้งเตือน', 'ไม่อนุญาตให้บันทึกหน้าเว็บ');
+            }
+        });
+
+        // ป้องกันการลากข้อความ
+        document.addEventListener('dragstart', (e) => {
+            e.preventDefault();
+        });
 
         // Event Listeners
         document.getElementById('form-login').addEventListener('submit', App.handleLogin);
         document.getElementById('form-register').addEventListener('submit', App.handleRegister);
         document.getElementById('form-lost').addEventListener('submit', App.handleLost);
         document.getElementById('form-found').addEventListener('submit', App.handleFound);
-        document.getElementById('form-report-admin').addEventListener('submit', App.handleReportAdmin);
+        document.getElementById('form-admin-report').addEventListener('submit', App.handleAdminReport);
         document.getElementById('settings-avatar-input').addEventListener('change', App.handleAvatarUpload);
         document.getElementById('lost-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -1287,22 +1309,6 @@
                 }
             }
         });
-
-        // ป้องกันการคลิกขวา
-        document.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            App.showAntiHackWarning();
-            return false;
-        });
-
-        // ตรวจจับการเปิด DevTools
-        setInterval(() => {
-            const threshold = 160;
-            if (window.outerWidth - window.innerWidth > threshold || 
-                window.outerHeight - window.innerHeight > threshold) {
-                App.showAntiHackWarning();
-            }
-        }, 1000);
 
         // Start App
         App.init();
