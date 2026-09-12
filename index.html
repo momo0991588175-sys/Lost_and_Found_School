@@ -28,15 +28,7 @@
         #page-auth { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
         .auth-box { width: 100%; max-width: 450px; background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
         .auth-header { text-align: center; margin-bottom: 32px; }
-        .auth-logo { 
-            width: 100px; height: 100px;
-            border-radius: 50%;
-            object-fit: contain;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            padding: 10px;
-            background: white;
-        }
+        .auth-logo { width: 100px; height: 100px; border-radius: 50%; object-fit: contain; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 10px; background: white; }
         .auth-header h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
         .auth-header p { color: var(--text-muted); font-size: 14px; }
         
@@ -63,6 +55,14 @@
         .auth-switch a { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; }
         .auth-switch a:hover { text-decoration: underline; }
 
+        /* Password Strength */
+        .password-strength { margin-top: 8px; font-size: 12px; }
+        .strength-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+        .strength-fill { height: 100%; transition: all 0.3s; border-radius: 2px; }
+        .strength-weak { background: var(--danger); width: 33%; }
+        .strength-medium { background: var(--warning); width: 66%; }
+        .strength-strong { background: var(--success); width: 100%; }
+
         /* App Layout */
         #app-container { display: flex; flex-direction: column; min-height: 100vh; }
         .top-header { background: linear-gradient(135deg, #D4A373 0%, #BC8A5F 100%); padding: 20px 32px; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 16px; }
@@ -76,20 +76,7 @@
         .nav-btn:hover { background: linear-gradient(135deg, #EEF2FF, #E0E7FF); transform: translateX(6px); }
         .nav-btn.active { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 12px rgba(99,102,241,0.4); }
         .nav-btn i { font-size: 20px; width: 26px; }
-        .badge-notification {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: var(--danger);
-            color: white;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 10px;
-            min-width: 20px;
-            text-align: center;
-            animation: pulse 2s infinite;
-        }
+        .badge-notification { position: absolute; top: 8px; right: 8px; background: var(--danger); color: white; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; min-width: 20px; text-align: center; animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
         .main-content { flex: 1; padding: 40px; overflow-y: auto; }
@@ -636,7 +623,6 @@
                     const { count: lost } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'lost');
                     const { count: found } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'found');
                     
-                    // นับการแจ้งเตือน: claims ที่ pending/chatting สำหรับโพสต์ของเรา
                     const { count: notifications } = await sb.from('claims')
                         .select('*', {count:'exact', head:true})
                         .in('status', ['pending', 'chatting'])
@@ -646,7 +632,6 @@
                     document.getElementById('stat-found').textContent = found || 0;
                     document.getElementById('stat-notifications').textContent = notifications || 0;
                     
-                    // อัปเดต badge ใน sidebar
                     const badge = document.getElementById('nav-badge');
                     if (notifications > 0) {
                         badge.textContent = notifications > 99 ? '99+' : notifications;
@@ -886,7 +871,6 @@
                         return;
                     }
                     
-                    // ดึงข้อมูล claims สำหรับแต่ละโพสต์ - แก้ไข query ให้ถูกต้อง
                     const itemIds = data.map(item => item.id);
                     const { data: claimsData, error: claimsError } = await sb.from('claims')
                         .select('id, item_id, status, claimer_id, profiles(full_name, avatar_url)')
@@ -1083,7 +1067,6 @@
                 try {
                     const { data: claim } = await sb.from('claims').select('*, items(title), profiles(full_name)').eq('id', claimId).single();
                     
-                    // อัปเดตสถานะเป็น chatting
                     if (claim.status === 'pending') {
                         await sb.from('claims').update({ status: 'chatting' }).eq('id', claimId);
                     }
@@ -1138,7 +1121,7 @@
                         const isSent = msg.sender_id === App.user.id;
                         return `
                             <div class="chat-message ${isSent ? 'sent' : 'received'}">
-                                <div class="chat-bubble">${msg.message}</div>
+                                <div class="chat-bubble">${msg.content}</div>
                                 <div class="chat-meta">${msg.profiles?.full_name || 'ไม่ระบุ'} • ${new Date(msg.created_at).toLocaleTimeString('th-TH', {hour: '2-digit', minute: '2-digit'})}</div>
                             </div>
                         `;
@@ -1159,7 +1142,7 @@
                     const { error } = await sb.from('messages').insert({
                         claim_id: App.currentClaimId,
                         sender_id: App.user.id,
-                        message: message
+                        content: message
                     });
                     if (error) throw error;
                     
@@ -1174,7 +1157,7 @@
                 App.stopChatPolling();
                 App.chatInterval = setInterval(() => {
                     App.loadChatMessages(claimId);
-                }, 3000); // อัปเดตทุก 3 วินาที
+                }, 3000);
             },
 
             stopChatPolling: () => {
@@ -1189,10 +1172,8 @@
                 
                 App.showLoading(true);
                 try {
-                    // อัปเดตสถานะ claim
                     await sb.from('claims').update({ status: 'approved' }).eq('id', claimId);
                     
-                    // ลบโพสต์ (item)
                     const { data: item } = await sb.from('items').select('image_url').eq('id', itemId).single();
                     if (item && item.image_url) {
                         const fileName = item.image_url.split('/').pop();
