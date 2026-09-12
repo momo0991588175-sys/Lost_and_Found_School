@@ -104,7 +104,7 @@
         .item-content { padding: 24px; flex: 1; display: flex; flex-direction: column; }
         .item-badge { display: inline-block; padding: 6px 16px; border-radius: 24px; font-size: 12px; font-weight: 600; margin-bottom: 14px; background: #FEE2E2; color: var(--danger); width: fit-content; }
         .item-badge.found { background: #D1FAE5; color: var(--success); }
-        .item-badge.pending-claim { background: #FEF3C7; color: var(--warning); }
+        .item-badge.has-claim { background: #FEF3C7; color: var(--warning); }
         .item-title { font-size: 20px; font-weight: 600; margin-bottom: 10px; color: var(--text); }
         .item-info { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
         .item-actions { display: flex; gap: 10px; margin-top: auto; padding-top: 16px; flex-wrap: wrap; }
@@ -459,51 +459,15 @@
         </div>
     </div>
 
-    <!-- Modal สำหรับ Claim -->
-    <div id="claim-modal" class="hidden">
-        <div class="modal-overlay" onclick="App.closeClaimModal(event)">
-            <div class="modal-content" onclick="event.stopPropagation()">
-                <div class="modal-header">
-                    <h3 class="modal-title"><i class="fa-solid fa-hand-holding-heart" style="color: var(--success);"></i> แจ้งว่าฉันเก็บสิ่งนี้ได้</h3>
-                    <button class="modal-close" onclick="App.closeClaimModal()"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <form id="form-claim">
-                    <input type="hidden" id="claim-item-id">
-                    <div class="form-group">
-                        <label>ชื่อ-นามสกุล <span style="color:var(--danger)">*</span></label>
-                        <input type="text" id="claim-name" class="form-control" placeholder="กรอกชื่อ-นามสกุลของคุณ" required>
-                    </div>
-                    <div class="form-group">
-                        <label>สถานที่ที่พบ <span style="color:var(--danger)">*</span></label>
-                        <input type="text" id="claim-location" class="form-control" placeholder="เช่น หน้าโรงอาหาร, ห้อง 10/3" required>
-                    </div>
-                    <div class="form-group">
-                        <label>รูปภาพหรือวิดีโอ <span style="color:var(--danger)">*</span></label>
-                        <label for="claim-file" class="file-upload-box">
-                            <i class="fa-solid fa-cloud-arrow-up"></i>
-                            <p style="font-weight: 600; margin-bottom: 4px;">คลิกเพื่อเลือกรูปภาพหรือวิดีโอ</p>
-                            <small style="color: var(--text-muted)">รองรับ PNG, JPG, MP4 (บังคับ)</small>
-                        </label>
-                        <input type="file" id="claim-file" accept="image/png,image/jpeg,video/mp4" class="hidden" required>
-                        <div id="claim-preview" class="preview-container"></div>
-                    </div>
-                    <button type="submit" class="btn btn-success">
-                        <i class="fa-solid fa-paper-plane"></i> ส่งข้อมูลให้เจ้าของ
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal สำหรับดู Claim Detail + Chat -->
-    <div id="claim-detail-modal" class="hidden">
-        <div class="modal-overlay" onclick="App.closeClaimDetailModal(event)">
+    <!-- Modal สำหรับ Chat -->
+    <div id="chat-modal" class="hidden">
+        <div class="modal-overlay" onclick="App.closeChatModal(event)">
             <div class="modal-content large" onclick="event.stopPropagation()">
                 <div class="modal-header">
-                    <h3 class="modal-title"><i class="fa-solid fa-comments" style="color: var(--primary);"></i> รายละเอียดคำร้อง & แชท</h3>
-                    <button class="modal-close" onclick="App.closeClaimDetailModal()"><i class="fa-solid fa-xmark"></i></button>
+                    <h3 class="modal-title"><i class="fa-solid fa-comments" style="color: var(--primary);"></i> แชท</h3>
+                    <button class="modal-close" onclick="App.closeChatModal()"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                <div id="claim-detail-content"></div>
+                <div id="chat-modal-content"></div>
             </div>
         </div>
     </div>
@@ -520,7 +484,7 @@
             user: null, 
             profile: null,
             editingItemId: null,
-            currentClaimId: null,
+            currentItemId: null,
             chatInterval: null,
 
             init: async () => {
@@ -623,14 +587,22 @@
                     const { count: lost } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'lost');
                     const { count: found } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'found');
                     
-                    const { count: notifications } = await sb.from('claims')
-                        .select('*', {count:'exact', head:true})
-                        .in('status', ['pending', 'chatting'])
-                        .eq('items.user_id', App.user.id);
+                    // นับการแจ้งเตือน: claims ที่มีสำหรับโพสต์ของเรา
+                    const { data: myItems } = await sb.from('items').select('id').eq('user_id', App.user.id);
+                    const myItemIds = myItems ? myItems.map(i => i.id) : [];
+                    
+                    let notifications = 0;
+                    if (myItemIds.length > 0) {
+                        const { count } = await sb.from('claims')
+                            .select('*', {count:'exact', head:true})
+                            .in('item_id', myItemIds)
+                            .in('status', ['pending', 'chatting']);
+                        notifications = count || 0;
+                    }
                     
                     document.getElementById('stat-lost').textContent = lost || 0;
                     document.getElementById('stat-found').textContent = found || 0;
-                    document.getElementById('stat-notifications').textContent = notifications || 0;
+                    document.getElementById('stat-notifications').textContent = notifications;
                     
                     const badge = document.getElementById('nav-badge');
                     if (notifications > 0) {
@@ -871,14 +843,11 @@
                         return;
                     }
                     
+                    // ดึงข้อมูล claims สำหรับแต่ละโพสต์
                     const itemIds = data.map(item => item.id);
-                    const { data: claimsData, error: claimsError } = await sb.from('claims')
-                        .select('id, item_id, status, claimer_id, profiles(full_name, avatar_url)')
+                    const { data: claimsData } = await sb.from('claims')
+                        .select('id, item_id, status, claimer_id')
                         .in('item_id', itemIds);
-                    
-                    if (claimsError) {
-                        console.error('Claims error:', claimsError);
-                    }
                     
                     const claimsMap = {};
                     if (claimsData) {
@@ -892,16 +861,16 @@
                         const isOwner = item.user_id === App.user.id;
                         const isLost = item.type === 'lost';
                         const itemClaims = claimsMap[item.id] || [];
-                        const hasPendingClaim = itemClaims.some(c => c.status === 'pending' || c.status === 'chatting');
+                        const hasClaim = itemClaims.length > 0;
                         
                         return `
                         <div class="item-card">
                             ${item.image_url ? `<img src="${item.image_url}" class="item-image">` : 
                             '<div class="item-image" style="display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-image" style="font-size:48px; color:#D1D5DB;"></i></div>'}
                             <div class="item-content">
-                                <span class="item-badge ${isLost ? '' : 'found'} ${hasPendingClaim ? 'pending-claim' : ''}">
+                                <span class="item-badge ${isLost ? '' : 'found'} ${hasClaim ? 'has-claim' : ''}">
                                     ${isLost ? 'ของหาย' : 'เก็บของได้'}
-                                    ${hasPendingClaim ? ' • มีคำร้องใหม่' : ''}
+                                    ${hasClaim ? ` • มี ${itemClaims.length} คำร้อง` : ''}
                                 </span>
                                 <h3 class="item-title">${item.title}</h3>
                                 <div class="item-info"><i class="fa-solid fa-location-dot"></i> ${item.location || '-'}</div>
@@ -909,27 +878,19 @@
                                 <p style="margin-top:12px; font-size:14px; color:var(--text-muted); flex:1;">${item.description}</p>
                                 <div style="margin-top:12px; font-size:13px; color:var(--text-muted);">${new Date(item.created_at).toLocaleDateString('th-TH')}</div>
                                 
-                                ${isOwner ? `
-                                    <div class="item-actions">
-                                        ${hasPendingClaim ? `
-                                            <button class="btn btn-primary btn-sm" style="flex:1;" onclick="App.openClaimDetail('${item.id}')">
-                                                <i class="fa-solid fa-bell"></i> ดูคำร้อง (${itemClaims.filter(c => c.status !== 'approved').length})
-                                            </button>
-                                        ` : ''}
+                                <div class="item-actions">
+                                    <button class="btn btn-primary btn-sm" style="flex:1;" onclick="App.openChat('${item.id}')">
+                                        <i class="fa-solid fa-comments"></i> แชท
+                                    </button>
+                                    ${isOwner ? `
                                         <button class="btn btn-warning btn-sm" style="flex:1;" onclick="App.editItem('${item.id}')">
                                             <i class="fa-solid fa-pen"></i> แก้ไข
                                         </button>
                                         <button class="btn btn-danger btn-sm" style="flex:1;" onclick="App.deleteItem('${item.id}')">
                                             <i class="fa-solid fa-trash"></i> ลบ
                                         </button>
-                                    </div>
-                                ` : (isLost ? `
-                                    <div class="item-actions">
-                                        <button class="btn btn-success btn-sm" style="flex:1;" onclick="App.openClaimModal('${item.id}')">
-                                            <i class="fa-solid fa-hand-holding-heart"></i> แจ้งว่าฉันเก็บได้
-                                        </button>
-                                    </div>
-                                ` : '')}
+                                    ` : ''}
+                                </div>
                             </div>
                         </div>
                     `}).join('');
@@ -939,177 +900,112 @@
                 }
             },
 
-            openClaimModal: (itemId) => {
-                document.getElementById('claim-item-id').value = itemId;
-                document.getElementById('claim-modal').classList.remove('hidden');
-            },
-
-            closeClaimModal: (event) => {
-                if (!event || event.target === event.currentTarget) {
-                    document.getElementById('claim-modal').classList.add('hidden');
-                    document.getElementById('form-claim').reset();
-                    document.getElementById('claim-preview').innerHTML = '';
-                }
-            },
-
-            handleClaim: async (e) => {
-                e.preventDefault();
-                const file = document.getElementById('claim-file').files[0];
-                if (!file) {
-                    App.toast('error', 'ไม่สมบูรณ์', 'กรุณาอัปโหลดรูปภาพหรือวิดีโอ');
-                    return;
-                }
-
-                App.showLoading(true);
+            openChat: async (itemId) => {
+                App.currentItemId = itemId;
+                
                 try {
-                    const ext = file.name.split('.').pop();
-                    const fileName = `claim_${App.user.id}_${Date.now()}.${ext}`;
-                    const { error: uploadError } = await sb.storage.from('item-images').upload(fileName, file);
-                    if (uploadError) throw uploadError;
-                    const { data: { publicUrl } } = sb.storage.from('item-images').getPublicUrl(fileName);
-
-                    const { error } = await sb.from('claims').insert({
-                        item_id: document.getElementById('claim-item-id').value,
-                        claimer_id: App.user.id,
-                        description: `ชื่อ: ${document.getElementById('claim-name').value}\nสถานที่พบ: ${document.getElementById('claim-location').value}`,
-                        image_url: publicUrl,
-                        status: 'pending'
-                    });
-                    if (error) throw error;
-
-                    App.toast('success', 'ส่งสำเร็จ', 'เจ้าของสิ่งของจะได้รับการแจ้งเตือน');
-                    App.closeClaimModal();
-                } catch (err) {
-                    App.toast('error', 'ส่งไม่สำเร็จ', err.message);
-                } finally {
-                    App.showLoading(false);
-                }
-            },
-
-            openClaimDetail: async (itemId) => {
-                try {
-                    const { data: claims, error } = await sb.from('claims')
+                    const { data: item } = await sb.from('items').select('*').eq('id', itemId).single();
+                    if (!item) throw new Error('ไม่พบรายการ');
+                    
+                    // ดึง claims สำหรับรายการนี้
+                    const { data: claims } = await sb.from('claims')
                         .select('*, profiles(full_name, avatar_url)')
                         .eq('item_id', itemId)
-                        .in('status', ['pending', 'chatting'])
                         .order('created_at', { ascending: false });
                     
-                    if (error) throw error;
-                    if (!claims || claims.length === 0) {
-                        App.toast('warning', 'ไม่มีคำร้อง', 'ยังไม่มีคำร้องสำหรับรายการนี้');
-                        return;
-                    }
-
-                    const { data: item } = await sb.from('items').select('*').eq('id', itemId).single();
+                    const isOwner = item.user_id === App.user.id;
                     
-                    let claimsHtml = claims.map(claim => `
-                        <div class="claim-detail-section">
-                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
-                                <img src="${claim.profiles?.avatar_url || `https://ui-avatars.com/api/?name=${(claim.profiles?.full_name || 'U').charAt(0)}&background=10B981&color=fff`}" 
-                                     style="width:50px; height:50px; border-radius:50%; object-fit:cover;">
-                                <div>
-                                    <div style="font-weight:700;">${claim.profiles?.full_name || 'ไม่ระบุชื่อ'}</div>
-                                    <div style="font-size:12px; color:var(--text-muted);">${new Date(claim.created_at).toLocaleString('th-TH')}</div>
+                    let claimsHtml = '';
+                    if (claims && claims.length > 0) {
+                        claimsHtml = claims.map(claim => `
+                            <div class="claim-detail-section">
+                                <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+                                    <img src="${claim.profiles?.avatar_url || `https://ui-avatars.com/api/?name=${(claim.profiles?.full_name || 'U').charAt(0)}&background=10B981&color=fff`}" 
+                                         style="width:50px; height:50px; border-radius:50%; object-fit:cover;">
+                                    <div>
+                                        <div style="font-weight:700;">${claim.profiles?.full_name || 'ไม่ระบุชื่อ'}</div>
+                                        <div style="font-size:12px; color:var(--text-muted);">${new Date(claim.created_at).toLocaleString('th-TH')}</div>
+                                    </div>
+                                    <span class="item-badge ${claim.status === 'pending' ? '' : 'found'}" style="margin-left:auto;">
+                                        ${claim.status === 'pending' ? 'รอดำเนินการ' : 'กำลังแชท'}
+                                    </span>
                                 </div>
-                                <span class="item-badge ${claim.status === 'pending' ? '' : 'found'}" style="margin-left:auto;">
-                                    ${claim.status === 'pending' ? 'รอดำเนินการ' : 'กำลังแชท'}
-                                </span>
-                            </div>
-                            <div class="claim-detail-row">
-                                <span class="claim-detail-label">สถานที่พบ:</span>
-                                <span>${claim.description?.split('\n')[1]?.replace('สถานที่พบ: ', '') || '-'}</span>
-                            </div>
-                            ${claim.image_url ? `
-                                <div style="margin-top:12px;">
-                                    <img src="${claim.image_url}" style="max-width:200px; border-radius:8px; border:2px solid var(--border);">
+                                <div class="claim-detail-row">
+                                    <span class="claim-detail-label">สถานที่พบ:</span>
+                                    <span>${claim.description?.split('\n')[1]?.replace('สถานที่พบ: ', '') || '-'}</span>
                                 </div>
-                            ` : ''}
-                            <div style="margin-top:16px; display:flex; gap:10px;">
-                                <button class="btn btn-primary btn-sm" style="flex:1;" onclick="App.openChat('${claim.id}', '${itemId}')">
-                                    <i class="fa-solid fa-comments"></i> แชท
-                                </button>
-                                <button class="btn btn-success btn-sm" style="flex:1;" onclick="App.confirmReceived('${claim.id}', '${itemId}')">
-                                    <i class="fa-solid fa-check"></i> ยืนยันรับของคืน
-                                </button>
+                                ${claim.image_url ? `
+                                    <div style="margin-top:12px;">
+                                        <img src="${claim.image_url}" style="max-width:200px; border-radius:8px; border:2px solid var(--border);">
+                                    </div>
+                                ` : ''}
                             </div>
-                        </div>
-                    `).join('');
-
-                    document.getElementById('claim-detail-content').innerHTML = `
+                        `).join('');
+                    } else {
+                        claimsHtml = '<div style="text-align:center; padding:40px; color:var(--text-muted);"><i class="fa-solid fa-inbox" style="font-size:48px; margin-bottom:16px; opacity:0.5;"></i><p>ยังไม่มีคำร้องสำหรับรายการนี้</p></div>';
+                    }
+                    
+                    document.getElementById('chat-modal-content').innerHTML = `
                         <div style="margin-bottom:20px;">
-                            <h4 style="margin-bottom:12px; color:var(--text-muted);">รายการของคุณ:</h4>
+                            <h4 style="margin-bottom:12px; color:var(--text-muted);">รายการ:</h4>
                             <div style="background:#EEF2FF; padding:16px; border-radius:var(--radius);">
                                 <strong>${item.title}</strong> - ${item.category}
                                 <div style="font-size:13px; color:var(--text-muted); margin-top:4px;">${item.location || '-'}</div>
+                                <p style="margin-top:8px; font-size:14px;">${item.description}</p>
                             </div>
                         </div>
-                        <h4 style="margin-bottom:12px;">คำร้อง (${claims.length})</h4>
+                        <h4 style="margin-bottom:12px;">คำร้อง (${claims?.length || 0})</h4>
                         ${claimsHtml}
-                    `;
-                    
-                    document.getElementById('claim-detail-modal').classList.remove('hidden');
-                } catch (err) {
-                    App.toast('error', 'โหลดข้อมูลไม่สำเร็จ', err.message);
-                    console.error('Claim detail error:', err);
-                }
-            },
-
-            closeClaimDetailModal: (event) => {
-                if (!event || event.target === event.currentTarget) {
-                    document.getElementById('claim-detail-modal').classList.add('hidden');
-                    App.stopChatPolling();
-                }
-            },
-
-            openChat: async (claimId, itemId) => {
-                App.currentClaimId = claimId;
-                
-                try {
-                    const { data: claim } = await sb.from('claims').select('*, items(title), profiles(full_name)').eq('id', claimId).single();
-                    
-                    if (claim.status === 'pending') {
-                        await sb.from('claims').update({ status: 'chatting' }).eq('id', claimId);
-                    }
-                    
-                    document.getElementById('claim-detail-content').innerHTML = `
-                        <div style="margin-bottom:16px;">
-                            <button class="btn btn-outline btn-sm" style="width:auto;" onclick="App.openClaimDetail('${itemId}')">
-                                <i class="fa-solid fa-arrow-left"></i> กลับ
-                            </button>
+                        <div style="margin-top:20px; padding-top:20px; border-top:2px solid var(--border);">
+                            <h4 style="margin-bottom:12px;">แชท</h4>
+                            <div class="chat-container" style="height:300px;">
+                                <div class="chat-messages" id="chat-messages"></div>
+                                <div class="chat-input-area">
+                                    <input type="text" id="chat-input" placeholder="พิมพ์ข้อความ..." onkeypress="if(event.key==='Enter')App.sendMessage()">
+                                    <button class="btn btn-primary" onclick="App.sendMessage()">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div style="background:#EEF2FF; padding:16px; border-radius:var(--radius); margin-bottom:16px;">
-                            <strong>แชทกับ:</strong> ${claim.profiles?.full_name || 'ไม่ระบุ'}
-                            <div style="font-size:13px; color:var(--text-muted);">เกี่ยวกับ: ${claim.items?.title}</div>
-                        </div>
-                        <div class="chat-container">
-                            <div class="chat-messages" id="chat-messages"></div>
-                            <div class="chat-input-area">
-                                <input type="text" id="chat-input" placeholder="พิมพ์ข้อความ..." onkeypress="if(event.key==='Enter')App.sendMessage()">
-                                <button class="btn btn-primary" onclick="App.sendMessage()">
-                                    <i class="fa-solid fa-paper-plane"></i>
+                        ${isOwner ? `
+                            <div style="margin-top:16px;">
+                                <button class="btn btn-success" onclick="App.confirmReceived('${itemId}')">
+                                    <i class="fa-solid fa-check"></i> ยืนยันได้รับของคืนแล้ว (ปิดโพสต์)
                                 </button>
                             </div>
-                        </div>
-                        <div style="margin-top:16px;">
-                            <button class="btn btn-success" onclick="App.confirmReceived('${claimId}', '${itemId}')">
-                                <i class="fa-solid fa-check"></i> ยืนยันได้รับของคืนแล้ว (ปิดโพสต์)
-                            </button>
-                        </div>
+                        ` : ''}
                     `;
                     
-                    App.loadChatMessages(claimId);
-                    App.startChatPolling(claimId);
+                    document.getElementById('chat-modal').classList.remove('hidden');
+                    App.loadChatMessages(itemId);
+                    App.startChatPolling(itemId);
                 } catch (err) {
                     App.toast('error', 'เปิดแชทไม่สำเร็จ', err.message);
                     console.error('Open chat error:', err);
                 }
             },
 
-            loadChatMessages: async (claimId) => {
+            closeChatModal: (event) => {
+                if (!event || event.target === event.currentTarget) {
+                    document.getElementById('chat-modal').classList.add('hidden');
+                    App.stopChatPolling();
+                }
+            },
+
+            loadChatMessages: async (itemId) => {
                 try {
+                    // ดึง claims สำหรับรายการนี้
+                    const { data: claims } = await sb.from('claims')
+                        .select('id')
+                        .eq('item_id', itemId);
+                    
+                    if (!claims || claims.length === 0) return;
+                    
+                    const claimIds = claims.map(c => c.id);
                     const { data: messages, error } = await sb.from('messages')
                         .select('*, profiles(full_name)')
-                        .eq('claim_id', claimId)
+                        .in('claim_id', claimIds)
                         .order('created_at', { ascending: true });
                     
                     if (error) throw error;
@@ -1136,27 +1032,50 @@
             sendMessage: async () => {
                 const input = document.getElementById('chat-input');
                 const message = input.value.trim();
-                if (!message || !App.currentClaimId) return;
+                if (!message || !App.currentItemId) return;
                 
                 try {
+                    // หา claim สำหรับรายการนี้ (ถ้ายังไม่มีให้สร้างใหม่)
+                    const { data: existingClaim } = await sb.from('claims')
+                        .select('id')
+                        .eq('item_id', App.currentItemId)
+                        .limit(1)
+                        .single();
+                    
+                    let claimId;
+                    if (existingClaim) {
+                        claimId = existingClaim.id;
+                    } else {
+                        // สร้าง claim ใหม่
+                        const { data: newClaim, error: claimError } = await sb.from('claims').insert({
+                            item_id: App.currentItemId,
+                            claimer_id: App.user.id,
+                            description: 'เริ่มแชท',
+                            status: 'chatting'
+                        }).select('id').single();
+                        
+                        if (claimError) throw claimError;
+                        claimId = newClaim.id;
+                    }
+                    
                     const { error } = await sb.from('messages').insert({
-                        claim_id: App.currentClaimId,
+                        claim_id: claimId,
                         sender_id: App.user.id,
                         content: message
                     });
                     if (error) throw error;
                     
                     input.value = '';
-                    App.loadChatMessages(App.currentClaimId);
+                    App.loadChatMessages(App.currentItemId);
                 } catch (err) {
                     App.toast('error', 'ส่งข้อความไม่สำเร็จ', err.message);
                 }
             },
 
-            startChatPolling: (claimId) => {
+            startChatPolling: (itemId) => {
                 App.stopChatPolling();
                 App.chatInterval = setInterval(() => {
-                    App.loadChatMessages(claimId);
+                    App.loadChatMessages(itemId);
                 }, 3000);
             },
 
@@ -1167,13 +1086,20 @@
                 }
             },
 
-            confirmReceived: async (claimId, itemId) => {
+            confirmReceived: async (itemId) => {
                 if (!confirm('ยืนยันว่าคุณได้รับของคืนแล้ว? โพสต์นี้จะถูกลบออกจากระบบ')) return;
                 
                 App.showLoading(true);
                 try {
-                    await sb.from('claims').update({ status: 'approved' }).eq('id', claimId);
+                    // ลบ claims และ messages ที่เกี่ยวข้อง
+                    const { data: claims } = await sb.from('claims').select('id').eq('item_id', itemId);
+                    if (claims && claims.length > 0) {
+                        const claimIds = claims.map(c => c.id);
+                        await sb.from('messages').delete().in('claim_id', claimIds);
+                        await sb.from('claims').delete().in('id', claimIds);
+                    }
                     
+                    // ลบโพสต์ (item)
                     const { data: item } = await sb.from('items').select('image_url').eq('id', itemId).single();
                     if (item && item.image_url) {
                         const fileName = item.image_url.split('/').pop();
@@ -1182,7 +1108,7 @@
                     await sb.from('items').delete().eq('id', itemId);
                     
                     App.toast('success', 'สำเร็จ', 'ยืนยันการรับของคืนแล้ว โพสต์ถูกลบออกจากระบบ');
-                    App.closeClaimDetailModal();
+                    App.closeChatModal();
                     App.loadLostItems();
                     App.loadDashboardStats();
                 } catch (err) {
@@ -1327,7 +1253,6 @@
         document.getElementById('form-register').addEventListener('submit', App.handleRegister);
         document.getElementById('form-lost').addEventListener('submit', App.handleLost);
         document.getElementById('form-found').addEventListener('submit', App.handleFound);
-        document.getElementById('form-claim').addEventListener('submit', App.handleClaim);
         document.getElementById('settings-avatar-input').addEventListener('change', App.handleAvatarUpload);
         document.getElementById('lost-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -1345,19 +1270,6 @@
         document.getElementById('found-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
             const preview = document.getElementById('found-preview');
-            preview.innerHTML = '';
-            if (file) {
-                const url = URL.createObjectURL(file);
-                if (file.type.startsWith('video/')) {
-                    preview.innerHTML = `<div class="preview-item"><video src="${url}" controls></video></div>`;
-                } else {
-                    preview.innerHTML = `<div class="preview-item"><img src="${url}"></div>`;
-                }
-            }
-        });
-        document.getElementById('claim-file').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            const preview = document.getElementById('claim-preview');
             preview.innerHTML = '';
             if (file) {
                 const url = URL.createObjectURL(file);
