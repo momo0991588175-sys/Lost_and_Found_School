@@ -580,11 +580,27 @@
 
             loadProfile: async () => {
                 try {
+                    console.log('Loading profile for user:', App.user.id);
                     let { data: profile, error } = await sb.from('profiles').select('*').eq('id', App.user.id).single();
-                    if (error || !profile) {
-                        await sb.from('profiles').insert({ id: App.user.id, email: App.user.email, full_name: App.user.email.split('@')[0], role: 'student' });
-                        profile = { full_name: App.user.email.split('@')[0], avatar_url: null, role: 'student', is_banned: false };
+                    
+                    if (error) {
+                        console.error('Profile load error:', error);
+                        // ถ้าไม่มี profile ให้สร้างใหม่
+                        await sb.from('profiles').insert({ 
+                            id: App.user.id, 
+                            email: App.user.email, 
+                            full_name: App.user.email.split('@')[0], 
+                            role: 'student' 
+                        });
+                        profile = { 
+                            full_name: App.user.email.split('@')[0], 
+                            avatar_url: null, 
+                            role: 'student', 
+                            is_banned: false 
+                        };
                     }
+                    
+                    console.log('Profile loaded:', profile);
                     
                     if (profile.is_banned && profile.role !== 'admin') {
                         App.toast('error', 'บัญชีถูกแบน', profile.banned_reason || 'บัญชีของคุณถูกแบนโดยผู้ดูแลระบบ');
@@ -596,8 +612,10 @@
                     App.profile = profile;
                     App.updateProfileUI();
                     
+                    // แสดงปุ่ม Admin ถ้าเป็น admin
                     if (profile.role === 'admin') {
                         document.getElementById('admin-nav-btn').classList.remove('hidden');
+                        console.log('User is admin, showing admin button');
                     } else {
                         document.getElementById('admin-nav-btn').classList.add('hidden');
                     }
@@ -638,7 +656,6 @@
                     
                     let reportsCount = 0;
                     if (App.profile.role === 'admin') {
-                        // Admin: นับคำร้องขอทั้งหมดที่ยังไม่เสร็จสิ้น
                         const { count, error } = await sb.from('admin_reports').select('*', {count:'exact', head:true}).eq('status', 'pending');
                         if (error) {
                             console.error('Error counting admin reports:', error);
@@ -647,7 +664,6 @@
                             console.log('Admin reports count:', reportsCount);
                         }
                     } else {
-                        // นักเรียน: นับคำร้องขอที่ตัวเองส่ง
                         const { count, error } = await sb.from('admin_reports').select('*', {count:'exact', head:true}).eq('user_id', App.user.id);
                         if (error) {
                             console.error('Error counting user reports:', error);
@@ -881,11 +897,24 @@
             },
 
             loadLostItems: async () => {
+                console.log('Loading lost items...');
                 const container = document.getElementById('lost-list');
                 container.innerHTML = '<div style="text-align:center; padding:60px;"><div class="spinner" style="margin:0 auto;"></div></div>';
+                
                 try {
-                    const { data, error } = await sb.from('items').select('*').in('type', ['lost', 'found']).eq('status', 'active').order('created_at', {ascending: false});
-                    if (error) throw error;
+                    console.log('Querying items...');
+                    const { data, error } = await sb.from('items')
+                        .select('*')
+                        .in('type', ['lost', 'found'])
+                        .eq('status', 'active')
+                        .order('created_at', {ascending: false});
+                    
+                    if (error) {
+                        console.error('Load items error:', error);
+                        throw error;
+                    }
+                    
+                    console.log('Items loaded:', data);
                     
                     if (!data || data.length === 0) {
                         container.innerHTML = '<div style="text-align:center; padding:60px; color:white; background:rgba(255,255,255,0.1); border-radius:16px;"><i class="fa-solid fa-box-open" style="font-size:48px; margin-bottom:16px; opacity:0.5;"></i><p style="font-size:18px;">ไม่พบรายการในระบบ</p></div>';
@@ -927,7 +956,7 @@
                     `}).join('');
                 } catch (err) {
                     console.error('Load items error:', err);
-                    container.innerHTML = '<div style="text-align:center; padding:60px; color:white;"><p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p></div>';
+                    container.innerHTML = '<div class="error-message"><i class="fa-solid fa-circle-exclamation"></i> เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err.message + '</div>';
                 }
             },
 
@@ -968,8 +997,6 @@
                     
                     App.toast('success', 'ส่งสำเร็จ', 'ผู้ดูแลระบบจะตรวจสอบและติดต่อกลับโดยเร็ว');
                     App.closeAdminReportModal();
-                    
-                    // อัปเดตตัวนับทันที
                     await App.loadDashboardStats();
                 } catch (err) {
                     console.error('Admin report error:', err);
