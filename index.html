@@ -472,6 +472,42 @@
         </div>
     </div>
 
+    <!-- Modal สำหรับส่งคำร้อง/หลักฐาน -->
+    <div id="claim-modal" class="hidden">
+        <div class="modal-overlay" onclick="App.closeClaimModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h3 class="modal-title"><i class="fa-solid fa-hand-holding-heart" style="color: var(--success);"></i> ส่งคำร้อง/หลักฐาน</h3>
+                    <button class="modal-close" onclick="App.closeClaimModal()"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <form id="form-claim">
+                    <input type="hidden" id="claim-item-id">
+                    <div class="form-group">
+                        <label>ชื่อ-นามสกุล <span style="color:var(--danger)">*</span></label>
+                        <input type="text" id="claim-name" class="form-control" placeholder="กรอกชื่อ-นามสกุลของคุณ" required>
+                    </div>
+                    <div class="form-group">
+                        <label>สถานที่ที่พบ <span style="color:var(--danger)">*</span></label>
+                        <input type="text" id="claim-location" class="form-control" placeholder="เช่น หน้าโรงอาหาร, ห้อง 10/3" required>
+                    </div>
+                    <div class="form-group">
+                        <label>รูปภาพหรือวิดีโอ <span style="color:var(--danger)">*</span></label>
+                        <label for="claim-file" class="file-upload-box">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <p style="font-weight: 600; margin-bottom: 4px;">คลิกเพื่อเลือกรูปภาพหรือวิดีโอ</p>
+                            <small style="color: var(--text-muted)">รองรับ PNG, JPG, MP4 (บังคับ)</small>
+                        </label>
+                        <input type="file" id="claim-file" accept="image/png,image/jpeg,video/mp4" class="hidden" required>
+                        <div id="claim-preview" class="preview-container"></div>
+                    </div>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-paper-plane"></i> ส่งคำร้อง/หลักฐาน
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div id="toast-container"></div>
     <div id="loading-overlay" class="hidden"><div class="spinner"></div></div>
 
@@ -485,6 +521,7 @@
             profile: null,
             editingItemId: null,
             currentItemId: null,
+            currentClaimId: null,
             chatInterval: null,
 
             init: async () => {
@@ -587,7 +624,7 @@
                     const { count: lost } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'lost');
                     const { count: found } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'found');
                     
-                    // นับการแจ้งเตือน: claims ที่มีสำหรับโพสต์ของเรา
+                    // นับการแจ้งเตือน
                     const { data: myItems } = await sb.from('items').select('id').eq('user_id', App.user.id);
                     const myItemIds = myItems ? myItems.map(i => i.id) : [];
                     
@@ -843,7 +880,6 @@
                         return;
                     }
                     
-                    // ดึงข้อมูล claims สำหรับแต่ละโพสต์
                     const itemIds = data.map(item => item.id);
                     const { data: claimsData } = await sb.from('claims')
                         .select('id, item_id, status, claimer_id')
@@ -882,6 +918,11 @@
                                     <button class="btn btn-primary btn-sm" style="flex:1;" onclick="App.openChat('${item.id}')">
                                         <i class="fa-solid fa-comments"></i> แชท
                                     </button>
+                                    ${!isOwner ? `
+                                        <button class="btn btn-success btn-sm" style="flex:1;" onclick="App.openClaimModal('${item.id}')">
+                                            <i class="fa-solid fa-hand-holding-heart"></i> ส่งคำร้อง/หลักฐาน
+                                        </button>
+                                    ` : ''}
                                     ${isOwner ? `
                                         <button class="btn btn-warning btn-sm" style="flex:1;" onclick="App.editItem('${item.id}')">
                                             <i class="fa-solid fa-pen"></i> แก้ไข
@@ -900,6 +941,53 @@
                 }
             },
 
+            openClaimModal: (itemId) => {
+                document.getElementById('claim-item-id').value = itemId;
+                document.getElementById('claim-modal').classList.remove('hidden');
+            },
+
+            closeClaimModal: (event) => {
+                if (!event || event.target === event.currentTarget) {
+                    document.getElementById('claim-modal').classList.add('hidden');
+                    document.getElementById('form-claim').reset();
+                    document.getElementById('claim-preview').innerHTML = '';
+                }
+            },
+
+            handleClaim: async (e) => {
+                e.preventDefault();
+                const file = document.getElementById('claim-file').files[0];
+                if (!file) {
+                    App.toast('error', 'ไม่สมบูรณ์', 'กรุณาอัปโหลดรูปภาพหรือวิดีโอ');
+                    return;
+                }
+
+                App.showLoading(true);
+                try {
+                    const ext = file.name.split('.').pop();
+                    const fileName = `claim_${App.user.id}_${Date.now()}.${ext}`;
+                    const { error: uploadError } = await sb.storage.from('item-images').upload(fileName, file);
+                    if (uploadError) throw uploadError;
+                    const { data: { publicUrl } } = sb.storage.from('item-images').getPublicUrl(fileName);
+
+                    const { error } = await sb.from('claims').insert({
+                        item_id: document.getElementById('claim-item-id').value,
+                        claimer_id: App.user.id,
+                        description: `ชื่อ: ${document.getElementById('claim-name').value}\nสถานที่พบ: ${document.getElementById('claim-location').value}`,
+                        image_url: publicUrl,
+                        status: 'pending'
+                    });
+                    if (error) throw error;
+
+                    App.toast('success', 'ส่งสำเร็จ', 'เจ้าของสิ่งของจะได้รับการแจ้งเตือน');
+                    App.closeClaimModal();
+                } catch (err) {
+                    App.toast('error', 'ส่งไม่สำเร็จ', err.message);
+                } finally {
+                    App.showLoading(false);
+                }
+            },
+
             openChat: async (itemId) => {
                 App.currentItemId = itemId;
                 
@@ -907,7 +995,6 @@
                     const { data: item } = await sb.from('items').select('*').eq('id', itemId).single();
                     if (!item) throw new Error('ไม่พบรายการ');
                     
-                    // ดึง claims สำหรับรายการนี้
                     const { data: claims } = await sb.from('claims')
                         .select('*, profiles(full_name, avatar_url)')
                         .eq('item_id', itemId)
@@ -995,7 +1082,6 @@
 
             loadChatMessages: async (itemId) => {
                 try {
-                    // ดึง claims สำหรับรายการนี้
                     const { data: claims } = await sb.from('claims')
                         .select('id')
                         .eq('item_id', itemId);
@@ -1008,7 +1094,10 @@
                         .in('claim_id', claimIds)
                         .order('created_at', { ascending: true });
                     
-                    if (error) throw error;
+                    if (error) {
+                        console.error('Load messages error:', error);
+                        return;
+                    }
                     
                     const container = document.getElementById('chat-messages');
                     if (!container) return;
@@ -1035,7 +1124,6 @@
                 if (!message || !App.currentItemId) return;
                 
                 try {
-                    // หา claim สำหรับรายการนี้ (ถ้ายังไม่มีให้สร้างใหม่)
                     const { data: existingClaim } = await sb.from('claims')
                         .select('id')
                         .eq('item_id', App.currentItemId)
@@ -1046,7 +1134,6 @@
                     if (existingClaim) {
                         claimId = existingClaim.id;
                     } else {
-                        // สร้าง claim ใหม่
                         const { data: newClaim, error: claimError } = await sb.from('claims').insert({
                             item_id: App.currentItemId,
                             claimer_id: App.user.id,
@@ -1069,6 +1156,7 @@
                     App.loadChatMessages(App.currentItemId);
                 } catch (err) {
                     App.toast('error', 'ส่งข้อความไม่สำเร็จ', err.message);
+                    console.error('Send message error:', err);
                 }
             },
 
@@ -1091,7 +1179,6 @@
                 
                 App.showLoading(true);
                 try {
-                    // ลบ claims และ messages ที่เกี่ยวข้อง
                     const { data: claims } = await sb.from('claims').select('id').eq('item_id', itemId);
                     if (claims && claims.length > 0) {
                         const claimIds = claims.map(c => c.id);
@@ -1099,7 +1186,6 @@
                         await sb.from('claims').delete().in('id', claimIds);
                     }
                     
-                    // ลบโพสต์ (item)
                     const { data: item } = await sb.from('items').select('image_url').eq('id', itemId).single();
                     if (item && item.image_url) {
                         const fileName = item.image_url.split('/').pop();
@@ -1253,6 +1339,7 @@
         document.getElementById('form-register').addEventListener('submit', App.handleRegister);
         document.getElementById('form-lost').addEventListener('submit', App.handleLost);
         document.getElementById('form-found').addEventListener('submit', App.handleFound);
+        document.getElementById('form-claim').addEventListener('submit', App.handleClaim);
         document.getElementById('settings-avatar-input').addEventListener('change', App.handleAvatarUpload);
         document.getElementById('lost-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -1270,6 +1357,19 @@
         document.getElementById('found-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
             const preview = document.getElementById('found-preview');
+            preview.innerHTML = '';
+            if (file) {
+                const url = URL.createObjectURL(file);
+                if (file.type.startsWith('video/')) {
+                    preview.innerHTML = `<div class="preview-item"><video src="${url}" controls></video></div>`;
+                } else {
+                    preview.innerHTML = `<div class="preview-item"><img src="${url}"></div>`;
+                }
+            }
+        });
+        document.getElementById('claim-file').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const preview = document.getElementById('claim-preview');
             preview.innerHTML = '';
             if (file) {
                 const url = URL.createObjectURL(file);
