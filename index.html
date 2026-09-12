@@ -29,13 +29,13 @@
         .auth-box { width: 100%; max-width: 450px; background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
         .auth-header { text-align: center; margin-bottom: 32px; }
         .auth-logo { 
-            max-width: 120px; 
-            margin-bottom: 20px; 
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
-            border-radius: 50%; /* ทำให้เป็นวงกลม */
+            width: 100px; height: 100px;
+            border-radius: 50%;
+            object-fit: contain;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             padding: 10px;
             background: white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         .auth-header h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
         .auth-header p { color: var(--text-muted); font-size: 14px; }
@@ -57,19 +57,11 @@
         .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
         .btn-outline:hover { border-color: var(--danger); color: var(--danger); background: #FEE2E2; }
         .btn-lg { padding: 18px 32px; font-size: 16px; }
-        .btn-sm { padding: 10px 16px; font-size: 13px; }
+        .btn-sm { padding: 10px 16px; font-size: 13px; width: auto; }
         
         .auth-switch { text-align: center; margin-top: 24px; font-size: 14px; color: var(--text-muted); }
         .auth-switch a { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; }
         .auth-switch a:hover { text-decoration: underline; }
-
-        /* Password Strength Indicator */
-        .password-strength { margin-top: 8px; font-size: 12px; }
-        .strength-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 4px; overflow: hidden; }
-        .strength-fill { height: 100%; transition: all 0.3s; border-radius: 2px; }
-        .strength-weak { background: var(--danger); width: 33%; }
-        .strength-medium { background: var(--warning); width: 66%; }
-        .strength-strong { background: var(--success); width: 100%; }
 
         /* App Layout */
         #app-container { display: flex; flex-direction: column; min-height: 100vh; }
@@ -128,7 +120,7 @@
         .item-badge.pending-claim { background: #FEF3C7; color: var(--warning); }
         .item-title { font-size: 20px; font-weight: 600; margin-bottom: 10px; color: var(--text); }
         .item-info { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-        .item-actions { display: flex; gap: 10px; margin-top: auto; padding-top: 16px; }
+        .item-actions { display: flex; gap: 10px; margin-top: auto; padding-top: 16px; flex-wrap: wrap; }
 
         /* Report Type Selection */
         .report-type-selection { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; max-width: 700px; margin: 0 auto; }
@@ -619,7 +611,10 @@
                     }
                     App.profile = profile;
                     App.updateProfileUI();
-                } catch (err) { console.error('Load profile error:', err); }
+                } catch (err) { 
+                    console.error('Load profile error:', err);
+                    App.toast('error', 'โหลดข้อมูลไม่สำเร็จ', 'กรุณาลองใหม่อีกครั้ง');
+                }
             },
 
             updateProfileUI: () => {
@@ -659,7 +654,9 @@
                     } else {
                         badge.classList.add('hidden');
                     }
-                } catch (err) { console.error('Stats error:', err); }
+                } catch (err) { 
+                    console.error('Stats error:', err);
+                }
             },
 
             checkPasswordStrength: (password) => {
@@ -671,13 +668,13 @@
                 const settingsText = document.getElementById('settings-strength-text');
                 
                 if (!password) {
-                    strengthDiv.classList.add('hidden');
-                    settingsStrengthDiv.classList.add('hidden');
+                    if(strengthDiv) strengthDiv.classList.add('hidden');
+                    if(settingsStrengthDiv) settingsStrengthDiv.classList.add('hidden');
                     return;
                 }
                 
-                strengthDiv.classList.remove('hidden');
-                settingsStrengthDiv.classList.remove('hidden');
+                if(strengthDiv) strengthDiv.classList.remove('hidden');
+                if(settingsStrengthDiv) settingsStrengthDiv.classList.remove('hidden');
                 
                 let strength = 0;
                 if (password.length >= 8) strength++;
@@ -889,9 +886,16 @@
                         return;
                     }
                     
-                    // ดึงข้อมูล claims สำหรับแต่ละโพสต์
+                    // ดึงข้อมูล claims สำหรับแต่ละโพสต์ - แก้ไข query ให้ถูกต้อง
                     const itemIds = data.map(item => item.id);
-                    const { data: claimsData } = await sb.from('claims').select('id, item_id, status').in('item_id', itemIds);
+                    const { data: claimsData, error: claimsError } = await sb.from('claims')
+                        .select('id, item_id, status, claimer_id, profiles(full_name, avatar_url)')
+                        .in('item_id', itemIds);
+                    
+                    if (claimsError) {
+                        console.error('Claims error:', claimsError);
+                    }
+                    
                     const claimsMap = {};
                     if (claimsData) {
                         claimsData.forEach(c => {
@@ -1062,6 +1066,7 @@
                     document.getElementById('claim-detail-modal').classList.remove('hidden');
                 } catch (err) {
                     App.toast('error', 'โหลดข้อมูลไม่สำเร็จ', err.message);
+                    console.error('Claim detail error:', err);
                 }
             },
 
@@ -1113,6 +1118,7 @@
                     App.startChatPolling(claimId);
                 } catch (err) {
                     App.toast('error', 'เปิดแชทไม่สำเร็จ', err.message);
+                    console.error('Open chat error:', err);
                 }
             },
 
