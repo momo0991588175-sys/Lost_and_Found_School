@@ -255,12 +255,12 @@
                         <div class="report-type-card lost" onclick="App.nav('report-lost')">
                             <div class="report-type-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
                             <h3 class="report-type-title">แจ้งของหาย</h3>
-                            <p class="report-type-desc">กรอกรายละเอียดสิ่งของที่หาย<br>รูปภาพ/วิดีโอไม่บังคับ</p>
+                            <p class="report-type-desc">กรอกรายละเอียดสิ่งของที่หาย</p>
                         </div>
                         <div class="report-type-card found" onclick="App.nav('report-found')">
                             <div class="report-type-icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
                             <h3 class="report-type-title">แจ้งเก็บของได้</h3>
-                            <p class="report-type-desc">กรอกรายละเอียดสิ่งของที่เก็บได้<br>รูปภาพ/วิดีโอบังคับ</p>
+                            <p class="report-type-desc">กรอกรายละเอียดสิ่งของที่เก็บได้</p>
                         </div>
                     </div>
                 </div>
@@ -287,14 +287,14 @@
                             </div>
                             <div class="form-group">
                                 <label>สถานที่หาย (หากจำได้)</label>
-                                <input type="text" id="lost-location" class="form-control" placeholder="เช่น ห้อง 10/3, โรงอาหาร">
+                                <input type="text" id="lost-location" class="form-control" placeholder="เช่น ห้อง 000, โรงอาหาร">
                             </div>
                             <div class="form-group">
                                 <label>รายละเอียดลักษณะของ <span style="color:var(--danger)">*</span></label>
                                 <textarea id="lost-desc" class="form-control" placeholder="บอกลักษณะเฉพาะ สี ยี่ห้อ" required></textarea>
                             </div>
                             <div class="form-group">
-                                <label>รูปภาพหรือวิดีโอ (หากมี - ไม่บังคับ)</label>
+                                <label>รูปภาพหรือวิดีโอ (ไม่บังคับ)</label>
                                 <label for="lost-file" class="file-upload-box">
                                     <i class="fa-solid fa-cloud-arrow-up"></i>
                                     <p style="font-weight: 600; margin-bottom: 4px;">คลิกเพื่อเลือกรูปภาพหรือวิดีโอ</p>
@@ -335,7 +335,7 @@
                             </div>
                             <div class="form-group">
                                 <label>สถานที่พบ <span style="color:var(--danger)">*</span></label>
-                                <input type="text" id="found-location" class="form-control" placeholder="เช่น ห้อง 10/3, โรงอาหาร" required>
+                                <input type="text" id="found-location" class="form-control" placeholder="เช่น ห้อง 000, โรงอาหาร" required>
                             </div>
                             <div class="form-group">
                                 <label>รายละเอียดลักษณะของ <span style="color:var(--danger)">*</span></label>
@@ -435,14 +435,14 @@
                     </div>
                     <div class="form-group">
                         <label>สถานที่ที่พบ <span style="color:var(--danger)">*</span></label>
-                        <input type="text" id="claim-location" class="form-control" placeholder="เช่น หน้าโรงอาหาร, ห้อง 10/3" required>
+                        <input type="text" id="claim-location" class="form-control" placeholder="เช่น หน้าโรงอาหาร, ห้อง 000" required>
                     </div>
                     <div class="form-group">
-                        <label>รูปภาพหรือวิดีโอ <span style="color:var(--danger)">*</span></label>
+                        <label>รูปภาพหรือวิดีโอ - (บังคับ) <span style="color:var(--danger)">*</span></label>
                         <label for="claim-file" class="file-upload-box">
                             <i class="fa-solid fa-cloud-arrow-up"></i>
                             <p style="font-weight: 600; margin-bottom: 4px;">คลิกเพื่อเลือกรูปภาพหรือวิดีโอ</p>
-                            <small style="color: var(--text-muted)">รองรับ PNG, JPG, MP4 (บังคับ)</small>
+                            <small style="color: var(--text-muted)">รองรับ PNG, JPG, MP4</small>
                         </label>
                         <input type="file" id="claim-file" accept="image/png,image/jpeg,video/mp4" class="hidden" required>
                         <div id="claim-preview" class="preview-container"></div>
