@@ -45,8 +45,10 @@
         .btn-warning { background: var(--warning); color: white; }
         .btn-warning:hover { background: #D97706; transform: translateY(-2px); }
         .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #059669; transform: translateY(-2px); }
         .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
         .btn-outline:hover { border-color: var(--danger); color: var(--danger); background: #FEE2E2; }
+        .btn-lg { padding: 18px 32px; font-size: 16px; }
         
         .auth-switch { text-align: center; margin-top: 24px; font-size: 14px; color: var(--text-muted); }
         .auth-switch a { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; }
@@ -108,6 +110,18 @@
         .item-info { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
         .item-actions { display: flex; gap: 10px; margin-top: auto; padding-top: 16px; }
 
+        /* Report Type Selection */
+        .report-type-selection { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; max-width: 700px; margin: 0 auto; }
+        .report-type-card { background: white; border-radius: 24px; padding: 48px 32px; text-align: center; cursor: pointer; transition: all 0.3s; box-shadow: var(--shadow-lg); border: 3px solid transparent; }
+        .report-type-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .report-type-card.lost:hover { border-color: var(--danger); }
+        .report-type-card.found:hover { border-color: var(--success); }
+        .report-type-icon { width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 48px; color: white; }
+        .report-type-card.lost .report-type-icon { background: linear-gradient(135deg, var(--danger), #DC2626); }
+        .report-type-card.found .report-type-icon { background: linear-gradient(135deg, var(--success), #059669); }
+        .report-type-title { font-size: 24px; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+        .report-type-desc { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
         /* File Upload */
         .file-upload-box { border: 2px dashed var(--border); border-radius: var(--radius); padding: 24px; text-align: center; cursor: pointer; transition: all 0.3s; background: #F9FAFB; }
         .file-upload-box:hover { border-color: var(--primary); background: #EEF2FF; }
@@ -151,6 +165,7 @@
             .items-grid { grid-template-columns: 1fr; }
             .settings-row { flex-direction: column; align-items: stretch; }
             .settings-row .form-control { max-width: 100%; }
+            .report-type-selection { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -208,8 +223,8 @@
         <div class="app-layout">
             <nav class="sidebar">
                 <button class="nav-btn active" onclick="App.nav('home')"><i class="fa-solid fa-house"></i><span>หน้าหลัก</span></button>
-                <button class="nav-btn" onclick="App.nav('report-lost')"><i class="fa-solid fa-circle-exclamation"></i><span>แจ้งของหาย</span></button>
-                <button class="nav-btn" onclick="App.nav('view-lost')"><i class="fa-solid fa-magnifying-glass"></i><span>ดูของหาย</span></button>
+                <button class="nav-btn" onclick="App.nav('report')"><i class="fa-solid fa-circle-exclamation"></i><span>แจ้งเหตุ</span></button>
+                <button class="nav-btn" onclick="App.nav('view-lost')"><i class="fa-solid fa-magnifying-glass"></i><span>รายการแจ้งเหตุ</span></button>
                 <div style="flex: 1;"></div>
                 <button class="nav-btn" onclick="App.nav('settings')"><i class="fa-solid fa-gear"></i><span>ตั้งค่าบัญชี</span></button>
             </nav>
@@ -225,7 +240,27 @@
                         <div class="stats-row">
                             <div class="stat-card"><div class="stat-value" id="stat-lost">0</div><div class="stat-label">แจ้งของหาย</div></div>
                             <div class="stat-card"><div class="stat-value" id="stat-found">0</div><div class="stat-label">แจ้งเก็บของได้</div></div>
-                            <div class="stat-card"><div class="stat-value" id="stat-notifications">0</div><div class="stat-label">แจ้งเตือน</div></div>
+                            <div class="stat-card"><div class="stat-value" id="stat-notifications">0</div><div class="stat-label">การแจ้งเตือน</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REPORT (Landing Page) -->
+                <div id="page-report" class="page-section hidden fade-in">
+                    <div class="page-header">
+                        <button class="back-btn" onclick="App.nav('home')"><i class="fa-solid fa-arrow-left"></i></button>
+                        <h2 class="page-title">แจ้งเหตุ</h2>
+                    </div>
+                    <div class="report-type-selection">
+                        <div class="report-type-card lost" onclick="App.nav('report-lost')">
+                            <div class="report-type-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
+                            <h3 class="report-type-title">แจ้งของหาย</h3>
+                            <p class="report-type-desc">กรอกรายละเอียดสิ่งของที่หาย<br>รูปภาพ/วิดีโอไม่บังคับ</p>
+                        </div>
+                        <div class="report-type-card found" onclick="App.nav('report-found')">
+                            <div class="report-type-icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
+                            <h3 class="report-type-title">แจ้งเก็บของได้</h3>
+                            <p class="report-type-desc">กรอกรายละเอียดสิ่งของที่เก็บได้<br>รูปภาพ/วิดีโอบังคับ</p>
                         </div>
                     </div>
                 </div>
@@ -233,7 +268,7 @@
                 <!-- REPORT LOST -->
                 <div id="page-report-lost" class="page-section hidden fade-in">
                     <div class="page-header">
-                        <button class="back-btn" onclick="App.nav('home')"><i class="fa-solid fa-arrow-left"></i></button>
+                        <button class="back-btn" onclick="App.nav('report')"><i class="fa-solid fa-arrow-left"></i></button>
                         <h2 class="page-title" id="report-lost-title">แจ้งของหาย</h2>
                     </div>
                     <div class="card" style="max-width: 700px; margin: 0 auto;">
@@ -251,15 +286,15 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>สถานที่หาย <span style="color:var(--danger)">*</span></label>
-                                <input type="text" id="lost-location" class="form-control" placeholder="เช่น ห้อง 10/3, โรงอาหาร" required>
+                                <label>สถานที่หาย (หากจำได้)</label>
+                                <input type="text" id="lost-location" class="form-control" placeholder="เช่น ห้อง 10/3, โรงอาหาร">
                             </div>
                             <div class="form-group">
-                                <label>รายละเอียด <span style="color:var(--danger)">*</span></label>
+                                <label>รายละเอียดลักษณะของ <span style="color:var(--danger)">*</span></label>
                                 <textarea id="lost-desc" class="form-control" placeholder="บอกลักษณะเฉพาะ สี ยี่ห้อ" required></textarea>
                             </div>
                             <div class="form-group">
-                                <label>รูปภาพหรือวิดีโอ (ไม่บังคับ)</label>
+                                <label>รูปภาพหรือวิดีโอ (หากมี - ไม่บังคับ)</label>
                                 <label for="lost-file" class="file-upload-box">
                                     <i class="fa-solid fa-cloud-arrow-up"></i>
                                     <p style="font-weight: 600; margin-bottom: 4px;">คลิกเพื่อเลือกรูปภาพหรือวิดีโอ</p>
@@ -268,7 +303,7 @@
                                 <input type="file" id="lost-file" accept="image/png,image/jpeg,video/mp4" class="hidden">
                                 <div id="lost-preview" class="preview-container"></div>
                             </div>
-                            <button type="submit" class="btn btn-primary" id="btn-submit-lost">
+                            <button type="submit" class="btn btn-danger btn-lg" id="btn-submit-lost">
                                 <i class="fa-solid fa-paper-plane"></i> ส่งแจ้งของหาย
                             </button>
                             <button type="button" class="btn btn-outline hidden" id="btn-cancel-edit" onclick="App.cancelEdit()" style="margin-top: 10px;">
@@ -278,11 +313,56 @@
                     </div>
                 </div>
 
+                <!-- REPORT FOUND -->
+                <div id="page-report-found" class="page-section hidden fade-in">
+                    <div class="page-header">
+                        <button class="back-btn" onclick="App.nav('report')"><i class="fa-solid fa-arrow-left"></i></button>
+                        <h2 class="page-title">แจ้งเก็บของได้</h2>
+                    </div>
+                    <div class="card" style="max-width: 700px; margin: 0 auto;">
+                        <form id="form-found">
+                            <div class="form-group">
+                                <label>ชื่อสิ่งของ <span style="color:var(--danger)">*</span></label>
+                                <input type="text" id="found-title" class="form-control" placeholder="เช่น กระเป๋าสีดำ, นาฬิกา" required>
+                            </div>
+                            <div class="form-group">
+                                <label>หมวดหมู่ <span style="color:var(--danger)">*</span></label>
+                                <select id="found-category" class="form-control" required>
+                                    <option value="">เลือกหมวดหมู่</option>
+                                    <option>อุปกรณ์การเรียน</option><option>กระเป๋า</option><option>อิเล็กทรอนิกส์</option>
+                                    <option>เครื่องแต่งกาย</option><option>อุปกรณ์กีฬา</option><option>อื่นๆ</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>สถานที่พบ <span style="color:var(--danger)">*</span></label>
+                                <input type="text" id="found-location" class="form-control" placeholder="เช่น ห้อง 10/3, โรงอาหาร" required>
+                            </div>
+                            <div class="form-group">
+                                <label>รายละเอียดลักษณะของ <span style="color:var(--danger)">*</span></label>
+                                <textarea id="found-desc" class="form-control" placeholder="บอกลักษณะเฉพาะ สี ยี่ห้อ" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>รูปภาพหรือวิดีโอ <span style="color:var(--danger)">*</span></label>
+                                <label for="found-file" class="file-upload-box">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    <p style="font-weight: 600; margin-bottom: 4px;">คลิกเพื่อเลือกรูปภาพหรือวิดีโอ</p>
+                                    <small style="color: var(--text-muted)">รองรับ PNG, JPG, MP4 (บังคับ)</small>
+                                </label>
+                                <input type="file" id="found-file" accept="image/png,image/jpeg,video/mp4" class="hidden" required>
+                                <div id="found-preview" class="preview-container"></div>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fa-solid fa-hand-holding-heart"></i> ส่งแจ้งเก็บของได้
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
                 <!-- VIEW LOST -->
                 <div id="page-view-lost" class="page-section hidden fade-in">
                     <div class="page-header">
                         <button class="back-btn" onclick="App.nav('home')"><i class="fa-solid fa-arrow-left"></i></button>
-                        <h2 class="page-title">ดูของหาย</h2>
+                        <h2 class="page-title">รายการแจ้งเหตุ</h2>
                     </div>
                     <div id="lost-list" class="items-grid"></div>
                 </div>
@@ -574,6 +654,45 @@
                 }
             },
 
+            handleFound: async (e) => {
+                e.preventDefault();
+                const file = document.getElementById('found-file').files[0];
+                if (!file) {
+                    App.toast('error', 'ไม่สมบูรณ์', 'กรุณาอัปโหลดรูปภาพหรือวิดีโอ');
+                    return;
+                }
+
+                App.showLoading(true);
+                try {
+                    const ext = file.name.split('.').pop();
+                    const fileName = `${App.user.id}_${Date.now()}.${ext}`;
+                    const { error: uploadError } = await sb.storage.from('item-images').upload(fileName, file);
+                    if (uploadError) throw uploadError;
+                    const { data: { publicUrl } } = sb.storage.from('item-images').getPublicUrl(fileName);
+
+                    const { error } = await sb.from('items').insert({
+                        user_id: App.user.id,
+                        type: 'found',
+                        status: 'active',
+                        title: document.getElementById('found-title').value,
+                        category: document.getElementById('found-category').value,
+                        location: document.getElementById('found-location').value,
+                        description: document.getElementById('found-desc').value,
+                        image_url: publicUrl
+                    });
+                    if (error) throw error;
+
+                    App.toast('success', 'สำเร็จ', 'ระบบบันทึกการแจ้งเก็บของได้แล้ว');
+                    e.target.reset();
+                    document.getElementById('found-preview').innerHTML = '';
+                    App.nav('home');
+                } catch (err) {
+                    App.toast('error', 'เกิดข้อผิดพลาด', err.message);
+                } finally {
+                    App.showLoading(false);
+                }
+            },
+
             editItem: async (itemId) => {
                 try {
                     const { data: item, error } = await sb.from('items').select('*').eq('id', itemId).single();
@@ -630,22 +749,23 @@
                 const container = document.getElementById('lost-list');
                 container.innerHTML = '<div style="text-align:center; padding:60px;"><div class="spinner" style="margin:0 auto;"></div></div>';
                 try {
-                    const { data, error } = await sb.from('items').select('*').eq('type', 'lost').eq('status', 'active').order('created_at', {ascending: false});
+                    const { data, error } = await sb.from('items').select('*').in('type', ['lost', 'found']).eq('status', 'active').order('created_at', {ascending: false});
                     if (error) throw error;
                     
                     if (!data || data.length === 0) {
-                        container.innerHTML = '<div style="text-align:center; padding:60px; color:white; background:rgba(255,255,255,0.1); border-radius:16px;"><i class="fa-solid fa-box-open" style="font-size:48px; margin-bottom:16px; opacity:0.5;"></i><p style="font-size:18px;">ไม่พบรายการของหายในระบบ</p></div>';
+                        container.innerHTML = '<div style="text-align:center; padding:60px; color:white; background:rgba(255,255,255,0.1); border-radius:16px;"><i class="fa-solid fa-box-open" style="font-size:48px; margin-bottom:16px; opacity:0.5;"></i><p style="font-size:18px;">ไม่พบรายการในระบบ</p></div>';
                         return;
                     }
                     
                     container.innerHTML = data.map(item => {
                         const isOwner = item.user_id === App.user.id;
+                        const isLost = item.type === 'lost';
                         return `
                         <div class="item-card">
                             ${item.image_url ? `<img src="${item.image_url}" class="item-image">` : 
                             '<div class="item-image" style="display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-image" style="font-size:48px; color:#D1D5DB;"></i></div>'}
                             <div class="item-content">
-                                <span class="item-badge">ของหาย</span>
+                                <span class="item-badge ${isLost ? '' : 'found'}">${isLost ? 'ของหาย' : 'เก็บของได้'}</span>
                                 <h3 class="item-title">${item.title}</h3>
                                 <div class="item-info"><i class="fa-solid fa-location-dot"></i> ${item.location}</div>
                                 <div class="item-info"><i class="fa-solid fa-tag"></i> ${item.category}</div>
@@ -661,13 +781,13 @@
                                             <i class="fa-solid fa-trash"></i> ลบ
                                         </button>
                                     </div>
-                                ` : `
+                                ` : (isLost ? `
                                     <div class="item-actions">
                                         <button class="btn btn-success" style="flex:1;" onclick="App.openClaimModal('${item.id}')">
                                             <i class="fa-solid fa-hand-holding-heart"></i> แจ้งว่าฉันเก็บได้
                                         </button>
                                     </div>
-                                `}
+                                ` : '')}
                             </div>
                         </div>
                     `}).join('');
@@ -856,11 +976,25 @@
         document.getElementById('form-login').addEventListener('submit', App.handleLogin);
         document.getElementById('form-register').addEventListener('submit', App.handleRegister);
         document.getElementById('form-lost').addEventListener('submit', App.handleLost);
+        document.getElementById('form-found').addEventListener('submit', App.handleFound);
         document.getElementById('form-claim').addEventListener('submit', App.handleClaim);
         document.getElementById('settings-avatar-input').addEventListener('change', App.handleAvatarUpload);
         document.getElementById('lost-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
             const preview = document.getElementById('lost-preview');
+            preview.innerHTML = '';
+            if (file) {
+                const url = URL.createObjectURL(file);
+                if (file.type.startsWith('video/')) {
+                    preview.innerHTML = `<div class="preview-item"><video src="${url}" controls></video></div>`;
+                } else {
+                    preview.innerHTML = `<div class="preview-item"><img src="${url}"></div>`;
+                }
+            }
+        });
+        document.getElementById('found-file').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const preview = document.getElementById('found-preview');
             preview.innerHTML = '';
             if (file) {
                 const url = URL.createObjectURL(file);
