@@ -123,6 +123,7 @@
         .item-badge.found { background: #D1FAE5; color: var(--success); }
         .item-title { font-size: 20px; font-weight: 600; margin-bottom: 10px; color: var(--text); }
         .item-info { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .item-author { font-size: 13px; color: var(--primary); font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
         .item-actions { display: flex; gap: 10px; margin-top: auto; padding-top: 16px; flex-wrap: wrap; }
 
         /* Report Type Selection */
@@ -168,6 +169,14 @@
         .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
         .status-badge.pending { background: #FEF3C7; color: var(--warning); }
         .status-badge.resolved { background: #D1FAE5; color: var(--success); }
+
+        /* Admin Report Card (เหมือน item-card) */
+        .admin-report-card { background: white; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lg); transition: all 0.3s; display: flex; flex-direction: column; }
+        .admin-report-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+        .admin-report-content { padding: 24px; flex: 1; display: flex; flex-direction: column; }
+        .admin-report-subject { font-size: 18px; font-weight: 600; margin-bottom: 10px; color: var(--text); }
+        .admin-report-desc { font-size: 14px; color: var(--text-muted); flex: 1; margin-bottom: 12px; line-height: 1.5; }
+        .admin-report-image { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; }
 
         /* Settings */
         .settings-section { margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
@@ -280,13 +289,8 @@
                         <h3 class="user-name" id="dash-name">กำลังโหลด...</h3>
                         <p class="user-email" id="dash-email">-</p>
                         <div id="role-badge-container"></div>
-                        <div class="stats-row">
-                            <div class="stat-card"><div class="stat-value" id="stat-lost">0</div><div class="stat-label">แจ้งของหาย</div></div>
-                            <div class="stat-card"><div class="stat-value" id="stat-found">0</div><div class="stat-label">แจ้งเก็บของได้</div></div>
-                            <div class="stat-card" id="stat-claims-card">
-                                <div class="stat-value" id="stat-claims">0</div>
-                                <div class="stat-label" id="stat-claims-label">คำร้องขอ</div>
-                            </div>
+                        <div class="stats-row" id="stats-row">
+                            <!-- Stats จะถูก render ตาม role -->
                         </div>
                     </div>
                 </div>
@@ -431,7 +435,7 @@
                     <div class="card">
                         <div class="admin-section">
                             <h3><i class="fa-solid fa-bell" style="color: var(--warning);"></i> คำร้องขอจากผู้ใช้งาน</h3>
-                            <div id="admin-reports-list"></div>
+                            <div id="admin-reports-list" class="items-grid"></div>
                         </div>
                     </div>
 
@@ -440,14 +444,6 @@
                         <div class="admin-section">
                             <h3><i class="fa-solid fa-users" style="color: var(--primary);"></i> จัดการสมาชิก</h3>
                             <div id="admin-users-list"></div>
-                        </div>
-                    </div>
-
-                    <!-- Items Management -->
-                    <div class="card">
-                        <div class="admin-section">
-                            <h3><i class="fa-solid fa-box" style="color: var(--success);"></i> จัดการโพสต์ทั้งหมด</h3>
-                            <div id="admin-items-list"></div>
                         </div>
                     </div>
                 </div>
@@ -529,6 +525,16 @@
                         <label>รายละเอียดหรือปัญหาที่พบ <span style="color:var(--danger)">*</span></label>
                         <textarea id="admin-report-description" class="form-control" placeholder="อธิบายรายละเอียดหรือปัญหาที่พบอย่างชัดเจน" required style="min-height: 120px;"></textarea>
                     </div>
+                    <div class="form-group">
+                        <label>รูปภาพประกอบ (ไม่บังคับ)</label>
+                        <label for="admin-report-file" class="file-upload-box">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <p style="font-weight: 600; margin-bottom: 4px;">คลิกเพื่อเลือกรูปภาพ</p>
+                            <small style="color: var(--text-muted)">รองรับ PNG, JPG (สูงสุด 5MB)</small>
+                        </label>
+                        <input type="file" id="admin-report-file" accept="image/png,image/jpeg" class="hidden">
+                        <div id="admin-report-preview" class="preview-container"></div>
+                    </div>
                     <button type="submit" class="btn btn-admin">
                         <i class="fa-solid fa-paper-plane"></i> ส่งแจ้งผู้ดูแลระบบ
                     </button>
@@ -563,6 +569,7 @@
             profile: null,
             editingItemId: null,
             currentReportId: null,
+            profilesCache: {},
 
             init: async () => {
                 try {
@@ -688,35 +695,35 @@
                 
                 const usernameInput = document.getElementById('settings-username');
                 if(usernameInput) usernameInput.value = App.profile.full_name || '';
-
-                // ปรับ label ตาม role
-                const claimsLabel = document.getElementById('stat-claims-label');
-                if (App.profile.role === 'admin') {
-                    claimsLabel.textContent = 'คำร้องขอ';
-                } else {
-                    claimsLabel.textContent = 'ส่งคำร้องขอ';
-                }
             },
 
             loadDashboardStats: async () => {
                 try {
-                    const { count: lost } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'lost');
-                    const { count: found } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'found');
-                    
-                    let claimsCount = 0;
                     if (App.profile.role === 'admin') {
-                        // Admin: นับ admin_reports ทั้งหมดที่ยัง pending
-                        const { count } = await sb.from('admin_reports').select('*', {count:'exact', head:true}).eq('status', 'pending');
-                        claimsCount = count || 0;
+                        // Admin: แสดง stats ทั้งหมด
+                        const { count: totalLost } = await sb.from('items').select('*', {count:'exact', head:true}).eq('type', 'lost');
+                        const { count: totalFound } = await sb.from('items').select('*', {count:'exact', head:true}).eq('type', 'found');
+                        const { count: totalUsers } = await sb.from('profiles').select('*', {count:'exact', head:true}).neq('id', App.user.id);
+                        const { count: pendingReports } = await sb.from('admin_reports').select('*', {count:'exact', head:true}).eq('status', 'pending');
+                        
+                        document.getElementById('stats-row').innerHTML = `
+                            <div class="stat-card"><div class="stat-value">${totalLost || 0}</div><div class="stat-label">การแจ้งของหาย (ทั้งหมด)</div></div>
+                            <div class="stat-card"><div class="stat-value">${totalFound || 0}</div><div class="stat-label">การแจ้งเก็บของได้ (ทั้งหมด)</div></div>
+                            <div class="stat-card"><div class="stat-value">${totalUsers || 0}</div><div class="stat-label">จำนวนสมาชิก</div></div>
+                            <div class="stat-card" onclick="App.nav('admin')" style="cursor:pointer; grid-column: span 3;"><div class="stat-value">${pendingReports || 0}</div><div class="stat-label">คำร้องขอที่รอดำเนินการ</div></div>
+                        `;
                     } else {
-                        // Student: นับ admin_reports ของตัวเอง
-                        const { count } = await sb.from('admin_reports').select('*', {count:'exact', head:true}).eq('user_id', App.user.id);
-                        claimsCount = count || 0;
+                        // Student: แสดง stats ของตัวเอง
+                        const { count: lost } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'lost');
+                        const { count: found } = await sb.from('items').select('*', {count:'exact', head:true}).eq('user_id', App.user.id).eq('type', 'found');
+                        const { count: myReports } = await sb.from('admin_reports').select('*', {count:'exact', head:true}).eq('user_id', App.user.id);
+                        
+                        document.getElementById('stats-row').innerHTML = `
+                            <div class="stat-card"><div class="stat-value">${lost || 0}</div><div class="stat-label">แจ้งของหาย</div></div>
+                            <div class="stat-card"><div class="stat-value">${found || 0}</div><div class="stat-label">แจ้งเก็บของได้</div></div>
+                            <div class="stat-card"><div class="stat-value">${myReports || 0}</div><div class="stat-label">ส่งคำร้องขอ</div></div>
+                        `;
                     }
-                    
-                    document.getElementById('stat-lost').textContent = lost || 0;
-                    document.getElementById('stat-found').textContent = found || 0;
-                    document.getElementById('stat-claims').textContent = claimsCount;
                 } catch (err) { 
                     console.error('Stats error:', err);
                 }
@@ -937,10 +944,40 @@
                 }
             },
 
+            // Helper: โหลด profiles ทั้งหมดเข้า cache
+            loadProfilesCache: async () => {
+                try {
+                    const { data: profiles } = await sb.from('profiles').select('id, full_name, email, avatar_url, role');
+                    if (profiles) {
+                        profiles.forEach(p => {
+                            App.profilesCache[p.id] = p;
+                        });
+                    }
+                } catch (err) {
+                    console.error('Load profiles cache error:', err);
+                }
+            },
+
+            getProfileName: (userId) => {
+                const profile = App.profilesCache[userId];
+                return profile?.full_name || 'ไม่ระบุชื่อ';
+            },
+
+            formatDateTime: (dateStr) => {
+                const date = new Date(dateStr);
+                const datePart = date.toLocaleDateString('th-TH');
+                const timePart = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+                return `${datePart} ${timePart} น.`;
+            },
+
             loadLostItems: async () => {
                 const container = document.getElementById('lost-list');
                 container.innerHTML = '<div style="text-align:center; padding:60px;"><div class="spinner" style="margin:0 auto;"></div></div>';
+                
                 try {
+                    // โหลด profiles cache ก่อน
+                    await App.loadProfilesCache();
+                    
                     const { data, error } = await sb.from('items').select('*').in('type', ['lost', 'found']).eq('status', 'active').order('created_at', {ascending: false});
                     if (error) throw error;
                     
@@ -954,6 +991,8 @@
                     container.innerHTML = data.map(item => {
                         const isOwner = item.user_id === App.user.id;
                         const isLost = item.type === 'lost';
+                        const authorName = App.getProfileName(item.user_id);
+                        const dateTime = App.formatDateTime(item.created_at);
                         
                         return `
                         <div class="item-card">
@@ -964,10 +1003,11 @@
                                     ${isLost ? 'ของหาย' : 'เก็บของได้'}
                                 </span>
                                 <h3 class="item-title">${item.title}</h3>
+                                <div class="item-author"><i class="fa-solid fa-user"></i> ${authorName}</div>
                                 <div class="item-info"><i class="fa-solid fa-location-dot"></i> ${item.location || '-'}</div>
                                 <div class="item-info"><i class="fa-solid fa-tag"></i> ${item.category}</div>
                                 <p style="margin-top:12px; font-size:14px; color:var(--text-muted); flex:1;">${item.description}</p>
-                                <div style="margin-top:12px; font-size:13px; color:var(--text-muted);">${new Date(item.created_at).toLocaleDateString('th-TH')}</div>
+                                <div style="margin-top:12px; font-size:13px; color:var(--text-muted);"><i class="fa-regular fa-clock"></i> ${dateTime}</div>
                                 
                                 <div class="item-actions">
                                     ${(isOwner || isAdmin) ? `
@@ -997,6 +1037,7 @@
                 if (!event || event.target === event.currentTarget) {
                     document.getElementById('admin-report-modal').classList.add('hidden');
                     document.getElementById('form-admin-report').reset();
+                    document.getElementById('admin-report-preview').innerHTML = '';
                 }
             },
 
@@ -1007,10 +1048,24 @@
                     const subject = document.getElementById('admin-report-subject').value;
                     const description = document.getElementById('admin-report-description').value;
                     
+                    let image_url = null;
+                    const fileInput = document.getElementById('admin-report-file');
+                    const file = fileInput.files[0];
+                    
+                    if (file) {
+                        const ext = file.name.split('.').pop();
+                        const fileName = `report_${App.user.id}_${Date.now()}.${ext}`;
+                        const { error: uploadError } = await sb.storage.from('item-images').upload(fileName, file);
+                        if (uploadError) throw uploadError;
+                        const { data: { publicUrl } } = sb.storage.from('item-images').getPublicUrl(fileName);
+                        image_url = publicUrl;
+                    }
+                    
                     const { error } = await sb.from('admin_reports').insert({
                         user_id: App.user.id,
                         subject: subject,
                         description: description,
+                        image_url: image_url,
                         status: 'pending'
                     });
                     
@@ -1035,91 +1090,99 @@
                     return;
                 }
                 
+                await App.loadProfilesCache();
                 await App.loadAdminReports();
                 await App.loadAdminUsers();
-                await App.loadAdminItems();
             },
 
             loadAdminReports: async () => {
                 const container = document.getElementById('admin-reports-list');
-                container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="margin:0 auto;"></div></div>';
+                container.innerHTML = '<div style="text-align:center; padding:40px; grid-column: span 3;"><div class="spinner" style="margin:0 auto;"></div></div>';
                 
                 try {
                     const { data: reports, error } = await sb.from('admin_reports')
-                        .select('*, profiles(full_name, email)')
+                        .select('*')
                         .order('created_at', { ascending: false });
                     
                     if (error) throw error;
                     
                     if (!reports || reports.length === 0) {
-                        container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);"><i class="fa-solid fa-inbox" style="font-size:48px; margin-bottom:16px; opacity:0.5;"></i><p>ไม่มีคำร้องขอ</p></div>';
+                        container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted); grid-column: span 3;"><i class="fa-solid fa-inbox" style="font-size:48px; margin-bottom:16px; opacity:0.5;"></i><p>ไม่มีคำร้องขอ</p></div>';
                         return;
                     }
                     
-                    container.innerHTML = `
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>หัวข้อ</th>
-                                    <th>ผู้ส่ง</th>
-                                    <th>วันที่</th>
-                                    <th>สถานะ</th>
-                                    <th>จัดการ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${reports.map(report => `
-                                    <tr>
-                                        <td><strong>${report.subject}</strong><br><small style="color:var(--text-muted);">${report.description.substring(0, 50)}...</small></td>
-                                        <td>${report.profiles?.full_name || '-'}<br><small style="color:var(--text-muted);">${report.profiles?.email || '-'}</small></td>
-                                        <td>${new Date(report.created_at).toLocaleDateString('th-TH')}</td>
-                                        <td><span class="status-badge ${report.status}">${report.status === 'pending' ? 'รอดำเนินการ' : 'เสร็จสิ้น'}</span></td>
-                                        <td>
-                                            <button class="btn btn-primary btn-sm" onclick="App.viewReportDetail('${report.id}')">
-                                                <i class="fa-solid fa-eye"></i> ดู
+                    container.innerHTML = reports.map(report => {
+                        const authorName = App.getProfileName(report.user_id);
+                        const dateTime = App.formatDateTime(report.created_at);
+                        
+                        return `
+                            <div class="admin-report-card">
+                                ${report.image_url ? `<img src="${report.image_url}" class="admin-report-image">` : ''}
+                                <div class="admin-report-content">
+                                    <span class="status-badge ${report.status}">${report.status === 'pending' ? 'รอดำเนินการ' : 'เสร็จสิ้น'}</span>
+                                    <h3 class="admin-report-subject">${report.subject}</h3>
+                                    <div class="item-author"><i class="fa-solid fa-user"></i> ${authorName}</div>
+                                    <div class="item-info"><i class="fa-regular fa-clock"></i> ${dateTime}</div>
+                                    <p class="admin-report-desc">${report.description}</p>
+                                    <div style="display:flex; gap:10px; margin-top:auto;">
+                                        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="App.viewReportDetail('${report.id}')">
+                                            <i class="fa-solid fa-eye"></i> ดูรายละเอียด
+                                        </button>
+                                        ${report.status === 'pending' ? `
+                                            <button class="btn btn-success btn-sm" style="flex:1;" onclick="App.resolveReport('${report.id}')">
+                                                <i class="fa-solid fa-check"></i> เสร็จสิ้น
                                             </button>
-                                            ${report.status === 'pending' ? `
-                                                <button class="btn btn-success btn-sm" onclick="App.resolveReport('${report.id}')">
-                                                    <i class="fa-solid fa-check"></i> เสร็จสิ้น
-                                                </button>
-                                            ` : ''}
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    `;
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
                 } catch (err) {
                     console.error('Load admin reports error:', err);
-                    container.innerHTML = '<div style="color:var(--danger); padding:20px;">เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err.message + '</div>';
+                    container.innerHTML = '<div style="color:var(--danger); padding:20px; grid-column: span 3;">เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err.message + '</div>';
                 }
             },
 
             viewReportDetail: async (reportId) => {
                 try {
                     const { data: report, error } = await sb.from('admin_reports')
-                        .select('*, profiles(full_name, email)')
+                        .select('*')
                         .eq('id', reportId)
                         .single();
                     
                     if (error) throw error;
                     
                     App.currentReportId = reportId;
+                    const authorName = App.getProfileName(report.user_id);
+                    const authorProfile = App.profilesCache[report.user_id];
+                    const dateTime = App.formatDateTime(report.created_at);
                     
                     document.getElementById('report-detail-content').innerHTML = `
                         <div style="margin-bottom:20px;">
                             <h4 style="margin-bottom:12px; color:var(--text-muted);">ข้อมูลผู้ส่ง:</h4>
-                            <div style="background:#EEF2FF; padding:16px; border-radius:var(--radius);">
-                                <div style="margin-bottom:8px;"><strong>ชื่อ-นามสกุล:</strong> ${report.profiles?.full_name || '-'}</div>
-                                <div><strong>อีเมล:</strong> ${report.profiles?.email || '-'}</div>
+                            <div style="background:#EEF2FF; padding:16px; border-radius:var(--radius); display:flex; align-items:center; gap:16px;">
+                                <img src="${authorProfile?.avatar_url || `https://ui-avatars.com/api/?name=${(authorName || 'U').charAt(0)}&background=6366F1&color=fff`}" 
+                                     style="width:60px; height:60px; border-radius:50%; object-fit:cover;">
+                                <div>
+                                    <div style="font-weight:600; font-size:16px;">${authorName}</div>
+                                    <div style="font-size:13px; color:var(--text-muted);">${authorProfile?.email || '-'}</div>
+                                    <div style="font-size:12px; color:var(--text-muted); margin-top:4px;"><i class="fa-regular fa-clock"></i> ${dateTime}</div>
+                                </div>
                             </div>
                         </div>
                         <div style="margin-bottom:20px;">
                             <h4 style="margin-bottom:12px; color:var(--text-muted);">หัวข้อเรื่อง:</h4>
-                            <div style="background:#F9FAFB; padding:16px; border-radius:var(--radius); font-weight:600;">
+                            <div style="background:#F9FAFB; padding:16px; border-radius:var(--radius); font-weight:600; font-size:16px;">
                                 ${report.subject}
                             </div>
                         </div>
+                        ${report.image_url ? `
+                            <div style="margin-bottom:20px;">
+                                <h4 style="margin-bottom:12px; color:var(--text-muted);">รูปภาพประกอบ:</h4>
+                                <img src="${report.image_url}" style="max-width:100%; border-radius:var(--radius); border:2px solid var(--border);">
+                            </div>
+                        ` : ''}
                         <div style="margin-bottom:20px;">
                             <h4 style="margin-bottom:12px; color:var(--text-muted);">รายละเอียด:</h4>
                             <div style="background:#F9FAFB; padding:16px; border-radius:var(--radius); white-space: pre-wrap; line-height:1.6;">
@@ -1217,56 +1280,6 @@
                     `;
                 } catch (err) {
                     console.error('Load users error:', err);
-                    container.innerHTML = '<div style="color:var(--danger); padding:20px;">เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err.message + '</div>';
-                }
-            },
-
-            loadAdminItems: async () => {
-                const container = document.getElementById('admin-items-list');
-                container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="margin:0 auto;"></div></div>';
-                
-                try {
-                    const { data: items, error } = await sb.from('items').select('*, profiles(full_name)').order('created_at', { ascending: false });
-                    if (error) throw error;
-                    
-                    if (!items || items.length === 0) {
-                        container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);"><i class="fa-solid fa-box-open" style="font-size:48px; margin-bottom:16px; opacity:0.5;"></i><p>ไม่มีโพสต์ในระบบ</p></div>';
-                        return;
-                    }
-                    
-                    container.innerHTML = `
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>หัวข้อ</th>
-                                    <th>ประเภท</th>
-                                    <th>ผู้แจ้ง</th>
-                                    <th>วันที่</th>
-                                    <th>จัดการ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${items.map(item => `
-                                    <tr>
-                                        <td>${item.title}</td>
-                                        <td><span class="item-badge ${item.type === 'lost' ? '' : 'found'}">${item.type === 'lost' ? 'ของหาย' : 'เก็บของได้'}</span></td>
-                                        <td>${item.profiles?.full_name || '-'}</td>
-                                        <td>${new Date(item.created_at).toLocaleDateString('th-TH')}</td>
-                                        <td>
-                                            <button class="btn btn-warning btn-sm" onclick="App.editItem('${item.id}')">
-                                                <i class="fa-solid fa-pen"></i> แก้ไข
-                                            </button>
-                                            <button class="btn btn-danger btn-sm" onclick="App.deleteItem('${item.id}')">
-                                                <i class="fa-solid fa-trash"></i> ลบ
-                                            </button>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    `;
-                } catch (err) {
-                    console.error('Load items error:', err);
                     container.innerHTML = '<div style="color:var(--danger); padding:20px;">เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err.message + '</div>';
                 }
             },
@@ -1480,6 +1493,15 @@
                 } else {
                     preview.innerHTML = `<div class="preview-item"><img src="${url}"></div>`;
                 }
+            }
+        });
+        document.getElementById('admin-report-file').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const preview = document.getElementById('admin-report-preview');
+            preview.innerHTML = '';
+            if (file) {
+                const url = URL.createObjectURL(file);
+                preview.innerHTML = `<div class="preview-item"><img src="${url}"></div>`;
             }
         });
 
