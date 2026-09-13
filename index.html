@@ -209,6 +209,7 @@
         .toast.success { border-left-color: var(--success); }
         .toast.error { border-left-color: var(--danger); }
         .toast.warning { border-left-color: var(--warning); }
+        .toast.info { border-left-color: var(--primary); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
         #loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9998; }
@@ -247,6 +248,51 @@
         .alert-box.warning { background: #FEF3C7; border-left: 4px solid var(--warning); color: #92400E; }
         .alert-box.info { background: #D1FAE5; border-left: 4px solid var(--success); color: #065F46; }
         .alert-box.danger { background: #FEE2E2; border-left: 4px solid var(--danger); color: #991B1B; }
+
+        /* Reply Modal - UI ใหม่ */
+        .reply-modal-header { 
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+            color: white; 
+            padding: 24px 32px; 
+            border-radius: 24px 24px 0 0;
+            margin: -40px -40px 24px -40px;
+        }
+        .reply-modal-header.found {
+            background: linear-gradient(135deg, var(--success), #059669);
+        }
+        .reply-modal-header h3 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .reply-modal-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .reply-info-box {
+            background: #F9FAFB;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .reply-info-box h4 {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .reply-info-box .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .reply-info-box .info-item i {
+            color: var(--primary);
+            width: 16px;
+        }
 
         @media (max-width: 768px) {
             .app-layout { flex-direction: column; }
@@ -663,14 +709,23 @@
         </div>
     </div>
 
-    <!-- Modal สำหรับตอบกลับโพสต์ -->
+    <!-- Modal สำหรับตอบกลับโพสต์ (UI ใหม่) -->
     <div id="reply-modal" class="hidden">
         <div class="modal-overlay" onclick="App.closeReplyModal(event)">
-            <div class="modal-content" onclick="event.stopPropagation()">
-                <div class="modal-header">
-                    <h3 class="modal-title" id="reply-modal-title"><i class="fa-solid fa-reply" style="color: var(--primary);"></i> ตอบกลับ</h3>
-                    <button class="modal-close" onclick="App.closeReplyModal()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 650px;">
+                <div class="reply-modal-header" id="reply-modal-header">
+                    <h3 id="reply-modal-title"><i class="fa-solid fa-reply"></i> ตอบกลับ</h3>
+                    <p id="reply-modal-subtitle">กรอกข้อมูลเพื่อตอบกลับโพสต์นี้</p>
                 </div>
+                
+                <!-- ข้อมูลโพสต์ -->
+                <div class="reply-info-box" id="reply-post-info">
+                    <h4><i class="fa-solid fa-info-circle"></i> ข้อมูลโพสต์</h4>
+                    <div class="info-item"><i class="fa-solid fa-heading"></i> <span id="reply-post-title">-</span></div>
+                    <div class="info-item"><i class="fa-solid fa-user"></i> <span id="reply-post-author">-</span></div>
+                    <div class="info-item"><i class="fa-solid fa-location-dot"></i> <span id="reply-post-location">-</span></div>
+                </div>
+                
                 <form id="form-reply">
                     <input type="hidden" id="reply-item-id">
                     <input type="hidden" id="reply-item-type">
@@ -760,6 +815,7 @@
             currentReplyItemType: null,
             profilesCache: {},
             unreadNotifications: 0,
+            notificationCheckInterval: null,
 
             init: async () => {
                 try {
@@ -769,6 +825,7 @@
                         App.user = session.user;
                         await App.loadProfile();
                         App.showApp();
+                        App.startNotificationPolling();
                     } else {
                         App.showAuth();
                     }
@@ -780,9 +837,13 @@
                 sb.auth.onAuthStateChange((event, session) => {
                     if (event === 'SIGNED_IN') { 
                         App.user = session.user; 
-                        App.loadProfile().then(() => App.showApp()); 
+                        App.loadProfile().then(() => {
+                            App.showApp();
+                            App.startNotificationPolling();
+                        }); 
                     } else if (event === 'SIGNED_OUT') { 
                         App.user = null; 
+                        App.stopNotificationPolling();
                         App.showAuth();
                     }
                 });
@@ -928,8 +989,16 @@
                     
                     if (error) throw error;
                     
-                    App.unreadNotifications = count || 0;
+                    const newCount = count || 0;
                     const dot = document.getElementById('notification-dot');
+                    
+                    // แสดง popup ถ้ามีการแจ้งเตือนใหม่
+                    if (newCount > App.unreadNotifications && App.unreadNotifications > 0) {
+                        const diff = newCount - App.unreadNotifications;
+                        App.toast('info', 'มีการแจ้งเตือนใหม่', `คุณมี ${diff} การแจ้งเตือนใหม่`);
+                    }
+                    
+                    App.unreadNotifications = newCount;
                     if (App.unreadNotifications > 0) {
                         dot.classList.add('active');
                     } else {
@@ -937,6 +1006,20 @@
                     }
                 } catch (err) {
                     console.error('Load notifications error:', err);
+                }
+            },
+
+            startNotificationPolling: () => {
+                App.stopNotificationPolling();
+                App.notificationCheckInterval = setInterval(() => {
+                    App.loadUnreadNotifications();
+                }, 30000); // ตรวจสอบทุก 30 วินาที
+            },
+
+            stopNotificationPolling: () => {
+                if (App.notificationCheckInterval) {
+                    clearInterval(App.notificationCheckInterval);
+                    App.notificationCheckInterval = null;
                 }
             },
 
@@ -1257,7 +1340,7 @@
             },
 
             // Reply Functions - แก้ไขแล้ว
-            openReplyModal: (itemId, itemType) => {
+            openReplyModal: async (itemId, itemType) => {
                 App.currentReplyItemId = itemId;
                 App.currentReplyItemType = itemType;
                 
@@ -1270,13 +1353,31 @@
                 document.getElementById('reply-preview').innerHTML = '';
                 document.getElementById('reply-preview-found').innerHTML = '';
                 
+                // โหลดข้อมูลโพสต์
+                try {
+                    const { data: item, error } = await sb.from('items').select('*').eq('id', itemId).single();
+                    if (error) throw error;
+                    
+                    const authorName = App.getProfileName(item.user_id);
+                    document.getElementById('reply-post-title').textContent = item.title;
+                    document.getElementById('reply-post-author').textContent = authorName;
+                    document.getElementById('reply-post-location').textContent = item.location || 'ไม่ระบุ';
+                } catch (err) {
+                    console.error('Load item error:', err);
+                }
+                
                 // แสดง fields ตามประเภทโพสต์
+                const header = document.getElementById('reply-modal-header');
                 if (itemType === 'lost') {
-                    document.getElementById('reply-modal-title').innerHTML = '<i class="fa-solid fa-reply" style="color: var(--danger);"></i> ตอบกลับโพสต์ "ของหาย"';
+                    header.className = 'reply-modal-header';
+                    document.getElementById('reply-modal-title').innerHTML = '<i class="fa-solid fa-reply"></i> ตอบกลับโพสต์ "ของหาย"';
+                    document.getElementById('reply-modal-subtitle').textContent = 'กรุณากรอกสถานที่พบและอัปโหลดหลักฐาน (บังคับ)';
                     document.getElementById('reply-lost-fields').classList.remove('hidden');
                     document.getElementById('reply-found-fields').classList.add('hidden');
                 } else {
-                    document.getElementById('reply-modal-title').innerHTML = '<i class="fa-solid fa-reply" style="color: var(--success);"></i> ตอบกลับโพสต์ "เก็บของได้"';
+                    header.className = 'reply-modal-header found';
+                    document.getElementById('reply-modal-title').innerHTML = '<i class="fa-solid fa-reply"></i> ตอบกลับโพสต์ "เก็บของได้"';
+                    document.getElementById('reply-modal-subtitle').textContent = 'กรุณากรอกสถานที่พบ (รูปภาพ/วิดีโอไม่บังคับ)';
                     document.getElementById('reply-lost-fields').classList.add('hidden');
                     document.getElementById('reply-found-fields').classList.remove('hidden');
                 }
@@ -1577,7 +1678,11 @@
                                             <button class="btn btn-danger btn-sm" style="flex:1;" onclick="App.openAdminRejectModal('${report.id}')">
                                                 <i class="fa-solid fa-trash"></i> ลบ
                                             </button>
-                                        ` : ''}
+                                        ` : `
+                                            <button class="btn btn-danger btn-sm" style="flex:1;" onclick="App.openAdminRejectModal('${report.id}')">
+                                                <i class="fa-solid fa-trash"></i> ลบ
+                                            </button>
+                                        `}
                                     </div>
                                 </div>
                             </div>
@@ -1671,7 +1776,11 @@
                                 <button class="btn btn-danger" onclick="App.openAdminRejectModal('${report.id}'); App.closeReportDetailModal();">
                                     <i class="fa-solid fa-trash"></i> ลบคำร้อง
                                 </button>
-                            ` : ''}
+                            ` : `
+                                <button class="btn btn-danger" onclick="App.openAdminRejectModal('${report.id}'); App.closeReportDetailModal();">
+                                    <i class="fa-solid fa-trash"></i> ลบคำร้อง
+                                </button>
+                            `}
                             <button class="btn btn-outline" onclick="App.closeReportDetailModal()">
                                 <i class="fa-solid fa-xmark"></i> ปิด
                             </button>
@@ -2010,8 +2119,8 @@
                 const toast = document.createElement('div');
                 toast.className = `toast ${type}`;
                 toast.innerHTML = `
-                    <i class="fa-solid ${type==='success'?'fa-circle-check':type==='warning'?'fa-triangle-exclamation':'fa-circle-xmark'}" 
-                       style="font-size:24px; color:${type==='success'?'var(--success)':type==='warning'?'var(--warning)':'var(--danger)'}"></i>
+                    <i class="fa-solid ${type==='success'?'fa-circle-check':type==='warning'?'fa-triangle-exclamation':type==='info'?'fa-circle-info':'fa-circle-xmark'}" 
+                       style="font-size:24px; color:${type==='success'?'var(--success)':type==='warning'?'var(--warning)':type==='info'?'var(--primary)':'var(--danger)'}"></i>
                     <div>
                         <div style="font-weight:700; font-size:16px;">${title}</div>
                         <div style="font-size:14px; color:var(--text-muted);">${msg}</div>
