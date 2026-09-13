@@ -44,8 +44,26 @@
         
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: var(--text); font-size: 14px; }
-        .form-control { width: 100%; padding: 14px 18px; border: 2px solid var(--border); border-radius: var(--radius); font-family: inherit; font-size: 15px; transition: all 0.3s; background: white; }
+        .form-control { 
+            width: 100%; 
+            padding: 14px 18px; 
+            border: 2px solid var(--border); 
+            border-radius: var(--radius); 
+            font-family: inherit; 
+            font-size: 15px; 
+            transition: all 0.3s; 
+            background: white;
+            resize: none;
+        }
         .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
+        
+        /* ป้องกันการยืด textarea ทั้งหมด */
+        textarea.form-control {
+            resize: none;
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
         
         .btn { padding: 14px 24px; border: none; border-radius: var(--radius); font-family: inherit; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
         .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 12px rgba(99,102,241,0.4); }
@@ -199,17 +217,31 @@
         .spinner { width: 60px; height: 60px; border: 5px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Coming Soon Badge */
-        .coming-soon-badge { 
-            display: inline-block; 
-            background: linear-gradient(135deg, #9CA3AF, #6B7280); 
+        /* Notification Button with Red Dot */
+        .notification-btn-wrapper { position: relative; display: inline-block; }
+        .notification-dot { 
+            position: absolute; 
+            top: -4px; 
+            right: -4px; 
+            width: 12px; 
+            height: 12px; 
+            background: var(--danger); 
+            border-radius: 50%; 
+            border: 2px solid white;
+            animation: pulse 1.5s infinite;
+            display: none;
+        }
+        .notification-dot.active { display: block; }
+
+        /* Reply Badge on Item Card */
+        .reply-count-badge { 
+            background: var(--primary); 
             color: white; 
-            padding: 4px 12px; 
-            border-radius: 12px; 
+            padding: 2px 8px; 
+            border-radius: 10px; 
             font-size: 11px; 
-            font-weight: 600; 
+            font-weight: 600;
             margin-left: 8px;
-            animation: pulse 2s infinite;
         }
 
         @media (max-width: 768px) {
@@ -307,11 +339,14 @@
                         <div class="stats-row" id="stats-row">
                             <!-- Stats จะถูก render ตาม role -->
                         </div>
-                        <!-- ปุ่มแจ้งเตือน/ตอบกลับ - เร็วๆนี้ -->
+                        <!-- ปุ่มการแจ้งเตือน พร้อมจุดแดง -->
                         <div style="margin-top: 32px;">
-                            <button class="btn btn-coming-soon" onclick="App.showComingSoon('แจ้งเตือนและการตอบกลับ')" style="max-width: 400px; margin: 0 auto;">
-                                <i class="fa-solid fa-bell"></i> แจ้งเตือน/ตอบกลับ <span class="coming-soon-badge">เร็วๆนี้</span>
-                            </button>
+                            <div class="notification-btn-wrapper">
+                                <span class="notification-dot" id="notification-dot"></span>
+                                <button class="btn btn-primary" onclick="App.openNotifications()" style="max-width: 400px; margin: 0 auto;">
+                                    <i class="fa-solid fa-bell"></i> การแจ้งเตือน
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -544,7 +579,7 @@
                     </div>
                     <div class="form-group">
                         <label>รายละเอียดหรือปัญหาที่พบ <span style="color:var(--danger)">*</span></label>
-                        <textarea id="admin-report-description" class="form-control" placeholder="อธิบายรายละเอียดหรือปัญหาที่พบอย่างชัดเจน" required style="min-height: 120px;"></textarea>
+                        <textarea id="admin-report-description" class="form-control" placeholder="อธิบายรายละเอียดหรือปัญหาที่พบอย่างชัดเจน" required></textarea>
                     </div>
                     <div class="form-group">
                         <label>รูปภาพประกอบ (ไม่บังคับ)</label>
@@ -577,16 +612,82 @@
         </div>
     </div>
 
-    <!-- Modal Coming Soon -->
-    <div id="coming-soon-modal" class="hidden">
-        <div class="modal-overlay" onclick="App.closeComingSoonModal(event)">
-            <div class="modal-content" style="max-width: 400px; text-align: center;" onclick="event.stopPropagation()">
-                <div style="font-size: 64px; margin-bottom: 20px;">🚧</div>
-                <h2 style="margin-bottom: 16px; color: var(--text);">เร็วๆนี้</h2>
-                <p id="coming-soon-text" style="color: var(--text-muted); margin-bottom: 24px;">ฟีเจอร์นี้กำลังอยู่ในระหว่างการพัฒนา</p>
-                <button class="btn btn-primary" onclick="App.closeComingSoonModal()">
-                    <i class="fa-solid fa-check"></i> รับทราบ
-                </button>
+    <!-- Modal สำหรับตอบกลับโพสต์ -->
+    <div id="reply-modal" class="hidden">
+        <div class="modal-overlay" onclick="App.closeReplyModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="reply-modal-title"><i class="fa-solid fa-reply" style="color: var(--primary);"></i> ตอบกลับ</h3>
+                    <button class="modal-close" onclick="App.closeReplyModal()"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <form id="form-reply">
+                    <input type="hidden" id="reply-item-id">
+                    <input type="hidden" id="reply-item-type">
+                    
+                    <div id="reply-lost-fields" class="hidden">
+                        <div style="background: #FEF3C7; border-left: 4px solid var(--warning); padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px;">
+                            <i class="fa-solid fa-triangle-exclamation"></i> 
+                            <strong>สำหรับโพสต์ "ของหาย":</strong> กรุณากรอกสถานที่พบและอัปโหลดหลักฐาน (รูปภาพ/วิดีโอ) <strong>บังคับ</strong>
+                        </div>
+                        <div class="form-group">
+                            <label>สถานที่พบ <span style="color:var(--danger)">*</span></label>
+                            <input type="text" id="reply-location" class="form-control" placeholder="เช่น หน้าโรงอาหาร, ห้อง 10/3" required>
+                        </div>
+                        <div class="form-group">
+                            <label>รูปภาพหรือวิดีโอหลักฐาน <span style="color:var(--danger)">*</span></label>
+                            <label for="reply-file" class="file-upload-box">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <p style="font-weight: 600; margin-bottom: 4px;">คลิกเพื่อเลือกรูปภาพหรือวิดีโอ</p>
+                                <small style="color: var(--danger)">⚠️ บังคับต้องมีหลักฐานที่แน่นอน</small>
+                            </label>
+                            <input type="file" id="reply-file" accept="image/png,image/jpeg,video/mp4" class="hidden" required>
+                            <div id="reply-preview" class="preview-container"></div>
+                        </div>
+                    </div>
+
+                    <div id="reply-found-fields" class="hidden">
+                        <div style="background: #D1FAE5; border-left: 4px solid var(--success); padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px;">
+                            <i class="fa-solid fa-circle-info"></i> 
+                            <strong>สำหรับโพสต์ "เก็บของได้":</strong> กรุณากรอกสถานที่พบ (รูปภาพ/วิดีโอไม่บังคับ)
+                        </div>
+                        <div class="form-group">
+                            <label>สถานที่พบ <span style="color:var(--danger)">*</span></label>
+                            <input type="text" id="reply-location-found" class="form-control" placeholder="เช่น หน้าโรงอาหาร, ห้อง 10/3" required>
+                        </div>
+                        <div class="form-group">
+                            <label>รูปภาพหรือวิดีโอ (ไม่บังคับ)</label>
+                            <label for="reply-file-found" class="file-upload-box">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <p style="font-weight: 600; margin-bottom: 4px;">คลิกเพื่อเลือกรูปภาพหรือวิดีโอ</p>
+                                <small style="color: var(--text-muted)">รองรับ PNG, JPG, MP4</small>
+                            </label>
+                            <input type="file" id="reply-file-found" accept="image/png,image/jpeg,video/mp4" class="hidden">
+                            <div id="reply-preview-found" class="preview-container"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ข้อความเพิ่มเติม</label>
+                        <textarea id="reply-description" class="form-control" placeholder="กรอกข้อมูลเพิ่มเติม (ถ้ามี)"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-paper-plane"></i> ส่งตอบกลับ
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับดูการแจ้งเตือน -->
+    <div id="notifications-modal" class="hidden">
+        <div class="modal-overlay" onclick="App.closeNotificationsModal(event)">
+            <div class="modal-content large" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h3 class="modal-title"><i class="fa-solid fa-bell" style="color: var(--primary);"></i> การแจ้งเตือน</h3>
+                    <button class="modal-close" onclick="App.closeNotificationsModal()"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div id="notifications-list"></div>
             </div>
         </div>
     </div>
@@ -604,7 +705,10 @@
             profile: null,
             editingItemId: null,
             currentReportId: null,
+            currentReplyItemId: null,
+            currentReplyItemType: null,
             profilesCache: {},
+            unreadNotifications: 0,
 
             init: async () => {
                 try {
@@ -757,8 +861,32 @@
                             <div class="stat-card"><div class="stat-value">${myReports || 0}</div><div class="stat-label">ส่งคำร้องขอ</div></div>
                         `;
                     }
+                    
+                    // โหลดการแจ้งเตือน
+                    await App.loadUnreadNotifications();
                 } catch (err) { 
                     console.error('Stats error:', err);
+                }
+            },
+
+            loadUnreadNotifications: async () => {
+                try {
+                    const { count, error } = await sb.from('notifications')
+                        .select('*', {count: 'exact', head: true})
+                        .eq('user_id', App.user.id)
+                        .eq('is_read', false);
+                    
+                    if (error) throw error;
+                    
+                    App.unreadNotifications = count || 0;
+                    const dot = document.getElementById('notification-dot');
+                    if (App.unreadNotifications > 0) {
+                        dot.classList.add('active');
+                    } else {
+                        dot.classList.remove('active');
+                    }
+                } catch (err) {
+                    console.error('Load notifications error:', err);
                 }
             },
 
@@ -1019,11 +1147,25 @@
                     
                     const isAdmin = App.profile.role === 'admin';
                     
+                    // โหลดจำนวน reply สำหรับแต่ละ item
+                    const itemIds = data.map(item => item.id);
+                    const { data: repliesData } = await sb.from('item_replies')
+                        .select('item_id')
+                        .in('item_id', itemIds);
+                    
+                    const replyCounts = {};
+                    if (repliesData) {
+                        repliesData.forEach(r => {
+                            replyCounts[r.item_id] = (replyCounts[r.item_id] || 0) + 1;
+                        });
+                    }
+                    
                     container.innerHTML = data.map(item => {
                         const isOwner = item.user_id === App.user.id;
                         const isLost = item.type === 'lost';
                         const authorName = App.getProfileName(item.user_id);
                         const dateTime = App.formatDateTime(item.created_at);
+                        const replyCount = replyCounts[item.id] || 0;
                         
                         return `
                         <div class="item-card">
@@ -1041,6 +1183,12 @@
                                 <div style="margin-top:12px; font-size:13px; color:var(--text-muted);"><i class="fa-regular fa-clock"></i> ${dateTime}</div>
                                 
                                 <div class="item-actions">
+                                    ${!isOwner ? `
+                                        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="App.openReplyModal('${item.id}', '${item.type}')">
+                                            <i class="fa-solid fa-reply"></i> ตอบกลับ
+                                            ${replyCount > 0 ? `<span class="reply-count-badge">${replyCount}</span>` : ''}
+                                        </button>
+                                    ` : ''}
                                     ${(isOwner || isAdmin) ? `
                                         <button class="btn btn-warning btn-sm" style="flex:1;" onclick="App.editItem('${item.id}')">
                                             <i class="fa-solid fa-pen"></i> แก้ไข
@@ -1059,6 +1207,183 @@
                 }
             },
 
+            // Reply Functions
+            openReplyModal: (itemId, itemType) => {
+                App.currentReplyItemId = itemId;
+                App.currentReplyItemType = itemType;
+                
+                document.getElementById('reply-item-id').value = itemId;
+                document.getElementById('reply-item-type').value = itemType;
+                
+                // Reset form
+                document.getElementById('form-reply').reset();
+                document.getElementById('reply-preview').innerHTML = '';
+                document.getElementById('reply-preview-found').innerHTML = '';
+                
+                // แสดง fields ตามประเภทโพสต์
+                if (itemType === 'lost') {
+                    document.getElementById('reply-modal-title').innerHTML = '<i class="fa-solid fa-reply" style="color: var(--danger);"></i> ตอบกลับโพสต์ "ของหาย"';
+                    document.getElementById('reply-lost-fields').classList.remove('hidden');
+                    document.getElementById('reply-found-fields').classList.add('hidden');
+                } else {
+                    document.getElementById('reply-modal-title').innerHTML = '<i class="fa-solid fa-reply" style="color: var(--success);"></i> ตอบกลับโพสต์ "เก็บของได้"';
+                    document.getElementById('reply-lost-fields').classList.add('hidden');
+                    document.getElementById('reply-found-fields').classList.remove('hidden');
+                }
+                
+                document.getElementById('reply-modal').classList.remove('hidden');
+            },
+
+            closeReplyModal: (event) => {
+                if (!event || event.target === event.currentTarget) {
+                    document.getElementById('reply-modal').classList.add('hidden');
+                    App.currentReplyItemId = null;
+                    App.currentReplyItemType = null;
+                }
+            },
+
+            handleReply: async (e) => {
+                e.preventDefault();
+                
+                const itemType = App.currentReplyItemType;
+                const itemId = App.currentReplyItemId;
+                
+                let location = '';
+                let fileInput = null;
+                let isRequired = false;
+                
+                if (itemType === 'lost') {
+                    location = document.getElementById('reply-location').value;
+                    fileInput = document.getElementById('reply-file');
+                    isRequired = true;
+                } else {
+                    location = document.getElementById('reply-location-found').value;
+                    fileInput = document.getElementById('reply-file-found');
+                    isRequired = false;
+                }
+                
+                const file = fileInput.files[0];
+                
+                // ตรวจสอบสำหรับโพสต์ "ของหาย" - บังคับต้องมีหลักฐาน
+                if (itemType === 'lost' && !file) {
+                    App.toast('error', 'ต้องมีหลักฐานที่แน่นอน', 'กรุณาอัปโหลดรูปภาพหรือวิดีโอเป็นหลักฐาน');
+                    return;
+                }
+                
+                App.showLoading(true);
+                try {
+                    let image_url = null;
+                    
+                    if (file) {
+                        const ext = file.name.split('.').pop();
+                        const fileName = `reply_${App.user.id}_${Date.now()}.${ext}`;
+                        const { error: uploadError } = await sb.storage.from('item-images').upload(fileName, file);
+                        if (uploadError) throw uploadError;
+                        const { data: { publicUrl } } = sb.storage.from('item-images').getPublicUrl(fileName);
+                        image_url = publicUrl;
+                    }
+                    
+                    const description = document.getElementById('reply-description').value;
+                    const fullDescription = `สถานที่พบ: ${location}\n\n${description}`;
+                    
+                    // บันทึกลง item_replies
+                    const { error: replyError } = await sb.from('item_replies').insert({
+                        item_id: itemId,
+                        user_id: App.user.id,
+                        description: fullDescription,
+                        image_url: image_url
+                    });
+                    
+                    if (replyError) throw replyError;
+                    
+                    // สร้าง notification ให้เจ้าของโพสต์
+                    const { data: item } = await sb.from('items').select('user_id').eq('id', itemId).single();
+                    if (item && item.user_id !== App.user.id) {
+                        await sb.from('notifications').insert({
+                            user_id: item.user_id,
+                            item_id: itemId,
+                            is_read: false
+                        });
+                    }
+                    
+                    App.toast('success', 'ส่งตอบกลับสำเร็จ', 'เจ้าของโพสต์จะได้รับการแจ้งเตือน');
+                    App.closeReplyModal();
+                    App.loadLostItems();
+                } catch (err) {
+                    App.toast('error', 'ส่งไม่สำเร็จ', err.message);
+                    console.error('Reply error:', err);
+                } finally {
+                    App.showLoading(false);
+                }
+            },
+
+            // Notifications Functions
+            openNotifications: async () => {
+                document.getElementById('notifications-modal').classList.remove('hidden');
+                await App.loadNotifications();
+                
+                // Mark all as read
+                await sb.from('notifications')
+                    .update({ is_read: true })
+                    .eq('user_id', App.user.id)
+                    .eq('is_read', false);
+                
+                App.unreadNotifications = 0;
+                document.getElementById('notification-dot').classList.remove('active');
+            },
+
+            closeNotificationsModal: (event) => {
+                if (!event || event.target === event.currentTarget) {
+                    document.getElementById('notifications-modal').classList.add('hidden');
+                }
+            },
+
+            loadNotifications: async () => {
+                const container = document.getElementById('notifications-list');
+                container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="margin:0 auto;"></div></div>';
+                
+                try {
+                    const { data: notifications, error } = await sb.from('notifications')
+                        .select('*, item_replies(user_id, description, image_url), items(title, type)')
+                        .eq('user_id', App.user.id)
+                        .order('created_at', { ascending: false });
+                    
+                    if (error) throw error;
+                    
+                    if (!notifications || notifications.length === 0) {
+                        container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);"><i class="fa-solid fa-bell-slash" style="font-size:48px; margin-bottom:16px; opacity:0.5;"></i><p>ไม่มีการแจ้งเตือน</p></div>';
+                        return;
+                    }
+                    
+                    container.innerHTML = notifications.map(notif => {
+                        const replierName = App.getProfileName(notif.item_replies?.user_id);
+                        const dateTime = App.formatDateTime(notif.created_at);
+                        const isLost = notif.items?.type === 'lost';
+                        
+                        return `
+                            <div class="admin-report-card" style="margin-bottom: 16px;">
+                                <div class="admin-report-content">
+                                    <span class="item-badge ${isLost ? '' : 'found'}">
+                                        ${isLost ? 'มีผู้ตอบกลับโพสต์ "ของหาย"' : 'มีผู้ตอบกลับโพสต์ "เก็บของได้"'}
+                                    </span>
+                                    <h3 class="admin-report-subject">${notif.items?.title || 'ไม่ระบุหัวข้อ'}</h3>
+                                    <div class="item-author"><i class="fa-solid fa-user"></i> ${replierName}</div>
+                                    <div class="item-info"><i class="fa-regular fa-clock"></i> ${dateTime}</div>
+                                    <p class="admin-report-desc">${notif.item_replies?.description || '-'}</p>
+                                    ${notif.item_replies?.image_url ? `
+                                        <img src="${notif.item_replies.image_url}" style="max-width:200px; border-radius:8px; margin-top:12px;">
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } catch (err) {
+                    console.error('Load notifications error:', err);
+                    container.innerHTML = '<div style="color:var(--danger); padding:20px;">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
+                }
+            },
+
+            // Admin Report Functions
             openAdminReportModal: () => {
                 document.getElementById('admin-report-modal').classList.remove('hidden');
             },
@@ -1478,17 +1803,6 @@
                 }
             },
 
-            showComingSoon: (featureName) => {
-                document.getElementById('coming-soon-text').textContent = `ฟีเจอร์ "${featureName}" กำลังอยู่ในระหว่างการพัฒนา`;
-                document.getElementById('coming-soon-modal').classList.remove('hidden');
-            },
-
-            closeComingSoonModal: (event) => {
-                if (!event || event.target === event.currentTarget) {
-                    document.getElementById('coming-soon-modal').classList.add('hidden');
-                }
-            },
-
             showLoading: (show) => {
                 document.getElementById('loading-overlay').classList.toggle('hidden', !show);
             },
@@ -1514,7 +1828,7 @@
         };
 
         // ============================================
-        // ระบบป้องกันการเจาะ/แก้ไขโค้ด
+        // ระบบป้องกันการเจาะ/แก้ไขโค้ด (ขั้นสูง)
         // ============================================
         
         // 1. ปิดคลิกขวา
@@ -1592,25 +1906,51 @@
             }
         });
 
-        // 5. ตรวจจับ DevTools เปิด (แบบง่าย)
-        let devtoolsOpen = false;
-        const threshold = 160;
-        
-        setInterval(() => {
+        // 5. ตรวจจับ DevTools เปิด - ปิด Tab ทันที (ยกเว้น admin)
+        const detectDevTools = () => {
+            // ตรวจสอบว่าเป็น admin หรือไม่
+            const isAdmin = App.profile?.role === 'admin';
+            if (isAdmin) return; // Admin อนุญาตให้ใช้ DevTools ได้
+            
+            const threshold = 160;
             const widthThreshold = window.outerWidth - window.innerWidth > threshold;
             const heightThreshold = window.outerHeight - window.innerHeight > threshold;
             
             if (widthThreshold || heightThreshold) {
-                if (!devtoolsOpen) {
-                    devtoolsOpen = true;
-                    // ไม่ทำอะไร แค่ตรวจจับ
-                }
-            } else {
-                devtoolsOpen = false;
+                // ปิด Tab ทันที
+                window.close();
+                // ถ้า window.close() ไม่ทำงาน (บางเบราว์เซอร์) ให้ redirect
+                window.location.href = 'about:blank';
+                // ลองวิธีอื่น
+                window.open('', '_self', '');
+                window.close();
             }
-        }, 1000);
+        };
+        
+        // ตรวจสอบทุก 500ms
+        setInterval(detectDevTools, 500);
 
-        // 6. ปิด Console (แบบง่าย)
+        // 6. Debugger Trap - ตรวจจับการ pause ใน DevTools
+        const debuggerTrap = () => {
+            const isAdmin = App.profile?.role === 'admin';
+            if (isAdmin) return;
+            
+            const start = performance.now();
+            // debugger statement จะทำให้ DevTools pause ถ้าเปิดอยู่
+            // eslint-disable-next-line no-debugger
+            debugger;
+            const end = performance.now();
+            
+            // ถ้าใช้เวลาเกิน 100ms แสดงว่ามี DevTools เปิดอยู่
+            if (end - start > 100) {
+                window.close();
+                window.location.href = 'about:blank';
+            }
+        };
+        
+        setInterval(debuggerTrap, 2000);
+
+        // 7. ปิด Console (แบบง่าย)
         try {
             Object.defineProperty(window, 'console', {
                 get: function() {
@@ -1635,6 +1975,7 @@
         document.getElementById('form-lost').addEventListener('submit', App.handleLost);
         document.getElementById('form-found').addEventListener('submit', App.handleFound);
         document.getElementById('form-admin-report').addEventListener('submit', App.handleAdminReport);
+        document.getElementById('form-reply').addEventListener('submit', App.handleReply);
         document.getElementById('settings-avatar-input').addEventListener('change', App.handleAvatarUpload);
         document.getElementById('lost-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -1669,6 +2010,32 @@
             if (file) {
                 const url = URL.createObjectURL(file);
                 preview.innerHTML = `<div class="preview-item"><img src="${url}"></div>`;
+            }
+        });
+        document.getElementById('reply-file').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const preview = document.getElementById('reply-preview');
+            preview.innerHTML = '';
+            if (file) {
+                const url = URL.createObjectURL(file);
+                if (file.type.startsWith('video/')) {
+                    preview.innerHTML = `<div class="preview-item"><video src="${url}" controls></video></div>`;
+                } else {
+                    preview.innerHTML = `<div class="preview-item"><img src="${url}"></div>`;
+                }
+            }
+        });
+        document.getElementById('reply-file-found').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const preview = document.getElementById('reply-preview-found');
+            preview.innerHTML = '';
+            if (file) {
+                const url = URL.createObjectURL(file);
+                if (file.type.startsWith('video/')) {
+                    preview.innerHTML = `<div class="preview-item"><video src="${url}" controls></video></div>`;
+                } else {
+                    preview.innerHTML = `<div class="preview-item"><img src="${url}"></div>`;
+                }
             }
         });
 
