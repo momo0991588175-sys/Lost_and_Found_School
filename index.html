@@ -57,7 +57,6 @@
         }
         .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
         
-        /* ป้องกันการยืด textarea ทั้งหมด */
         textarea.form-control {
             resize: none;
             min-height: 100px;
@@ -80,8 +79,6 @@
         .btn-outline:hover { border-color: var(--danger); color: var(--danger); background: #FEE2E2; }
         .btn-lg { padding: 18px 32px; font-size: 16px; }
         .btn-sm { padding: 10px 16px; font-size: 13px; width: auto; }
-        .btn-coming-soon { background: linear-gradient(135deg, #9CA3AF, #6B7280); color: white; cursor: not-allowed; opacity: 0.7; }
-        .btn-coming-soon:hover { transform: none; box-shadow: none; }
         
         .auth-switch { text-align: center; margin-top: 24px; font-size: 14px; color: var(--text-muted); }
         .auth-switch a { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; }
@@ -189,6 +186,7 @@
         .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
         .status-badge.pending { background: #FEF3C7; color: var(--warning); }
         .status-badge.resolved { background: #D1FAE5; color: var(--success); }
+        .status-badge.rejected { background: #FEE2E2; color: var(--danger); }
 
         /* Admin Report Card */
         .admin-report-card { background: white; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lg); transition: all 0.3s; display: flex; flex-direction: column; }
@@ -243,6 +241,12 @@
             font-weight: 600;
             margin-left: 8px;
         }
+
+        /* Alert Box */
+        .alert-box { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; display: flex; align-items: flex-start; gap: 10px; }
+        .alert-box.warning { background: #FEF3C7; border-left: 4px solid var(--warning); color: #92400E; }
+        .alert-box.info { background: #D1FAE5; border-left: 4px solid var(--success); color: #065F46; }
+        .alert-box.danger { background: #FEE2E2; border-left: 4px solid var(--danger); color: #991B1B; }
 
         @media (max-width: 768px) {
             .app-layout { flex-direction: column; }
@@ -336,10 +340,7 @@
                         <h3 class="user-name" id="dash-name">กำลังโหลด...</h3>
                         <p class="user-email" id="dash-email">-</p>
                         <div id="role-badge-container"></div>
-                        <div class="stats-row" id="stats-row">
-                            <!-- Stats จะถูก render ตาม role -->
-                        </div>
-                        <!-- ปุ่มการแจ้งเตือน พร้อมจุดแดง -->
+                        <div class="stats-row" id="stats-row"></div>
                         <div style="margin-top: 32px;">
                             <div class="notification-btn-wrapper">
                                 <span class="notification-dot" id="notification-dot"></span>
@@ -487,7 +488,6 @@
                         <h2 class="page-title">แผงควบคุม Admin</h2>
                     </div>
                     
-                    <!-- Admin Reports Section -->
                     <div class="card">
                         <div class="admin-section">
                             <h3><i class="fa-solid fa-bell" style="color: var(--warning);"></i> คำร้องขอจากผู้ใช้งาน</h3>
@@ -495,7 +495,6 @@
                         </div>
                     </div>
 
-                    <!-- Users Management -->
                     <div class="card">
                         <div class="admin-section">
                             <h3><i class="fa-solid fa-users" style="color: var(--primary);"></i> จัดการสมาชิก</h3>
@@ -612,6 +611,58 @@
         </div>
     </div>
 
+    <!-- Modal สำหรับ Admin ตอบกลับคำร้อง (เสร็จสิ้น) -->
+    <div id="admin-respond-modal" class="hidden">
+        <div class="modal-overlay" onclick="App.closeAdminRespondModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h3 class="modal-title"><i class="fa-solid fa-check-circle" style="color: var(--success);"></i> ตอบกลับคำร้อง (เสร็จสิ้น)</h3>
+                    <button class="modal-close" onclick="App.closeAdminRespondModal()"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <form id="form-admin-respond">
+                    <input type="hidden" id="respond-report-id">
+                    <div class="alert-box info">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>กรอกรายละเอียดการดำเนินการ เพื่อให้ผู้ส่งคำร้องทราบ</span>
+                    </div>
+                    <div class="form-group">
+                        <label>รายละเอียดการดำเนินการ <span style="color:var(--danger)">*</span></label>
+                        <textarea id="admin-response-text" class="form-control" placeholder="เช่น ได้ดำเนินการแก้ไขแล้ว, อยู่ระหว่างตรวจสอบ, ฯลฯ" required style="min-height: 120px;"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-check"></i> ยืนยันและส่งให้ผู้ใช้ทราบ
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับ Admin ลบคำร้อง (พร้อมเหตุผล) -->
+    <div id="admin-reject-modal" class="hidden">
+        <div class="modal-overlay" onclick="App.closeAdminRejectModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h3 class="modal-title"><i class="fa-solid fa-times-circle" style="color: var(--danger);"></i> ลบคำร้อง (ต้องระบุเหตุผล)</h3>
+                    <button class="modal-close" onclick="App.closeAdminRejectModal()"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <form id="form-admin-reject">
+                    <input type="hidden" id="reject-report-id">
+                    <div class="alert-box danger">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>การลบคำร้องจะต้องระบุเหตุผล เพื่อให้ผู้ส่งคำร้องทราบ</span>
+                    </div>
+                    <div class="form-group">
+                        <label>เหตุผลในการลบ <span style="color:var(--danger)">*</span></label>
+                        <textarea id="admin-reject-reason" class="form-control" placeholder="เช่น ข้อมูลไม่ครบถ้วน, ไม่เกี่ยวข้องกับระบบ, ซ้ำซ้อนกับคำร้องอื่น, ฯลฯ" required style="min-height: 120px;"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fa-solid fa-trash"></i> ยืนยันการลบและส่งเหตุผลให้ผู้ใช้ทราบ
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal สำหรับตอบกลับโพสต์ -->
     <div id="reply-modal" class="hidden">
         <div class="modal-overlay" onclick="App.closeReplyModal(event)">
@@ -625,9 +676,9 @@
                     <input type="hidden" id="reply-item-type">
                     
                     <div id="reply-lost-fields" class="hidden">
-                        <div style="background: #FEF3C7; border-left: 4px solid var(--warning); padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px;">
-                            <i class="fa-solid fa-triangle-exclamation"></i> 
-                            <strong>สำหรับโพสต์ "ของหาย":</strong> กรุณากรอกสถานที่พบและอัปโหลดหลักฐาน (รูปภาพ/วิดีโอ) <strong>บังคับ</strong>
+                        <div class="alert-box warning">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span><strong>สำหรับโพสต์ "ของหาย":</strong> กรุณากรอกสถานที่พบและอัปโหลดหลักฐาน (รูปภาพ/วิดีโอ) <strong>บังคับ</strong></span>
                         </div>
                         <div class="form-group">
                             <label>สถานที่พบ <span style="color:var(--danger)">*</span></label>
@@ -640,15 +691,15 @@
                                 <p style="font-weight: 600; margin-bottom: 4px;">คลิกเพื่อเลือกรูปภาพหรือวิดีโอ</p>
                                 <small style="color: var(--danger)">⚠️ บังคับต้องมีหลักฐานที่แน่นอน</small>
                             </label>
-                            <input type="file" id="reply-file" accept="image/png,image/jpeg,video/mp4" class="hidden" required>
+                            <input type="file" id="reply-file" accept="image/png,image/jpeg,video/mp4" class="hidden">
                             <div id="reply-preview" class="preview-container"></div>
                         </div>
                     </div>
 
                     <div id="reply-found-fields" class="hidden">
-                        <div style="background: #D1FAE5; border-left: 4px solid var(--success); padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px;">
-                            <i class="fa-solid fa-circle-info"></i> 
-                            <strong>สำหรับโพสต์ "เก็บของได้":</strong> กรุณากรอกสถานที่พบ (รูปภาพ/วิดีโอไม่บังคับ)
+                        <div class="alert-box info">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <span><strong>สำหรับโพสต์ "เก็บของได้":</strong> กรุณากรอกสถานที่พบ (รูปภาพ/วิดีโอไม่บังคับ)</span>
                         </div>
                         <div class="form-group">
                             <label>สถานที่พบ <span style="color:var(--danger)">*</span></label>
@@ -862,7 +913,6 @@
                         `;
                     }
                     
-                    // โหลดการแจ้งเตือน
                     await App.loadUnreadNotifications();
                 } catch (err) { 
                     console.error('Stats error:', err);
@@ -1147,7 +1197,6 @@
                     
                     const isAdmin = App.profile.role === 'admin';
                     
-                    // โหลดจำนวน reply สำหรับแต่ละ item
                     const itemIds = data.map(item => item.id);
                     const { data: repliesData } = await sb.from('item_replies')
                         .select('item_id')
@@ -1207,7 +1256,7 @@
                 }
             },
 
-            // Reply Functions
+            // Reply Functions - แก้ไขแล้ว
             openReplyModal: (itemId, itemType) => {
                 App.currentReplyItemId = itemId;
                 App.currentReplyItemType = itemType;
@@ -1216,7 +1265,8 @@
                 document.getElementById('reply-item-type').value = itemType;
                 
                 // Reset form
-                document.getElementById('form-reply').reset();
+                const form = document.getElementById('form-reply');
+                form.reset();
                 document.getElementById('reply-preview').innerHTML = '';
                 document.getElementById('reply-preview-found').innerHTML = '';
                 
@@ -1250,16 +1300,13 @@
                 
                 let location = '';
                 let fileInput = null;
-                let isRequired = false;
                 
                 if (itemType === 'lost') {
-                    location = document.getElementById('reply-location').value;
+                    location = document.getElementById('reply-location').value.trim();
                     fileInput = document.getElementById('reply-file');
-                    isRequired = true;
                 } else {
-                    location = document.getElementById('reply-location-found').value;
+                    location = document.getElementById('reply-location-found').value.trim();
                     fileInput = document.getElementById('reply-file-found');
-                    isRequired = false;
                 }
                 
                 const file = fileInput.files[0];
@@ -1267,6 +1314,11 @@
                 // ตรวจสอบสำหรับโพสต์ "ของหาย" - บังคับต้องมีหลักฐาน
                 if (itemType === 'lost' && !file) {
                     App.toast('error', 'ต้องมีหลักฐานที่แน่นอน', 'กรุณาอัปโหลดรูปภาพหรือวิดีโอเป็นหลักฐาน');
+                    return;
+                }
+                
+                if (!location) {
+                    App.toast('error', 'กรอกข้อมูลไม่ครบ', 'กรุณากรอกสถานที่พบ');
                     return;
                 }
                 
@@ -1287,21 +1339,25 @@
                     const fullDescription = `สถานที่พบ: ${location}\n\n${description}`;
                     
                     // บันทึกลง item_replies
-                    const { error: replyError } = await sb.from('item_replies').insert({
+                    const { data: reply, error: replyError } = await sb.from('item_replies').insert({
                         item_id: itemId,
                         user_id: App.user.id,
                         description: fullDescription,
                         image_url: image_url
-                    });
+                    }).select().single();
                     
                     if (replyError) throw replyError;
                     
                     // สร้าง notification ให้เจ้าของโพสต์
-                    const { data: item } = await sb.from('items').select('user_id').eq('id', itemId).single();
+                    const { data: item } = await sb.from('items').select('user_id, title').eq('id', itemId).single();
                     if (item && item.user_id !== App.user.id) {
                         await sb.from('notifications').insert({
                             user_id: item.user_id,
+                            type: 'reply',
                             item_id: itemId,
+                            reply_id: reply.id,
+                            title: `มีผู้ตอบกลับโพสต์ "${item.title}"`,
+                            message: fullDescription,
                             is_read: false
                         });
                     }
@@ -1344,7 +1400,7 @@
                 
                 try {
                     const { data: notifications, error } = await sb.from('notifications')
-                        .select('*, item_replies(user_id, description, image_url), items(title, type)')
+                        .select('*')
                         .eq('user_id', App.user.id)
                         .order('created_at', { ascending: false });
                     
@@ -1356,23 +1412,34 @@
                     }
                     
                     container.innerHTML = notifications.map(notif => {
-                        const replierName = App.getProfileName(notif.item_replies?.user_id);
                         const dateTime = App.formatDateTime(notif.created_at);
-                        const isLost = notif.items?.type === 'lost';
+                        let icon, title, message, badgeClass;
+                        
+                        if (notif.type === 'reply') {
+                            icon = 'fa-reply';
+                            title = notif.title || 'มีการตอบกลับ';
+                            message = notif.message || '';
+                            badgeClass = 'item-badge';
+                        } else if (notif.type === 'admin_response') {
+                            icon = 'fa-check-circle';
+                            title = 'ผู้ดูแลระบบตอบกลับคำร้องของคุณ';
+                            message = notif.message || '';
+                            badgeClass = 'item-badge found';
+                        } else if (notif.type === 'admin_reject') {
+                            icon = 'fa-times-circle';
+                            title = 'คำร้องของคุณถูกปฏิเสธ';
+                            message = notif.message || '';
+                            badgeClass = 'item-badge';
+                        }
                         
                         return `
                             <div class="admin-report-card" style="margin-bottom: 16px;">
                                 <div class="admin-report-content">
-                                    <span class="item-badge ${isLost ? '' : 'found'}">
-                                        ${isLost ? 'มีผู้ตอบกลับโพสต์ "ของหาย"' : 'มีผู้ตอบกลับโพสต์ "เก็บของได้"'}
+                                    <span class="${badgeClass}">
+                                        <i class="fa-solid ${icon}"></i> ${title}
                                     </span>
-                                    <h3 class="admin-report-subject">${notif.items?.title || 'ไม่ระบุหัวข้อ'}</h3>
-                                    <div class="item-author"><i class="fa-solid fa-user"></i> ${replierName}</div>
                                     <div class="item-info"><i class="fa-regular fa-clock"></i> ${dateTime}</div>
-                                    <p class="admin-report-desc">${notif.item_replies?.description || '-'}</p>
-                                    ${notif.item_replies?.image_url ? `
-                                        <img src="${notif.item_replies.image_url}" style="max-width:200px; border-radius:8px; margin-top:12px;">
-                                    ` : ''}
+                                    <p class="admin-report-desc" style="white-space: pre-wrap;">${message}</p>
                                 </div>
                             </div>
                         `;
@@ -1469,22 +1536,46 @@
                         const authorName = App.getProfileName(report.user_id);
                         const dateTime = App.formatDateTime(report.created_at);
                         
+                        let statusBadge = '';
+                        if (report.status === 'pending') {
+                            statusBadge = '<span class="status-badge pending">รอดำเนินการ</span>';
+                        } else if (report.status === 'resolved') {
+                            statusBadge = '<span class="status-badge resolved">เสร็จสิ้น</span>';
+                        } else if (report.status === 'rejected') {
+                            statusBadge = '<span class="status-badge rejected">ถูกปฏิเสธ</span>';
+                        }
+                        
                         return `
                             <div class="admin-report-card">
                                 ${report.image_url ? `<img src="${report.image_url}" class="admin-report-image">` : ''}
                                 <div class="admin-report-content">
-                                    <span class="status-badge ${report.status}">${report.status === 'pending' ? 'รอดำเนินการ' : 'เสร็จสิ้น'}</span>
+                                    ${statusBadge}
                                     <h3 class="admin-report-subject">${report.subject}</h3>
                                     <div class="item-author"><i class="fa-solid fa-user"></i> ${authorName}</div>
                                     <div class="item-info"><i class="fa-regular fa-clock"></i> ${dateTime}</div>
                                     <p class="admin-report-desc">${report.description}</p>
+                                    ${report.admin_response ? `
+                                        <div style="background:#D1FAE5; padding:12px; border-radius:8px; margin-top:12px; font-size:13px;">
+                                            <strong><i class="fa-solid fa-check-circle"></i> ตอบกลับแล้ว:</strong><br>
+                                            ${report.admin_response}
+                                        </div>
+                                    ` : ''}
+                                    ${report.admin_reason ? `
+                                        <div style="background:#FEE2E2; padding:12px; border-radius:8px; margin-top:12px; font-size:13px;">
+                                            <strong><i class="fa-solid fa-times-circle"></i> เหตุผลที่ปฏิเสธ:</strong><br>
+                                            ${report.admin_reason}
+                                        </div>
+                                    ` : ''}
                                     <div style="display:flex; gap:10px; margin-top:auto;">
                                         <button class="btn btn-primary btn-sm" style="flex:1;" onclick="App.viewReportDetail('${report.id}')">
                                             <i class="fa-solid fa-eye"></i> ดูรายละเอียด
                                         </button>
                                         ${report.status === 'pending' ? `
-                                            <button class="btn btn-success btn-sm" style="flex:1;" onclick="App.resolveReport('${report.id}')">
+                                            <button class="btn btn-success btn-sm" style="flex:1;" onclick="App.openAdminRespondModal('${report.id}')">
                                                 <i class="fa-solid fa-check"></i> เสร็จสิ้น
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" style="flex:1;" onclick="App.openAdminRejectModal('${report.id}')">
+                                                <i class="fa-solid fa-trash"></i> ลบ
                                             </button>
                                         ` : ''}
                                     </div>
@@ -1511,6 +1602,15 @@
                     const authorName = App.getProfileName(report.user_id);
                     const authorProfile = App.profilesCache[report.user_id];
                     const dateTime = App.formatDateTime(report.created_at);
+                    
+                    let statusBadge = '';
+                    if (report.status === 'pending') {
+                        statusBadge = '<span class="status-badge pending">รอดำเนินการ</span>';
+                    } else if (report.status === 'resolved') {
+                        statusBadge = '<span class="status-badge resolved">เสร็จสิ้น</span>';
+                    } else if (report.status === 'rejected') {
+                        statusBadge = '<span class="status-badge rejected">ถูกปฏิเสธ</span>';
+                    }
                     
                     document.getElementById('report-detail-content').innerHTML = `
                         <div style="margin-bottom:20px;">
@@ -1543,19 +1643,35 @@
                                 ${report.description}
                             </div>
                         </div>
+                        ${report.admin_response ? `
+                            <div style="margin-bottom:20px;">
+                                <h4 style="margin-bottom:12px; color:var(--success);"><i class="fa-solid fa-check-circle"></i> ตอบกลับจาก Admin:</h4>
+                                <div style="background:#D1FAE5; padding:16px; border-radius:var(--radius); white-space: pre-wrap; line-height:1.6;">
+                                    ${report.admin_response}
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${report.admin_reason ? `
+                            <div style="margin-bottom:20px;">
+                                <h4 style="margin-bottom:12px; color:var(--danger);"><i class="fa-solid fa-times-circle"></i> เหตุผลที่ปฏิเสธ:</h4>
+                                <div style="background:#FEE2E2; padding:16px; border-radius:var(--radius); white-space: pre-wrap; line-height:1.6;">
+                                    ${report.admin_reason}
+                                </div>
+                            </div>
+                        ` : ''}
                         <div style="margin-bottom:20px;">
                             <h4 style="margin-bottom:12px; color:var(--text-muted);">สถานะ:</h4>
-                            <span class="status-badge ${report.status}">${report.status === 'pending' ? 'รอดำเนินการ' : 'เสร็จสิ้น'}</span>
+                            ${statusBadge}
                         </div>
                         <div style="display:flex; gap:10px; margin-top:20px;">
                             ${report.status === 'pending' ? `
-                                <button class="btn btn-success" onclick="App.resolveReport('${report.id}'); App.closeReportDetailModal();">
+                                <button class="btn btn-success" onclick="App.openAdminRespondModal('${report.id}'); App.closeReportDetailModal();">
                                     <i class="fa-solid fa-check"></i> เสร็จสิ้น
                                 </button>
+                                <button class="btn btn-danger" onclick="App.openAdminRejectModal('${report.id}'); App.closeReportDetailModal();">
+                                    <i class="fa-solid fa-trash"></i> ลบคำร้อง
+                                </button>
                             ` : ''}
-                            <button class="btn btn-danger" onclick="App.deleteReport('${report.id}')">
-                                <i class="fa-solid fa-trash"></i> ลบคำร้อง
-                            </button>
                             <button class="btn btn-outline" onclick="App.closeReportDetailModal()">
                                 <i class="fa-solid fa-xmark"></i> ปิด
                             </button>
@@ -1575,48 +1691,130 @@
                 }
             },
 
-            resolveReport: async (reportId) => {
-                if (!confirm('ยืนยันว่าจัดการคำร้องนี้เสร็จสิ้นแล้ว?')) return;
+            // Admin Respond (เสร็จสิ้น) - ใหม่
+            openAdminRespondModal: (reportId) => {
+                document.getElementById('respond-report-id').value = reportId;
+                document.getElementById('admin-response-text').value = '';
+                document.getElementById('admin-respond-modal').classList.remove('hidden');
+            },
+
+            closeAdminRespondModal: (event) => {
+                if (!event || event.target === event.currentTarget) {
+                    document.getElementById('admin-respond-modal').classList.add('hidden');
+                }
+            },
+
+            handleAdminRespond: async (e) => {
+                e.preventDefault();
+                
+                const reportId = document.getElementById('respond-report-id').value;
+                const responseText = document.getElementById('admin-response-text').value.trim();
+                
+                if (!responseText) {
+                    App.toast('error', 'กรอกข้อมูลไม่ครบ', 'กรุณากรอกรายละเอียดการดำเนินการ');
+                    return;
+                }
                 
                 App.showLoading(true);
                 try {
-                    const { error } = await sb.from('admin_reports').update({
-                        status: 'resolved',
-                        resolved_at: new Date().toISOString()
-                    }).eq('id', reportId);
+                    // อัปเดต admin_report
+                    const { data: report, error: updateError } = await sb.from('admin_reports')
+                        .update({
+                            status: 'resolved',
+                            admin_response: responseText,
+                            resolved_at: new Date().toISOString()
+                        })
+                        .eq('id', reportId)
+                        .select('user_id, subject')
+                        .single();
                     
-                    if (error) throw error;
+                    if (updateError) throw updateError;
                     
-                    App.toast('success', 'สำเร็จ', 'คำร้องถูก marked as resolved');
+                    // สร้าง notification ให้ผู้ส่ง
+                    await sb.from('notifications').insert({
+                        user_id: report.user_id,
+                        type: 'admin_response',
+                        admin_report_id: reportId,
+                        title: `คำร้อง "${report.subject}" ได้รับการดำเนินการแล้ว`,
+                        message: responseText,
+                        is_read: false
+                    });
+                    
+                    App.toast('success', 'สำเร็จ', 'ส่งคำตอบให้ผู้ใช้งานแล้ว');
+                    App.closeAdminRespondModal();
                     App.loadAdminReports();
                     App.loadDashboardStats();
                 } catch (err) {
                     App.toast('error', 'เกิดข้อผิดพลาด', err.message);
+                    console.error('Admin respond error:', err);
                 } finally {
                     App.showLoading(false);
                 }
             },
 
-            deleteReport: async (reportId) => {
-                if (!confirm('คุณแน่ใจว่าต้องการลบคำร้องนี้? การกระทำนี้ไม่สามารถย้อนกลับได้')) return;
+            // Admin Reject (ลบคำร้อง) - ใหม่
+            openAdminRejectModal: (reportId) => {
+                document.getElementById('reject-report-id').value = reportId;
+                document.getElementById('admin-reject-reason').value = '';
+                document.getElementById('admin-reject-modal').classList.remove('hidden');
+            },
+
+            closeAdminRejectModal: (event) => {
+                if (!event || event.target === event.currentTarget) {
+                    document.getElementById('admin-reject-modal').classList.add('hidden');
+                }
+            },
+
+            handleAdminReject: async (e) => {
+                e.preventDefault();
+                
+                const reportId = document.getElementById('reject-report-id').value;
+                const rejectReason = document.getElementById('admin-reject-reason').value.trim();
+                
+                if (!rejectReason) {
+                    App.toast('error', 'กรอกข้อมูลไม่ครบ', 'กรุณากรอกเหตุผลในการลบ');
+                    return;
+                }
+                
+                if (!confirm('ยืนยันการลบคำร้องนี้? ผู้ใช้จะได้รับการแจ้งเตือนพร้อมเหตุผล')) return;
                 
                 App.showLoading(true);
                 try {
-                    const { data: report } = await sb.from('admin_reports').select('image_url').eq('id', reportId).single();
-                    if (report && report.image_url) {
+                    // ดึงข้อมูลก่อนลบ
+                    const { data: report, error: fetchError } = await sb.from('admin_reports')
+                        .select('user_id, subject, image_url')
+                        .eq('id', reportId)
+                        .single();
+                    
+                    if (fetchError) throw fetchError;
+                    
+                    // ลบรูปภาพ (ถ้ามี)
+                    if (report.image_url) {
                         const fileName = report.image_url.split('/').pop();
                         await sb.storage.from('item-images').remove([fileName]);
                     }
                     
-                    const { error } = await sb.from('admin_reports').delete().eq('id', reportId);
-                    if (error) throw error;
+                    // สร้าง notification ให้ผู้ส่ง ก่อนลบ
+                    await sb.from('notifications').insert({
+                        user_id: report.user_id,
+                        type: 'admin_reject',
+                        admin_report_id: reportId,
+                        title: `คำร้อง "${report.subject}" ถูกปฏิเสธ`,
+                        message: `เหตุผล: ${rejectReason}`,
+                        is_read: false
+                    });
                     
-                    App.toast('success', 'สำเร็จ', 'ลบคำร้องเรียบร้อยแล้ว');
-                    App.closeReportDetailModal();
+                    // ลบคำร้อง
+                    const { error: deleteError } = await sb.from('admin_reports').delete().eq('id', reportId);
+                    if (deleteError) throw deleteError;
+                    
+                    App.toast('success', 'สำเร็จ', 'ลบคำร้องและส่งเหตุผลให้ผู้ใช้งานแล้ว');
+                    App.closeAdminRejectModal();
                     App.loadAdminReports();
                     App.loadDashboardStats();
                 } catch (err) {
-                    App.toast('error', 'ลบไม่สำเร็จ', err.message);
+                    App.toast('error', 'เกิดข้อผิดพลาด', err.message);
+                    console.error('Admin reject error:', err);
                 } finally {
                     App.showLoading(false);
                 }
@@ -1828,155 +2026,68 @@
         };
 
         // ============================================
-        // ระบบป้องกันการเจาะ/แก้ไขโค้ด (ขั้นสูง)
+        // ระบบป้องกันการเจาะ/แก้ไขโค้ด
         // ============================================
-        
-        // 1. ปิดคลิกขวา
-        document.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            return false;
-        });
-
-        // 2. ปิดคีย์ลัดต่างๆ
+        document.addEventListener('contextmenu', (e) => { e.preventDefault(); return false; });
         document.addEventListener('keydown', (e) => {
-            // F12
-            if (e.key === 'F12' || e.keyCode === 123) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+Shift+I (DevTools)
-            if (e.ctrlKey && e.shiftKey && e.key === 'I') {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+Shift+J (Console)
-            if (e.ctrlKey && e.shiftKey && e.key === 'J') {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+Shift+C (Inspect Element)
-            if (e.ctrlKey && e.shiftKey && e.key === 'C') {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+U (View Source)
-            if (e.ctrlKey && e.key === 'U') {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+S (Save)
-            if (e.ctrlKey && e.key === 'S') {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+P (Print)
-            if (e.ctrlKey && e.key === 'P') {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+A (Select All) - อนุญาตเฉพาะใน input/textarea
+            if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.key === 'U') { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.key === 'S') { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.key === 'P') { e.preventDefault(); return false; }
             if (e.ctrlKey && e.key === 'A') {
                 const tagName = e.target.tagName.toLowerCase();
-                if (tagName !== 'input' && tagName !== 'textarea') {
-                    e.preventDefault();
-                    return false;
-                }
+                if (tagName !== 'input' && tagName !== 'textarea') { e.preventDefault(); return false; }
             }
         });
-
-        // 3. ปิดการลากข้อความ/รูปภาพ
-        document.addEventListener('dragstart', (e) => {
-            e.preventDefault();
-            return false;
-        });
-
-        // 4. ปิดการเลือกข้อความ (ยกเว้นใน input/textarea)
+        document.addEventListener('dragstart', (e) => { e.preventDefault(); return false; });
         document.addEventListener('selectstart', (e) => {
             const tagName = e.target.tagName.toLowerCase();
-            if (tagName !== 'input' && tagName !== 'textarea') {
-                e.preventDefault();
-                return false;
-            }
+            if (tagName !== 'input' && tagName !== 'textarea') { e.preventDefault(); return false; }
         });
 
-        // 5. ตรวจจับ DevTools เปิด - ปิด Tab ทันที (ยกเว้น admin)
+        // DevTools Detection - ปิด Tab ทันที (ยกเว้น admin)
         const detectDevTools = () => {
-            // ตรวจสอบว่าเป็น admin หรือไม่
             const isAdmin = App.profile?.role === 'admin';
-            if (isAdmin) return; // Admin อนุญาตให้ใช้ DevTools ได้
+            if (isAdmin) return;
             
             const threshold = 160;
             const widthThreshold = window.outerWidth - window.innerWidth > threshold;
             const heightThreshold = window.outerHeight - window.innerHeight > threshold;
             
             if (widthThreshold || heightThreshold) {
-                // ปิด Tab ทันที
                 window.close();
-                // ถ้า window.close() ไม่ทำงาน (บางเบราว์เซอร์) ให้ redirect
                 window.location.href = 'about:blank';
-                // ลองวิธีอื่น
-                window.open('', '_self', '');
-                window.close();
             }
         };
-        
-        // ตรวจสอบทุก 500ms
         setInterval(detectDevTools, 500);
 
-        // 6. Debugger Trap - ตรวจจับการ pause ใน DevTools
-        const debuggerTrap = () => {
-            const isAdmin = App.profile?.role === 'admin';
-            if (isAdmin) return;
-            
-            const start = performance.now();
-            // debugger statement จะทำให้ DevTools pause ถ้าเปิดอยู่
-            // eslint-disable-next-line no-debugger
-            debugger;
-            const end = performance.now();
-            
-            // ถ้าใช้เวลาเกิน 100ms แสดงว่ามี DevTools เปิดอยู่
-            if (end - start > 100) {
-                window.close();
-                window.location.href = 'about:blank';
+        // ============================================
+        // Event Listeners - แก้ไขแล้ว
+        // ============================================
+        
+        // ตรวจสอบว่า form มีอยู่ใน DOM ก่อน bind
+        const bindForm = (formId, handler) => {
+            const form = document.getElementById(formId);
+            if (form) {
+                form.addEventListener('submit', handler);
+                console.log(`Bound ${formId} successfully`);
+            } else {
+                console.error(`Form ${formId} not found in DOM`);
             }
         };
+
+        bindForm('form-login', App.handleLogin);
+        bindForm('form-register', App.handleRegister);
+        bindForm('form-lost', App.handleLost);
+        bindForm('form-found', App.handleFound);
+        bindForm('form-admin-report', App.handleAdminReport);
+        bindForm('form-reply', App.handleReply);
+        bindForm('form-admin-respond', App.handleAdminRespond);
+        bindForm('form-admin-reject', App.handleAdminReject);
         
-        setInterval(debuggerTrap, 2000);
-
-        // 7. ปิด Console (แบบง่าย)
-        try {
-            Object.defineProperty(window, 'console', {
-                get: function() {
-                    return {
-                        log: function() {},
-                        warn: function() {},
-                        error: function() {},
-                        info: function() {},
-                        debug: function() {}
-                    };
-                }
-            });
-        } catch (e) {
-            // Ignore errors
-        }
-
-        // ============================================
-        // Event Listeners
-        // ============================================
-        document.getElementById('form-login').addEventListener('submit', App.handleLogin);
-        document.getElementById('form-register').addEventListener('submit', App.handleRegister);
-        document.getElementById('form-lost').addEventListener('submit', App.handleLost);
-        document.getElementById('form-found').addEventListener('submit', App.handleFound);
-        document.getElementById('form-admin-report').addEventListener('submit', App.handleAdminReport);
-        document.getElementById('form-reply').addEventListener('submit', App.handleReply);
         document.getElementById('settings-avatar-input').addEventListener('change', App.handleAvatarUpload);
+        
         document.getElementById('lost-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
             const preview = document.getElementById('lost-preview');
@@ -1990,6 +2101,7 @@
                 }
             }
         });
+        
         document.getElementById('found-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
             const preview = document.getElementById('found-preview');
@@ -2003,6 +2115,7 @@
                 }
             }
         });
+        
         document.getElementById('admin-report-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
             const preview = document.getElementById('admin-report-preview');
@@ -2012,6 +2125,7 @@
                 preview.innerHTML = `<div class="preview-item"><img src="${url}"></div>`;
             }
         });
+        
         document.getElementById('reply-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
             const preview = document.getElementById('reply-preview');
@@ -2025,6 +2139,7 @@
                 }
             }
         });
+        
         document.getElementById('reply-file-found').addEventListener('change', (e) => {
             const file = e.target.files[0];
             const preview = document.getElementById('reply-preview-found');
