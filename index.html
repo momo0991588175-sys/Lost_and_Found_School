@@ -14,7 +14,7 @@
             --primary: #6366F1; --primary-dark: #4F46E5;
             --success: #10B981; --danger: #EF4444; --warning: #F59E0B;
             --admin-gold: #FFD700; --student-blue: #3B82F6;
-            --info-blue: #3B82F6; --investigate-purple: #8B5CF6;
+            --info-blue: #3B82F6;
             --bg: #F3F4F6; --sidebar-bg: #FFFFFF; --card: #FFFFFF;
             --text: #1F2937; --text-muted: #6B7280; --border: #E5E7EB;
             --shadow: 0 4px 6px rgba(0,0,0,0.1); --shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
@@ -76,8 +76,6 @@
         .btn-success:hover { background: #059669; transform: translateY(-2px); }
         .btn-info { background: var(--info-blue); color: white; }
         .btn-info:hover { background: #2563EB; transform: translateY(-2px); }
-        .btn-investigate { background: var(--investigate-purple); color: white; }
-        .btn-investigate:hover { background: #7C3AED; transform: translateY(-2px); }
         .btn-admin { background: linear-gradient(135deg, var(--admin-gold), #FFA500); color: #000; box-shadow: 0 4px 12px rgba(255,215,0,0.4); }
         .btn-admin:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,215,0,0.6); }
         .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
@@ -89,7 +87,6 @@
         .auth-switch a { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; }
         .auth-switch a:hover { text-decoration: underline; }
 
-        /* Password Strength */
         .password-strength { margin-top: 8px; font-size: 12px; }
         .strength-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 4px; overflow: hidden; }
         .strength-fill { height: 100%; transition: all 0.3s; border-radius: 2px; }
@@ -99,131 +96,31 @@
 
         /* App Layout */
         #app-container { display: flex; flex-direction: column; min-height: 100vh; }
-        .top-header { background: linear-gradient(135deg, #D4A373 0%, #BC8A5F 100%); padding: 20px 32px; box-shadow: var(--shadow-lg); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .top-header { 
+            background: linear-gradient(135deg, #D4A373 0%, #BC8A5F 100%); 
+            padding: 16px 32px; 
+            box-shadow: var(--shadow-lg); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            gap: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
         .header-left { display: flex; align-items: center; gap: 16px; }
         .header-right { display: flex; align-items: center; gap: 12px; }
-        .school-logo { width: 56px; height: 56px; object-fit: contain; background: white; border-radius: 50%; padding: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .school-info h1 { color: white; font-size: 24px; font-weight: 700; margin-bottom: 4px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .school-info p { color: rgba(255,255,255,0.95); font-size: 14px; }
+        .school-logo { width: 50px; height: 50px; object-fit: contain; background: white; border-radius: 50%; padding: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .school-info h1 { color: white; font-size: 22px; font-weight: 700; margin-bottom: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .school-info p { color: rgba(255,255,255,0.95); font-size: 13px; }
 
-        .app-layout { display: flex; flex: 1; }
-        .sidebar { width: 280px; background: white; border-right: 1px solid var(--border); padding: 32px 20px; display: flex; flex-direction: column; gap: 10px; box-shadow: 4px 0 12px rgba(0,0,0,0.05); }
-        .nav-btn { padding: 16px 20px; border: none; background: transparent; color: var(--text); border-radius: var(--radius); font-family: inherit; font-weight: 500; font-size: 15px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 14px; text-align: left; position: relative; }
-        .nav-btn:hover { background: linear-gradient(135deg, #EEF2FF, #E0E7FF); transform: translateX(6px); }
-        .nav-btn.active { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 12px rgba(99,102,241,0.4); }
-        .nav-btn i { font-size: 20px; width: 26px; }
-
-        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
-        .page-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 40px; }
-        .page-header-left { display: flex; align-items: center; gap: 16px; }
-        .back-btn { background: white; border: 2px solid var(--border); width: 48px; height: 48px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; box-shadow: var(--shadow); }
-        .back-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateX(-6px); box-shadow: var(--shadow-lg); }
-        .page-title { font-size: 32px; font-weight: 700; color: white; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-
-        .card { background: white; border-radius: 24px; padding: 40px; box-shadow: var(--shadow-lg); margin-bottom: 32px; }
-        .profile-card { text-align: center; max-width: 700px; margin: 0 auto; background: linear-gradient(135deg, white, #F9FAFB); }
-        .avatar-large { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 5px solid var(--primary); margin-bottom: 20px; box-shadow: 0 8px 24px rgba(99,102,241,0.3); }
-        .user-name { font-size: 28px; font-weight: 700; margin-bottom: 10px; color: var(--text); }
-        .user-email { color: var(--text-muted); font-size: 15px; margin-bottom: 8px; }
-        
-        .role-badge { display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 20px; }
-        .role-badge.student { background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; }
-        .role-badge.admin { background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; }
-        
-        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 32px; }
-        .stat-card { background: linear-gradient(135deg, #EEF2FF, #E0E7FF); padding: 28px; border-radius: var(--radius); border: 2px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.3s; cursor: pointer; }
-        .stat-card:hover { transform: translateY(-4px); }
-        .stat-value { font-size: 36px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
-        .stat-label { font-size: 14px; color: var(--text-muted); }
-
-        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
-        .item-card { background: white; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lg); transition: all 0.3s; display: flex; flex-direction: column; }
-        .item-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
-        .item-image { width: 100%; height: 220px; object-fit: cover; background: linear-gradient(135deg, #F3F4F6, #E5E7EB); }
-        .item-content { padding: 24px; flex: 1; display: flex; flex-direction: column; }
-        .item-badge { display: inline-block; padding: 6px 16px; border-radius: 24px; font-size: 12px; font-weight: 600; margin-bottom: 14px; background: #FEE2E2; color: var(--danger); width: fit-content; }
-        .item-badge.found { background: #D1FAE5; color: var(--success); }
-        .item-badge.info { background: #DBEAFE; color: var(--info-blue); }
-        .item-badge.success { background: #D1FAE5; color: var(--success); }
-        .item-badge.danger { background: #FEE2E2; color: var(--danger); }
-        .item-badge.investigating { background: #EDE9FE; color: var(--investigate-purple); }
-        .item-title { font-size: 20px; font-weight: 600; margin-bottom: 10px; color: var(--text); }
-        .item-info { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-        .item-author { font-size: 13px; color: var(--primary); font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-        .item-actions { display: flex; gap: 10px; margin-top: auto; padding-top: 16px; flex-wrap: wrap; }
-
-        .report-type-selection { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 900px; margin: 0 auto; }
-        .report-type-card { background: white; border-radius: 24px; padding: 48px 32px; text-align: center; cursor: pointer; transition: all 0.3s; box-shadow: var(--shadow-lg); border: 3px solid transparent; }
-        .report-type-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-        .report-type-card.lost:hover { border-color: var(--danger); }
-        .report-type-card.found:hover { border-color: var(--success); }
-        .report-type-card.admin:hover { border-color: var(--admin-gold); }
-        .report-type-icon { width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 48px; color: white; }
-        .report-type-card.lost .report-type-icon { background: linear-gradient(135deg, var(--danger), #DC2626); }
-        .report-type-card.found .report-type-icon { background: linear-gradient(135deg, var(--success), #059669); }
-        .report-type-card.admin .report-type-icon { background: linear-gradient(135deg, var(--admin-gold), #FFA500); }
-        .report-type-icon img { width: 60px; height: 60px; object-fit: contain; }
-        .report-type-title { font-size: 24px; font-weight: 700; margin-bottom: 12px; color: var(--text); }
-        .report-type-desc { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
-
-        .file-upload-box { border: 2px dashed var(--border); border-radius: var(--radius); padding: 24px; text-align: center; cursor: pointer; transition: all 0.3s; background: #F9FAFB; }
-        .file-upload-box:hover { border-color: var(--primary); background: #EEF2FF; }
-        .file-upload-box i { font-size: 32px; color: var(--text-muted); margin-bottom: 8px; }
-        .preview-container { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
-        .preview-item { position: relative; width: 100px; height: 100px; border-radius: 8px; overflow: hidden; border: 2px solid var(--border); }
-        .preview-item img, .preview-item video { width: 100%; height: 100%; object-fit: cover; }
-
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 10000; animation: fadeIn 0.3s ease; }
-        .modal-content { background: white; border-radius: 24px; padding: 40px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        .modal-content.large { max-width: 900px; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--border); }
-        .modal-title { font-size: 22px; font-weight: 700; color: var(--text); }
-        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); transition: color 0.3s; }
-        .modal-close:hover { color: var(--danger); }
-
-        .admin-section { background: #F9FAFB; padding: 20px; border-radius: var(--radius); margin-bottom: 20px; }
-        .admin-section h3 { margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
-        .admin-table { width: 100%; border-collapse: collapse; background: white; border-radius: var(--radius); overflow: hidden; }
-        .admin-table th, .admin-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
-        .admin-table th { background: var(--primary); color: white; font-weight: 600; }
-        .admin-table tr:hover { background: #F3F4F6; }
-        .banned-badge { background: var(--danger); color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-        .status-badge { padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-block; }
-        .status-badge.pending { background: #FEF3C7; color: #92400E; }
-        .status-badge.investigating { background: #EDE9FE; color: #5B21B6; }
-        .status-badge.resolved { background: #D1FAE5; color: #065F46; }
-        .status-badge.rejected { background: #FEE2E2; color: #991B1B; }
-
-        .admin-report-card { background: white; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lg); transition: all 0.3s; display: flex; flex-direction: column; }
-        .admin-report-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
-        .admin-report-content { padding: 24px; flex: 1; display: flex; flex-direction: column; }
-        .admin-report-subject { font-size: 18px; font-weight: 600; margin-bottom: 10px; color: var(--text); }
-        .admin-report-desc { font-size: 14px; color: var(--text-muted); flex: 1; margin-bottom: 12px; line-height: 1.5; }
-        .admin-report-image { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; }
-
-        .settings-section { margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
-        .settings-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .settings-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: var(--text); display: flex; align-items: center; gap: 10px; }
-        .settings-row { display: flex; align-items: center; gap: 20px; margin-bottom: 16px; flex-wrap: wrap; }
-        .settings-row .form-control { max-width: 400px; }
-
-        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background: white; padding: 18px 24px; border-radius: var(--radius); box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 14px; min-width: 320px; border-left: 5px solid var(--primary); animation: slideIn 0.4s ease; }
-        .toast.success { border-left-color: var(--success); }
-        .toast.error { border-left-color: var(--danger); }
-        .toast.warning { border-left-color: var(--warning); }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        #loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9998; }
-        .spinner { width: 60px; height: 60px; border: 5px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
+        /* Notification Button in Header */
         .header-notification-btn {
             position: relative;
             background: rgba(255,255,255,0.2);
             border: 2px solid rgba(255,255,255,0.3);
-            width: 48px;
-            height: 48px;
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
@@ -252,27 +149,197 @@
         .notification-dot.active { display: block; }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
 
-        .reply-count-badge { 
-            background: var(--primary); 
-            color: white; 
-            padding: 2px 8px; 
-            border-radius: 10px; 
-            font-size: 11px; 
-            font-weight: 600;
-            margin-left: 8px;
+        .app-layout { display: flex; flex: 1; }
+        .sidebar { width: 260px; background: white; border-right: 1px solid var(--border); padding: 24px 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: 4px 0 12px rgba(0,0,0,0.05); }
+        .nav-btn { padding: 14px 18px; border: none; background: transparent; color: var(--text); border-radius: var(--radius); font-family: inherit; font-weight: 500; font-size: 14px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 12px; text-align: left; position: relative; }
+        .nav-btn:hover { background: linear-gradient(135deg, #EEF2FF, #E0E7FF); transform: translateX(4px); }
+        .nav-btn.active { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 12px rgba(99,102,241,0.4); }
+        .nav-btn i { font-size: 18px; width: 24px; }
+
+        .main-content { flex: 1; padding: 32px; overflow-y: auto; }
+        .page-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+        .back-btn { background: white; border: 2px solid var(--border); width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; box-shadow: var(--shadow); }
+        .back-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateX(-4px); box-shadow: var(--shadow-lg); }
+        .page-title { font-size: 28px; font-weight: 700; color: white; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+
+        .card { background: white; border-radius: 20px; padding: 32px; box-shadow: var(--shadow-lg); margin-bottom: 24px; }
+        .profile-card { text-align: center; max-width: 650px; margin: 0 auto; background: linear-gradient(135deg, white, #F9FAFB); }
+        .avatar-large { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 5px solid var(--primary); margin-bottom: 16px; box-shadow: 0 8px 24px rgba(99,102,241,0.3); }
+        .user-name { font-size: 26px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+        .user-email { color: var(--text-muted); font-size: 14px; margin-bottom: 6px; }
+        
+        .role-badge { display: inline-block; padding: 5px 14px; border-radius: 18px; font-size: 12px; font-weight: 600; margin-bottom: 16px; }
+        .role-badge.student { background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; }
+        .role-badge.admin { background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; }
+        
+        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+        .stat-card { background: linear-gradient(135deg, #EEF2FF, #E0E7FF); padding: 24px; border-radius: var(--radius); border: 2px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.3s; cursor: pointer; }
+        .stat-card:hover { transform: translateY(-4px); }
+        .stat-value { font-size: 32px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+        .stat-label { font-size: 13px; color: var(--text-muted); }
+
+        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .item-card { background: white; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lg); transition: all 0.3s; display: flex; flex-direction: column; }
+        .item-card:hover { transform: translateY(-6px); box-shadow: 0 16px 32px rgba(0,0,0,0.15); }
+        .item-image { width: 100%; height: 200px; object-fit: cover; background: linear-gradient(135deg, #F3F4F6, #E5E7EB); }
+        .item-content { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+        .item-badge { display: inline-block; padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-bottom: 12px; background: #FEE2E2; color: var(--danger); width: fit-content; }
+        .item-badge.found { background: #D1FAE5; color: var(--success); }
+        .item-badge.info { background: #DBEAFE; color: var(--info-blue); }
+        .item-badge.success { background: #D1FAE5; color: var(--success); }
+        .item-badge.danger { background: #FEE2E2; color: var(--danger); }
+        .item-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+        .item-info { font-size: 13px; color: var(--text-muted); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .item-author { font-size: 12px; color: var(--primary); font-weight: 500; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+        .item-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; flex-wrap: wrap; }
+
+        .report-type-selection { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 850px; margin: 0 auto; }
+        .report-type-card { background: white; border-radius: 20px; padding: 40px 28px; text-align: center; cursor: pointer; transition: all 0.3s; box-shadow: var(--shadow-lg); border: 3px solid transparent; }
+        .report-type-card:hover { transform: translateY(-6px); box-shadow: 0 16px 32px rgba(0,0,0,0.2); }
+        .report-type-card.lost:hover { border-color: var(--danger); }
+        .report-type-card.found:hover { border-color: var(--success); }
+        .report-type-card.admin:hover { border-color: var(--admin-gold); }
+        .report-type-icon { width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 42px; color: white; }
+        .report-type-card.lost .report-type-icon { background: linear-gradient(135deg, var(--danger), #DC2626); }
+        .report-type-card.found .report-type-icon { background: linear-gradient(135deg, var(--success), #059669); }
+        .report-type-card.admin .report-type-icon { background: linear-gradient(135deg, var(--admin-gold), #FFA500); }
+        .report-type-icon img { width: 55px; height: 55px; object-fit: contain; }
+        .report-type-title { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--text); }
+        .report-type-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+        .file-upload-box { border: 2px dashed var(--border); border-radius: var(--radius); padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #F9FAFB; }
+        .file-upload-box:hover { border-color: var(--primary); background: #EEF2FF; }
+        .file-upload-box i { font-size: 28px; color: var(--text-muted); margin-bottom: 6px; }
+        .preview-container { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .preview-item { position: relative; width: 90px; height: 90px; border-radius: 8px; overflow: hidden; border: 2px solid var(--border); }
+        .preview-item img, .preview-item video { width: 100%; height: 100%; object-fit: cover; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 10000; animation: fadeIn 0.3s ease; }
+        .modal-content { background: white; border-radius: 20px; padding: 32px; max-width: 550px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal-content.large { max-width: 850px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid var(--border); }
+        .modal-title { font-size: 20px; font-weight: 700; color: var(--text); }
+        .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-muted); transition: color 0.3s; }
+        .modal-close:hover { color: var(--danger); }
+
+        .admin-section { background: #F9FAFB; padding: 20px; border-radius: var(--radius); margin-bottom: 20px; }
+        .admin-section h3 { margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+        .admin-table { width: 100%; border-collapse: collapse; background: white; border-radius: var(--radius); overflow: hidden; }
+        .admin-table th, .admin-table td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+        .admin-table th { background: var(--primary); color: white; font-weight: 600; }
+        .admin-table tr:hover { background: #F3F4F6; }
+        .banned-badge { background: var(--danger); color: white; padding: 3px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+        .status-badge { padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+        .status-badge.pending { background: #FEF3C7; color: var(--warning); }
+        .status-badge.resolved { background: #D1FAE5; color: var(--success); }
+        .status-badge.rejected { background: #FEE2E2; color: var(--danger); }
+
+        /* Admin Report Card - New Design */
+        .admin-report-card { 
+            background: white; 
+            border-radius: 16px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s; 
+            display: flex; 
+            flex-direction: column;
+            border: 1px solid var(--border);
         }
+        .admin-report-card:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+        }
+        .admin-report-image { 
+            width: 100%; 
+            height: 180px; 
+            object-fit: cover; 
+            border-bottom: 1px solid var(--border);
+        }
+        .admin-report-content { 
+            padding: 20px; 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        .admin-report-subject { 
+            font-size: 17px; 
+            font-weight: 700; 
+            margin-bottom: 8px; 
+            color: var(--text);
+            line-height: 1.4;
+        }
+        .admin-report-meta { 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            font-size: 12px; 
+            color: var(--text-muted); 
+            margin-bottom: 4px; 
+        }
+        .admin-report-desc { 
+            font-size: 13px; 
+            color: var(--text-muted); 
+            flex: 1; 
+            margin: 10px 0; 
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .admin-report-response { 
+            background: #D1FAE5; 
+            padding: 10px 12px; 
+            border-radius: 8px; 
+            margin-top: 10px; 
+            font-size: 12px;
+            border-left: 3px solid var(--success);
+        }
+        .admin-report-response strong { color: var(--success); }
+        .admin-report-actions { 
+            display: flex; 
+            gap: 8px; 
+            margin-top: 14px; 
+            flex-wrap: wrap;
+        }
+        .admin-report-actions .btn { flex: 1; min-width: 80px; }
 
-        .alert-box { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; display: flex; align-items: flex-start; gap: 10px; }
-        .alert-box.warning { background: #FEF3C7; border-left: 4px solid var(--warning); color: #92400E; }
-        .alert-box.info { background: #D1FAE5; border-left: 4px solid var(--success); color: #065F46; }
-        .alert-box.danger { background: #FEE2E2; border-left: 4px solid var(--danger); color: #991B1B; }
-        .alert-box.investigating { background: #EDE9FE; border-left: 4px solid var(--investigate-purple); color: #5B21B6; }
+        .settings-section { margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+        .settings-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .settings-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+        .settings-row { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+        .settings-row .form-control { max-width: 350px; }
 
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: white; padding: 16px 20px; border-radius: var(--radius); box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px; min-width: 300px; border-left: 5px solid var(--primary); animation: slideIn 0.4s ease; }
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--danger); }
+        .toast.warning { border-left-color: var(--warning); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        #loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9998; }
+        .spinner { width: 50px; height: 50px; border: 5px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Notification Page Styles */
+        .notification-page-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .notification-actions-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
         .notification-card { 
             background: white; 
             border-radius: var(--radius); 
-            padding: 20px; 
-            margin-bottom: 16px; 
+            padding: 18px 20px; 
+            margin-bottom: 14px; 
             box-shadow: var(--shadow);
             border-left: 5px solid var(--primary);
             transition: all 0.3s;
@@ -282,51 +349,45 @@
         .notification-card.type-reply { border-left-color: var(--info-blue); }
         .notification-card.type-admin_response { border-left-color: var(--success); }
         .notification-card.type-admin_reject { border-left-color: var(--danger); }
-        .notification-card.type-admin_investigating { border-left-color: var(--investigate-purple); }
         .notification-card.unread { background: #F0F9FF; }
         
-        .notification-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-        .notification-title { font-weight: 600; font-size: 15px; color: var(--text); display: flex; align-items: center; gap: 8px; }
-        .notification-time { font-size: 12px; color: var(--text-muted); }
-        .notification-message { font-size: 14px; color: var(--text-muted); line-height: 1.6; white-space: pre-wrap; margin-bottom: 12px; }
-        .notification-actions { display: flex; justify-content: flex-end; }
+        .notification-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+        .notification-title-text { font-weight: 600; font-size: 14px; color: var(--text); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .notification-time { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+        .notification-message { font-size: 13px; color: var(--text-muted); line-height: 1.5; white-space: pre-wrap; margin-bottom: 10px; }
+        .notification-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
-        /* Final Status Selection */
-        .final-status-selection { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
-        .final-status-option { 
-            padding: 20px; 
-            border-radius: var(--radius); 
-            border: 3px solid var(--border); 
-            cursor: pointer; 
-            text-align: center; 
-            transition: all 0.3s;
+        .alert-box { padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; display: flex; align-items: flex-start; gap: 8px; }
+        .alert-box.warning { background: #FEF3C7; border-left: 4px solid var(--warning); color: #92400E; }
+        .alert-box.info { background: #D1FAE5; border-left: 4px solid var(--success); color: #065F46; }
+        .alert-box.danger { background: #FEE2E2; border-left: 4px solid var(--danger); color: #991B1B; }
+
+        .reply-count-badge { 
+            background: var(--primary); 
+            color: white; 
+            padding: 2px 7px; 
+            border-radius: 8px; 
+            font-size: 10px; 
+            font-weight: 600;
+            margin-left: 6px;
         }
-        .final-status-option:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-        .final-status-option.resolved { border-color: var(--success); background: #F0FDF4; }
-        .final-status-option.resolved:hover { background: #DCFCE7; }
-        .final-status-option.rejected { border-color: var(--danger); background: #FEF2F2; }
-        .final-status-option.rejected:hover { background: #FEE2E2; }
-        .final-status-option i { font-size: 32px; margin-bottom: 10px; }
-        .final-status-option.resolved i { color: var(--success); }
-        .final-status-option.rejected i { color: var(--danger); }
-        .final-status-option h4 { font-size: 16px; margin-bottom: 6px; }
-        .final-status-option p { font-size: 12px; color: var(--text-muted); }
 
         @media (max-width: 768px) {
             .app-layout { flex-direction: column; }
-            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; flex-wrap: wrap; padding: 16px; gap: 10px; }
-            .nav-btn { flex: 1; min-width: 140px; padding: 12px 16px; font-size: 13px; justify-content: center; }
-            .main-content { padding: 24px; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; flex-wrap: wrap; padding: 12px; gap: 8px; }
+            .nav-btn { flex: 1; min-width: 120px; padding: 10px 14px; font-size: 12px; justify-content: center; }
+            .main-content { padding: 20px; }
             .stats-row { grid-template-columns: 1fr; }
             .items-grid { grid-template-columns: 1fr; }
             .settings-row { flex-direction: column; align-items: stretch; }
             .settings-row .form-control { max-width: 100%; }
             .report-type-selection { grid-template-columns: 1fr; }
-            .modal-content { padding: 24px; }
-            .top-header { padding: 16px; }
-            .school-info h1 { font-size: 18px; }
-            .page-title { font-size: 24px; }
-            .final-status-selection { grid-template-columns: 1fr; }
+            .modal-content { padding: 20px; }
+            .top-header { padding: 12px 16px; }
+            .school-info h1 { font-size: 16px; }
+            .page-title { font-size: 22px; }
+            .admin-report-actions { flex-direction: column; }
+            .notification-page-header { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
@@ -386,7 +447,8 @@
                 </div>
             </div>
             <div class="header-right">
-                <button id="header-notification-btn" class="header-notification-btn hidden" onclick="App.openNotifications()" title="การแจ้งเตือน">
+                <!-- ปุ่มแจ้งเตือน - แสดงทุกหน้า -->
+                <button class="header-notification-btn" onclick="App.nav('notifications')" title="การแจ้งเตือน">
                     <i class="fa-solid fa-bell"></i>
                     <span class="notification-dot" id="notification-dot"></span>
                 </button>
@@ -423,10 +485,8 @@
                 <!-- REPORT (Landing Page) -->
                 <div id="page-report" class="page-section hidden fade-in">
                     <div class="page-header">
-                        <div class="page-header-left">
-                            <button class="back-btn" onclick="App.nav('home')"><i class="fa-solid fa-arrow-left"></i></button>
-                            <h2 class="page-title">หน้าแจ้งเหตุ</h2>
-                        </div>
+                        <button class="back-btn" onclick="App.nav('home')"><i class="fa-solid fa-arrow-left"></i></button>
+                        <h2 class="page-title">หน้าแจ้งเหตุ</h2>
                     </div>
                     <div class="report-type-selection">
                         <div class="report-type-card lost" onclick="App.nav('report-lost')">
@@ -452,12 +512,10 @@
                 <!-- REPORT LOST -->
                 <div id="page-report-lost" class="page-section hidden fade-in">
                     <div class="page-header">
-                        <div class="page-header-left">
-                            <button class="back-btn" onclick="App.nav('report')"><i class="fa-solid fa-arrow-left"></i></button>
-                            <h2 class="page-title" id="report-lost-title">แจ้งของหาย</h2>
-                        </div>
+                        <button class="back-btn" onclick="App.nav('report')"><i class="fa-solid fa-arrow-left"></i></button>
+                        <h2 class="page-title" id="report-lost-title">แจ้งของหาย</h2>
                     </div>
-                    <div class="card" style="max-width: 700px; margin: 0 auto;">
+                    <div class="card" style="max-width: 650px; margin: 0 auto;">
                         <form id="form-lost">
                             <div class="form-group">
                                 <label>ชื่อสิ่งของ <span style="color:var(--danger)">*</span></label>
@@ -502,12 +560,10 @@
                 <!-- REPORT FOUND -->
                 <div id="page-report-found" class="page-section hidden fade-in">
                     <div class="page-header">
-                        <div class="page-header-left">
-                            <button class="back-btn" onclick="App.nav('report')"><i class="fa-solid fa-arrow-left"></i></button>
-                            <h2 class="page-title">แจ้งเก็บของได้</h2>
-                        </div>
+                        <button class="back-btn" onclick="App.nav('report')"><i class="fa-solid fa-arrow-left"></i></button>
+                        <h2 class="page-title">แจ้งเก็บของได้</h2>
                     </div>
-                    <div class="card" style="max-width: 700px; margin: 0 auto;">
+                    <div class="card" style="max-width: 650px; margin: 0 auto;">
                         <form id="form-found">
                             <div class="form-group">
                                 <label>ชื่อสิ่งของ <span style="color:var(--danger)">*</span></label>
@@ -549,21 +605,41 @@
                 <!-- VIEW LOST -->
                 <div id="page-view-lost" class="page-section hidden fade-in">
                     <div class="page-header">
-                        <div class="page-header-left">
-                            <button class="back-btn" onclick="App.nav('home')"><i class="fa-solid fa-arrow-left"></i></button>
-                            <h2 class="page-title">รายการแจ้งเหตุ</h2>
-                        </div>
+                        <button class="back-btn" onclick="App.nav('home')"><i class="fa-solid fa-arrow-left"></i></button>
+                        <h2 class="page-title">รายการแจ้งเหตุ</h2>
                     </div>
                     <div id="lost-list" class="items-grid"></div>
+                </div>
+
+                <!-- NOTIFICATIONS PAGE (ใหม่ - แยกเป็นหน้าเต็ม) -->
+                <div id="page-notifications" class="page-section hidden fade-in">
+                    <div class="notification-page-header">
+                        <div style="display:flex; align-items:center; gap:16px;">
+                            <button class="back-btn" onclick="App.goBack()"><i class="fa-solid fa-arrow-left"></i></button>
+                            <h2 class="page-title" style="margin:0;">การแจ้งเตือน</h2>
+                        </div>
+                        <div class="notification-actions-bar">
+                            <button class="btn btn-outline btn-sm" onclick="App.markAllAsRead()">
+                                <i class="fa-solid fa-check-double"></i> อ่านทั้งหมด
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="App.deleteAllNotifications()">
+                                <i class="fa-solid fa-trash-can"></i> ลบทั้งหมด
+                            </button>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 16px; display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--text-muted);">
+                        <span><i class="fa-solid fa-circle" style="color: var(--info-blue);"></i> ตอบกลับโพสต์</span>
+                        <span><i class="fa-solid fa-circle" style="color: var(--success);"></i> คำร้องได้รับการดำเนินการ</span>
+                        <span><i class="fa-solid fa-circle" style="color: var(--danger);"></i> คำร้องถูกปฏิเสธ</span>
+                    </div>
+                    <div id="notifications-list"></div>
                 </div>
 
                 <!-- ADMIN PANEL -->
                 <div id="page-admin" class="page-section hidden fade-in">
                     <div class="page-header">
-                        <div class="page-header-left">
-                            <button class="back-btn" onclick="App.nav('home')"><i class="fa-solid fa-arrow-left"></i></button>
-                            <h2 class="page-title">แผงควบคุม Admin</h2>
-                        </div>
+                        <button class="back-btn" onclick="App.nav('home')"><i class="fa-solid fa-arrow-left"></i></button>
+                        <h2 class="page-title">แผงควบคุม Admin</h2>
                     </div>
                     
                     <div class="card">
@@ -584,19 +660,17 @@
                 <!-- SETTINGS -->
                 <div id="page-settings" class="page-section hidden fade-in">
                     <div class="page-header">
-                        <div class="page-header-left">
-                            <button class="back-btn" onclick="App.nav('home')"><i class="fa-solid fa-arrow-left"></i></button>
-                            <h2 class="page-title">ตั้งค่าบัญชี</h2>
-                        </div>
+                        <button class="back-btn" onclick="App.nav('home')"><i class="fa-solid fa-arrow-left"></i></button>
+                        <h2 class="page-title">ตั้งค่าบัญชี</h2>
                     </div>
-                    <div class="card" style="max-width: 700px; margin: 0 auto;">
+                    <div class="card" style="max-width: 650px; margin: 0 auto;">
                         <div class="settings-section">
                             <h3 class="settings-title"><i class="fa-solid fa-image"></i> รูปโปรไฟล์</h3>
                             <div class="settings-row">
-                                <img src="" id="settings-avatar-preview" class="avatar-large" style="width: 100px; height: 100px; margin: 0;">
+                                <img src="" id="settings-avatar-preview" class="avatar-large" style="width: 90px; height: 90px; margin: 0;">
                                 <div style="flex: 1;">
                                     <input type="file" id="settings-avatar-input" accept="image/png,image/jpeg" class="hidden">
-                                    <button class="btn btn-primary" style="width: auto; margin-bottom: 10px;" onclick="document.getElementById('settings-avatar-input').click()">
+                                    <button class="btn btn-primary" style="width: auto; margin-bottom: 8px;" onclick="document.getElementById('settings-avatar-input').click()">
                                         <i class="fa-solid fa-upload"></i> เลือกรูปใหม่
                                     </button>
                                     <button class="btn btn-outline" style="width: auto;" onclick="App.deleteAvatar()">
@@ -626,14 +700,14 @@
                                     <i class="fa-solid fa-save"></i> เปลี่ยนรหัสผ่าน
                                 </button>
                             </div>
-                            <small style="color: var(--text-muted); display: block; margin-top: 8px;">
+                            <small style="color: var(--text-muted); display: block; margin-top: 6px;">
                                 <i class="fa-solid fa-shield-halved"></i> 
                                 ใช้รหัสผ่านที่ผสมตัวอักษรใหญ่, เล็ก, ตัวเลข และสัญลักษณ์ เพื่อความปลอดภัย
                             </small>
                         </div>
-                        <div class="settings-section" style="border-top: 2px solid var(--border); padding-top: 32px; margin-top: 32px;">
+                        <div class="settings-section" style="border-top: 2px solid var(--border); padding-top: 24px; margin-top: 24px;">
                             <h3 class="settings-title" style="color: var(--danger);"><i class="fa-solid fa-right-from-bracket"></i> โซนอันตราย</h3>
-                            <button class="btn btn-danger" style="max-width: 300px;" onclick="App.logout()">
+                            <button class="btn btn-danger" style="max-width: 280px;" onclick="App.logout()">
                                 <i class="fa-solid fa-power-off"></i> ออกจากระบบ
                             </button>
                         </div>
@@ -691,54 +765,54 @@
         </div>
     </div>
 
-    <!-- Modal สำหรับ Admin รับคำร้องขอ (เปลี่ยนเป็น investigating) -->
+    <!-- Modal สำหรับ Admin รับคำร้อง + กรอกรายละเอียด -->
     <div id="admin-accept-modal" class="hidden">
         <div class="modal-overlay" onclick="App.closeAdminAcceptModal(event)">
             <div class="modal-content" onclick="event.stopPropagation()">
                 <div class="modal-header">
-                    <h3 class="modal-title"><i class="fa-solid fa-clipboard-check" style="color: var(--investigate-purple);"></i> รับคำร้องขอเพื่อตรวจสอบ</h3>
+                    <h3 class="modal-title"><i class="fa-solid fa-hand-holding-heart" style="color: var(--success);"></i> รับคำร้องขอ</h3>
                     <button class="modal-close" onclick="App.closeAdminAcceptModal()"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 <form id="form-admin-accept">
                     <input type="hidden" id="accept-report-id">
-                    <div class="alert-box investigating">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <span>การรับคำร้องขอจะเปลี่ยนสถานะเป็น <strong>"ดำเนินการตรวจสอบ"</strong> และแจ้งเตือนผู้ส่งคำร้อง</span>
+                    <div class="alert-box info">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>กรอกรายละเอียดการดำเนินการ เมื่อเสร็จแล้วกดปุ่ม "เสร็จสิ้น" เพื่อส่งให้ผู้ใช้ทราบ</span>
                     </div>
                     <div class="form-group">
-                        <label>หมายเหตุเริ่มต้น (ไม่บังคับ)</label>
-                        <textarea id="admin-accept-note" class="form-control" placeholder="เช่น ได้รับคำร้องแล้ว จะดำเนินการตรวจสอบโดยเร็ว..."></textarea>
+                        <label>รายละเอียดการดำเนินการ <span style="color:var(--danger)">*</span></label>
+                        <textarea id="admin-accept-text" class="form-control" placeholder="เช่น ได้ดำเนินการตรวจสอบแล้ว, กำลังติดต่อกลับ, ฯลฯ" required></textarea>
                     </div>
-                    <button type="submit" class="btn btn-investigate">
-                        <i class="fa-solid fa-check"></i> ยืนยันรับคำร้องขอ
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-check"></i> เสร็จสิ้นและส่งให้ผู้ใช้ทราบ
                     </button>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Modal สำหรับ Admin กรอกรายละเอียดระหว่างตรวจสอบ -->
-    <div id="admin-investigate-modal" class="hidden">
-        <div class="modal-overlay" onclick="App.closeAdminInvestigateModal(event)">
-            <div class="modal-content large" onclick="event.stopPropagation()">
-                <div class="modal-header">
-                    <h3 class="modal-title"><i class="fa-solid fa-magnifying-glass" style="color: var(--investigate-purple);"></i> ดำเนินการตรวจสอบ - กรอกรายละเอียด</h3>
-                    <button class="modal-close" onclick="App.closeAdminInvestigateModal()"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div id="investigate-content"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal สำหรับเลือกสถานะสุดท้าย -->
-    <div id="admin-final-status-modal" class="hidden">
-        <div class="modal-overlay" onclick="App.closeAdminFinalStatusModal(event)">
+    <!-- Modal สำหรับ Admin ลบคำร้อง (พร้อมเหตุผล) -->
+    <div id="admin-reject-modal" class="hidden">
+        <div class="modal-overlay" onclick="App.closeAdminRejectModal(event)">
             <div class="modal-content" onclick="event.stopPropagation()">
                 <div class="modal-header">
-                    <h3 class="modal-title"><i class="fa-solid fa-flag-checkered" style="color: var(--primary);"></i> เลือกสถานะสุดท้าย</h3>
-                    <button class="modal-close" onclick="App.closeAdminFinalStatusModal()"><i class="fa-solid fa-xmark"></i></button>
+                    <h3 class="modal-title"><i class="fa-solid fa-times-circle" style="color: var(--danger);"></i> ลบคำร้อง (ต้องระบุเหตุผล)</h3>
+                    <button class="modal-close" onclick="App.closeAdminRejectModal()"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                <div id="final-status-content"></div>
+                <form id="form-admin-reject">
+                    <input type="hidden" id="reject-report-id">
+                    <div class="alert-box danger">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>การลบคำร้องจะต้องระบุเหตุผล เพื่อให้ผู้ส่งคำร้องทราบ</span>
+                    </div>
+                    <div class="form-group">
+                        <label>เหตุผลในการลบ <span style="color:var(--danger)">*</span></label>
+                        <textarea id="admin-reject-reason" class="form-control" placeholder="เช่น ข้อมูลไม่ครบถ้วน, ไม่เกี่ยวข้องกับระบบ, ซ้ำซ้อนกับคำร้องอื่น, ฯลฯ" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fa-solid fa-trash"></i> ยืนยันการลบและส่งเหตุผลให้ผู้ใช้ทราบ
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -810,27 +884,6 @@
         </div>
     </div>
 
-    <!-- Modal สำหรับดูการแจ้งเตือน -->
-    <div id="notifications-modal" class="hidden">
-        <div class="modal-overlay" onclick="App.closeNotificationsModal(event)">
-            <div class="modal-content large" onclick="event.stopPropagation()">
-                <div class="modal-header">
-                    <h3 class="modal-title"><i class="fa-solid fa-bell" style="color: var(--primary);"></i> การแจ้งเตือน</h3>
-                    <button class="modal-close" onclick="App.closeNotificationsModal()"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div style="margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap;">
-                    <span style="font-size: 13px; color: var(--text-muted);">
-                        <i class="fa-solid fa-circle" style="color: var(--info-blue);"></i> ตอบกลับโพสต์
-                        <i class="fa-solid fa-circle" style="color: var(--investigate-purple); margin-left: 12px;"></i> กำลังตรวจสอบ
-                        <i class="fa-solid fa-circle" style="color: var(--success); margin-left: 12px;"></i> ดำเนินการเสร็จสิ้น
-                        <i class="fa-solid fa-circle" style="color: var(--danger); margin-left: 12px;"></i> ถูกปฏิเสธ
-                    </span>
-                </div>
-                <div id="notifications-list"></div>
-            </div>
-        </div>
-    </div>
-
     <div id="toast-container"></div>
     <div id="loading-overlay" class="hidden"><div class="spinner"></div></div>
 
@@ -846,6 +899,7 @@
             currentReportId: null,
             currentReplyItemId: null,
             currentReplyItemType: null,
+            previousPage: 'home',
             profilesCache: {},
             unreadNotifications: 0,
 
@@ -899,7 +953,20 @@
                 }
             },
 
+            goBack: () => {
+                App.nav(App.previousPage || 'home');
+            },
+
             nav: (pageId) => {
+                // เก็บหน้าก่อนหน้า (ยกเว้น notifications)
+                const currentPage = document.querySelector('.page-section:not(.hidden)');
+                if (currentPage && pageId !== 'notifications') {
+                    const currentId = currentPage.id.replace('page-', '');
+                    if (currentId !== 'notifications') {
+                        App.previousPage = currentId;
+                    }
+                }
+
                 document.querySelectorAll('.page-section').forEach(p => p.classList.add('hidden'));
                 const targetPage = document.getElementById(`page-${pageId}`);
                 if (targetPage) targetPage.classList.remove('hidden');
@@ -908,21 +975,16 @@
                 const activeBtn = document.querySelector(`.nav-btn[onclick="App.nav('${pageId}')"]`);
                 if (activeBtn) activeBtn.classList.add('active');
                 
-                const headerNotifBtn = document.getElementById('header-notification-btn');
-                if (pageId === 'view-lost') {
-                    headerNotifBtn.classList.remove('hidden');
-                } else {
-                    headerNotifBtn.classList.add('hidden');
-                }
-                
                 window.scrollTo(0, 0);
+                
                 if (pageId === 'home') App.loadDashboardStats();
-                if (pageId === 'view-lost') {
-                    App.loadLostItems();
-                    App.loadUnreadNotifications();
-                }
+                if (pageId === 'view-lost') App.loadLostItems();
+                if (pageId === 'notifications') App.loadNotificationsPage();
                 if (pageId === 'admin') App.loadAdminPanel();
                 if (pageId === 'settings') App.loadSettingsData();
+                
+                // โหลด notification badge ทุกครั้งที่เปลี่ยนหน้า
+                App.loadUnreadNotifications();
             },
 
             loadProfile: async () => {
@@ -991,7 +1053,7 @@
                         const { count: totalLost } = await sb.from('items').select('*', {count:'exact', head:true}).eq('type', 'lost');
                         const { count: totalFound } = await sb.from('items').select('*', {count:'exact', head:true}).eq('type', 'found');
                         const { count: totalUsers } = await sb.from('profiles').select('*', {count:'exact', head:true}).neq('id', App.user.id);
-                        const { count: pendingReports } = await sb.from('admin_reports').select('*', {count:'exact', head:true}).in('status', ['pending', 'investigating']);
+                        const { count: pendingReports } = await sb.from('admin_reports').select('*', {count:'exact', head:true}).eq('status', 'pending');
                         
                         document.getElementById('stats-row').innerHTML = `
                             <div class="stat-card"><div class="stat-value">${totalLost || 0}</div><div class="stat-label">การแจ้งของหาย (ทั้งหมด)</div></div>
@@ -1324,8 +1386,8 @@
                                 <div class="item-author"><i class="fa-solid fa-user"></i> ${authorName}</div>
                                 <div class="item-info"><i class="fa-solid fa-location-dot"></i> ${item.location || '-'}</div>
                                 <div class="item-info"><i class="fa-solid fa-tag"></i> ${item.category}</div>
-                                <p style="margin-top:12px; font-size:14px; color:var(--text-muted); flex:1;">${item.description}</p>
-                                <div style="margin-top:12px; font-size:13px; color:var(--text-muted);"><i class="fa-regular fa-clock"></i> ${dateTime}</div>
+                                <p style="margin-top:10px; font-size:13px; color:var(--text-muted); flex:1;">${item.description}</p>
+                                <div style="margin-top:10px; font-size:12px; color:var(--text-muted);"><i class="fa-regular fa-clock"></i> ${dateTime}</div>
                                 
                                 <div class="item-actions">
                                     ${!isOwner ? `
@@ -1352,7 +1414,7 @@
                 }
             },
 
-            // Reply Functions - ใช้ event delegation
+            // Reply Functions
             openReplyModal: (itemId, itemType) => {
                 App.currentReplyItemId = itemId;
                 App.currentReplyItemType = itemType;
@@ -1431,6 +1493,7 @@
                     const description = document.getElementById('reply-description').value;
                     const fullDescription = `สถานที่พบ: ${location}\n\n${description}`;
                     
+                    // บันทึกลง item_replies
                     const { data: reply, error: replyError } = await sb.from('item_replies').insert({
                         item_id: itemId,
                         user_id: App.user.id,
@@ -1440,9 +1503,11 @@
                     
                     if (replyError) throw replyError;
                     
+                    // ดึงข้อมูลโพสต์เพื่อหาเจ้าของ
                     const { data: item, error: itemError } = await sb.from('items').select('user_id, title').eq('id', itemId).single();
                     if (itemError) throw itemError;
                     
+                    // สร้าง notification ให้เจ้าของโพสต์ (ใช้ RPC function)
                     if (item && item.user_id !== App.user.id) {
                         await sb.rpc('create_notification', {
                             p_user_id: item.user_id,
@@ -1465,45 +1530,8 @@
                 }
             },
 
-            // Notifications Functions
-            openNotifications: async () => {
-                document.getElementById('notifications-modal').classList.remove('hidden');
-                await App.loadNotifications();
-                
-                const { error } = await sb.from('notifications')
-                    .update({ is_read: true })
-                    .eq('user_id', App.user.id)
-                    .eq('is_read', false);
-                
-                if (!error) {
-                    App.unreadNotifications = 0;
-                    document.getElementById('notification-dot').classList.remove('active');
-                }
-            },
-
-            closeNotificationsModal: (event) => {
-                if (!event || event.target === event.currentTarget) {
-                    document.getElementById('notifications-modal').classList.add('hidden');
-                    App.loadUnreadNotifications();
-                }
-            },
-
-            deleteNotification: async (notifId) => {
-                if (!confirm('ต้องการลบการแจ้งเตือนนี้?')) return;
-                
-                try {
-                    const { error } = await sb.from('notifications').delete().eq('id', notifId);
-                    if (error) throw error;
-                    
-                    App.toast('success', 'ลบแล้ว', 'ลบการแจ้งเตือนเรียบร้อยแล้ว');
-                    App.loadNotifications();
-                    App.loadUnreadNotifications();
-                } catch (err) {
-                    App.toast('error', 'ลบไม่สำเร็จ', err.message);
-                }
-            },
-
-            loadNotifications: async () => {
+            // Notifications Page Functions
+            loadNotificationsPage: async () => {
                 const container = document.getElementById('notifications-list');
                 container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="margin:0 auto;"></div></div>';
                 
@@ -1528,10 +1556,6 @@
                             icon = 'fa-reply';
                             badgeClass = 'info';
                             typeLabel = 'มีการตอบกลับ';
-                        } else if (notif.type === 'admin_investigating') {
-                            icon = 'fa-magnifying-glass';
-                            badgeClass = 'investigating';
-                            typeLabel = 'กำลังดำเนินการตรวจสอบ';
                         } else if (notif.type === 'admin_response') {
                             icon = 'fa-check-circle';
                             badgeClass = 'success';
@@ -1549,7 +1573,7 @@
                         return `
                             <div class="notification-card type-${notif.type} ${!notif.is_read ? 'unread' : ''}">
                                 <div class="notification-header">
-                                    <div class="notification-title">
+                                    <div class="notification-title-text">
                                         <span class="item-badge ${badgeClass}">
                                             <i class="fa-solid ${icon}"></i> ${typeLabel}
                                         </span>
@@ -1558,7 +1582,7 @@
                                         <i class="fa-regular fa-clock"></i> ${dateTime}
                                     </div>
                                 </div>
-                                ${notif.title ? `<div style="font-weight:600; margin-bottom:8px; color:var(--text);">${notif.title}</div>` : ''}
+                                ${notif.title ? `<div style="font-weight:600; margin-bottom:6px; color:var(--text); font-size:14px;">${notif.title}</div>` : ''}
                                 ${notif.message ? `<div class="notification-message">${notif.message}</div>` : ''}
                                 <div class="notification-actions">
                                     <button class="btn btn-outline btn-sm" onclick="App.deleteNotification('${notif.id}')" style="width:auto;">
@@ -1571,6 +1595,53 @@
                 } catch (err) {
                     console.error('Load notifications error:', err);
                     container.innerHTML = '<div style="color:var(--danger); padding:20px;">เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err.message + '</div>';
+                }
+            },
+
+            deleteNotification: async (notifId) => {
+                if (!confirm('ต้องการลบการแจ้งเตือนนี้?')) return;
+                
+                try {
+                    const { error } = await sb.from('notifications').delete().eq('id', notifId);
+                    if (error) throw error;
+                    
+                    App.toast('success', 'ลบแล้ว', 'ลบการแจ้งเตือนเรียบร้อยแล้ว');
+                    App.loadNotificationsPage();
+                    App.loadUnreadNotifications();
+                } catch (err) {
+                    App.toast('error', 'ลบไม่สำเร็จ', err.message);
+                }
+            },
+
+            markAllAsRead: async () => {
+                try {
+                    const { error } = await sb.from('notifications')
+                        .update({ is_read: true })
+                        .eq('user_id', App.user.id)
+                        .eq('is_read', false);
+                    
+                    if (error) throw error;
+                    
+                    App.toast('success', 'สำเร็จ', 'อ่านทั้งหมดแล้ว');
+                    App.loadNotificationsPage();
+                    App.loadUnreadNotifications();
+                } catch (err) {
+                    App.toast('error', 'เกิดข้อผิดพลาด', err.message);
+                }
+            },
+
+            deleteAllNotifications: async () => {
+                if (!confirm('ต้องการลบการแจ้งเตือนทั้งหมด? การกระทำนี้ไม่สามารถย้อนกลับได้')) return;
+                
+                try {
+                    const { error } = await sb.from('notifications').delete().eq('user_id', App.user.id);
+                    if (error) throw error;
+                    
+                    App.toast('success', 'ลบแล้ว', 'ลบการแจ้งเตือนทั้งหมดแล้ว');
+                    App.loadNotificationsPage();
+                    App.loadUnreadNotifications();
+                } catch (err) {
+                    App.toast('error', 'ลบไม่สำเร็จ', err.message);
                 }
             },
 
@@ -1661,48 +1732,12 @@
                         const dateTime = App.formatDateTime(report.created_at);
                         
                         let statusBadge = '';
-                        let actionButtons = '';
-                        
                         if (report.status === 'pending') {
-                            statusBadge = '<span class="status-badge pending">รอการพิจารณา</span>';
-                            actionButtons = `
-                                <button class="btn btn-primary btn-sm" style="flex:1;" onclick="App.viewReportDetail('${report.id}')">
-                                    <i class="fa-solid fa-eye"></i> ดูรายละเอียด
-                                </button>
-                                <button class="btn btn-investigate btn-sm" style="flex:1;" onclick="App.openAdminAcceptModal('${report.id}')">
-                                    <i class="fa-solid fa-clipboard-check"></i> รับคำร้องขอ
-                                </button>
-                            `;
-                        } else if (report.status === 'investigating') {
-                            statusBadge = '<span class="status-badge investigating">ดำเนินการตรวจสอบ</span>';
-                            actionButtons = `
-                                <button class="btn btn-primary btn-sm" style="flex:1;" onclick="App.viewReportDetail('${report.id}')">
-                                    <i class="fa-solid fa-eye"></i> ดูรายละเอียด
-                                </button>
-                                <button class="btn btn-investigate btn-sm" style="flex:1;" onclick="App.openAdminInvestigateModal('${report.id}')">
-                                    <i class="fa-solid fa-pen"></i> กรอกรายละเอียด
-                                </button>
-                            `;
+                            statusBadge = '<span class="status-badge pending">รอดำเนินการ</span>';
                         } else if (report.status === 'resolved') {
-                            statusBadge = '<span class="status-badge resolved">รับแก้ไขเรียบร้อยแล้ว</span>';
-                            actionButtons = `
-                                <button class="btn btn-primary btn-sm" style="flex:1;" onclick="App.viewReportDetail('${report.id}')">
-                                    <i class="fa-solid fa-eye"></i> ดูรายละเอียด
-                                </button>
-                                <button class="btn btn-danger btn-sm" style="flex:1;" onclick="App.deleteReport('${report.id}')">
-                                    <i class="fa-solid fa-trash"></i> ลบ
-                                </button>
-                            `;
+                            statusBadge = '<span class="status-badge resolved">เสร็จสิ้น</span>';
                         } else if (report.status === 'rejected') {
-                            statusBadge = '<span class="status-badge rejected">ปฏิเสธคำร้องขอ</span>';
-                            actionButtons = `
-                                <button class="btn btn-primary btn-sm" style="flex:1;" onclick="App.viewReportDetail('${report.id}')">
-                                    <i class="fa-solid fa-eye"></i> ดูรายละเอียด
-                                </button>
-                                <button class="btn btn-danger btn-sm" style="flex:1;" onclick="App.deleteReport('${report.id}')">
-                                    <i class="fa-solid fa-trash"></i> ลบ
-                                </button>
-                            `;
+                            statusBadge = '<span class="status-badge rejected">ถูกปฏิเสธ</span>';
                         }
                         
                         return `
@@ -1711,23 +1746,38 @@
                                 <div class="admin-report-content">
                                     ${statusBadge}
                                     <h3 class="admin-report-subject">${report.subject}</h3>
-                                    <div class="item-author"><i class="fa-solid fa-user"></i> ${authorName}</div>
-                                    <div class="item-info"><i class="fa-regular fa-clock"></i> ${dateTime}</div>
+                                    <div class="admin-report-meta">
+                                        <i class="fa-solid fa-user"></i> ${authorName}
+                                    </div>
+                                    <div class="admin-report-meta">
+                                        <i class="fa-regular fa-clock"></i> ${dateTime}
+                                    </div>
                                     <p class="admin-report-desc">${report.description}</p>
                                     ${report.admin_response ? `
-                                        <div style="background:#D1FAE5; padding:12px; border-radius:8px; margin-top:12px; font-size:13px;">
+                                        <div class="admin-report-response">
                                             <strong><i class="fa-solid fa-check-circle"></i> ตอบกลับแล้ว:</strong><br>
                                             ${report.admin_response}
                                         </div>
                                     ` : ''}
-                                    ${report.admin_reason ? `
-                                        <div style="background:#FEE2E2; padding:12px; border-radius:8px; margin-top:12px; font-size:13px;">
-                                            <strong><i class="fa-solid fa-times-circle"></i> เหตุผลที่ปฏิเสธ:</strong><br>
-                                            ${report.admin_reason}
-                                        </div>
-                                    ` : ''}
-                                    <div style="display:flex; gap:10px; margin-top:auto;">
-                                        ${actionButtons}
+                                    <div class="admin-report-actions">
+                                        <button class="btn btn-primary btn-sm" onclick="App.viewReportDetail('${report.id}')">
+                                            <i class="fa-solid fa-eye"></i> ดูรายละเอียด
+                                        </button>
+                                        ${report.status === 'pending' ? `
+                                            <button class="btn btn-success btn-sm" onclick="App.openAdminAcceptModal('${report.id}')">
+                                                <i class="fa-solid fa-hand-holding-heart"></i> รับคำร้อง
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" onclick="App.openAdminRejectModal('${report.id}')">
+                                                <i class="fa-solid fa-trash"></i> ลบ
+                                            </button>
+                                        ` : `
+                                            <button class="btn btn-outline btn-sm" onclick="App.deleteAdminReportOwn('${report.id}')">
+                                                <i class="fa-solid fa-trash"></i> ลบ (ของตัวเอง)
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" onclick="App.deleteAdminReportAll('${report.id}')">
+                                                <i class="fa-solid fa-trash-can"></i> ลบทั้งหมด
+                                            </button>
+                                        `}
                                     </div>
                                 </div>
                             </div>
@@ -1755,67 +1805,80 @@
                     
                     let statusBadge = '';
                     if (report.status === 'pending') {
-                        statusBadge = '<span class="status-badge pending">รอการพิจารณา</span>';
-                    } else if (report.status === 'investigating') {
-                        statusBadge = '<span class="status-badge investigating">ดำเนินการตรวจสอบ</span>';
+                        statusBadge = '<span class="status-badge pending">รอดำเนินการ</span>';
                     } else if (report.status === 'resolved') {
-                        statusBadge = '<span class="status-badge resolved">รับแก้ไขเรียบร้อยแล้ว</span>';
+                        statusBadge = '<span class="status-badge resolved">เสร็จสิ้น</span>';
                     } else if (report.status === 'rejected') {
-                        statusBadge = '<span class="status-badge rejected">ปฏิเสธคำร้องขอ</span>';
+                        statusBadge = '<span class="status-badge rejected">ถูกปฏิเสธ</span>';
                     }
                     
                     document.getElementById('report-detail-content').innerHTML = `
                         <div style="margin-bottom:20px;">
-                            <h4 style="margin-bottom:12px; color:var(--text-muted);">ข้อมูลผู้ส่ง:</h4>
-                            <div style="background:#EEF2FF; padding:16px; border-radius:var(--radius); display:flex; align-items:center; gap:16px;">
+                            <h4 style="margin-bottom:10px; color:var(--text-muted); font-size:14px;">ข้อมูลผู้ส่ง:</h4>
+                            <div style="background:#EEF2FF; padding:14px; border-radius:var(--radius); display:flex; align-items:center; gap:14px;">
                                 <img src="${authorProfile?.avatar_url || `https://ui-avatars.com/api/?name=${(authorName || 'U').charAt(0)}&background=6366F1&color=fff`}" 
-                                     style="width:60px; height:60px; border-radius:50%; object-fit:cover;">
+                                     style="width:55px; height:55px; border-radius:50%; object-fit:cover;">
                                 <div>
-                                    <div style="font-weight:600; font-size:16px;">${authorName}</div>
-                                    <div style="font-size:13px; color:var(--text-muted);">${authorProfile?.email || '-'}</div>
-                                    <div style="font-size:12px; color:var(--text-muted); margin-top:4px;"><i class="fa-regular fa-clock"></i> ${dateTime}</div>
+                                    <div style="font-weight:600; font-size:15px;">${authorName}</div>
+                                    <div style="font-size:12px; color:var(--text-muted);">${authorProfile?.email || '-'}</div>
+                                    <div style="font-size:11px; color:var(--text-muted); margin-top:3px;"><i class="fa-regular fa-clock"></i> ${dateTime}</div>
                                 </div>
                             </div>
                         </div>
-                        <div style="margin-bottom:20px;">
-                            <h4 style="margin-bottom:12px; color:var(--text-muted);">หัวข้อเรื่อง:</h4>
-                            <div style="background:#F9FAFB; padding:16px; border-radius:var(--radius); font-weight:600; font-size:16px;">
+                        <div style="margin-bottom:16px;">
+                            <h4 style="margin-bottom:8px; color:var(--text-muted); font-size:14px;">หัวข้อเรื่อง:</h4>
+                            <div style="background:#F9FAFB; padding:14px; border-radius:var(--radius); font-weight:600; font-size:15px;">
                                 ${report.subject}
                             </div>
                         </div>
                         ${report.image_url ? `
-                            <div style="margin-bottom:20px;">
-                                <h4 style="margin-bottom:12px; color:var(--text-muted);">รูปภาพประกอบ:</h4>
+                            <div style="margin-bottom:16px;">
+                                <h4 style="margin-bottom:8px; color:var(--text-muted); font-size:14px;">รูปภาพประกอบ:</h4>
                                 <img src="${report.image_url}" style="max-width:100%; border-radius:var(--radius); border:2px solid var(--border);">
                             </div>
                         ` : ''}
-                        <div style="margin-bottom:20px;">
-                            <h4 style="margin-bottom:12px; color:var(--text-muted);">รายละเอียด:</h4>
-                            <div style="background:#F9FAFB; padding:16px; border-radius:var(--radius); white-space: pre-wrap; line-height:1.6;">
+                        <div style="margin-bottom:16px;">
+                            <h4 style="margin-bottom:8px; color:var(--text-muted); font-size:14px;">รายละเอียด:</h4>
+                            <div style="background:#F9FAFB; padding:14px; border-radius:var(--radius); white-space: pre-wrap; line-height:1.5; font-size:14px;">
                                 ${report.description}
                             </div>
                         </div>
                         ${report.admin_response ? `
-                            <div style="margin-bottom:20px;">
-                                <h4 style="margin-bottom:12px; color:var(--success);"><i class="fa-solid fa-check-circle"></i> ตอบกลับจาก Admin:</h4>
-                                <div style="background:#D1FAE5; padding:16px; border-radius:var(--radius); white-space: pre-wrap; line-height:1.6;">
+                            <div style="margin-bottom:16px;">
+                                <h4 style="margin-bottom:8px; color:var(--success); font-size:14px;"><i class="fa-solid fa-check-circle"></i> ตอบกลับจาก Admin:</h4>
+                                <div style="background:#D1FAE5; padding:14px; border-radius:var(--radius); white-space: pre-wrap; line-height:1.5; font-size:14px;">
                                     ${report.admin_response}
                                 </div>
                             </div>
                         ` : ''}
                         ${report.admin_reason ? `
-                            <div style="margin-bottom:20px;">
-                                <h4 style="margin-bottom:12px; color:var(--danger);"><i class="fa-solid fa-times-circle"></i> เหตุผลที่ปฏิเสธ:</h4>
-                                <div style="background:#FEE2E2; padding:16px; border-radius:var(--radius); white-space: pre-wrap; line-height:1.6;">
+                            <div style="margin-bottom:16px;">
+                                <h4 style="margin-bottom:8px; color:var(--danger); font-size:14px;"><i class="fa-solid fa-times-circle"></i> เหตุผลที่ปฏิเสธ:</h4>
+                                <div style="background:#FEE2E2; padding:14px; border-radius:var(--radius); white-space: pre-wrap; line-height:1.5; font-size:14px;">
                                     ${report.admin_reason}
                                 </div>
                             </div>
                         ` : ''}
-                        <div style="margin-bottom:20px;">
-                            <h4 style="margin-bottom:12px; color:var(--text-muted);">สถานะ:</h4>
+                        <div style="margin-bottom:16px;">
+                            <h4 style="margin-bottom:8px; color:var(--text-muted); font-size:14px;">สถานะ:</h4>
                             ${statusBadge}
                         </div>
-                        <div style="display:flex; gap:10px; margin-top:20px;">
+                        <div style="display:flex; gap:10px; margin-top:16px;">
+                            ${report.status === 'pending' ? `
+                                <button class="btn btn-success" onclick="App.openAdminAcceptModal('${report.id}'); App.closeReportDetailModal();">
+                                    <i class="fa-solid fa-hand-holding-heart"></i> รับคำร้อง
+                                </button>
+                                <button class="btn btn-danger" onclick="App.openAdminRejectModal('${report.id}'); App.closeReportDetailModal();">
+                                    <i class="fa-solid fa-trash"></i> ลบคำร้อง
+                                </button>
+                            ` : `
+                                <button class="btn btn-outline" onclick="App.deleteAdminReportOwn('${report.id}'); App.closeReportDetailModal();">
+                                    <i class="fa-solid fa-trash"></i> ลบ (ของตัวเอง)
+                                </button>
+                                <button class="btn btn-danger" onclick="App.deleteAdminReportAll('${report.id}'); App.closeReportDetailModal();">
+                                    <i class="fa-solid fa-trash-can"></i> ลบทั้งหมด
+                                </button>
+                            `}
                             <button class="btn btn-outline" onclick="App.closeReportDetailModal()">
                                 <i class="fa-solid fa-xmark"></i> ปิด
                             </button>
@@ -1835,10 +1898,10 @@
                 }
             },
 
-            // Admin Accept (เปลี่ยนเป็น investigating)
+            // Admin Accept Modal
             openAdminAcceptModal: (reportId) => {
                 document.getElementById('accept-report-id').value = reportId;
-                document.getElementById('admin-accept-note').value = '';
+                document.getElementById('admin-accept-text').value = '';
                 document.getElementById('admin-accept-modal').classList.remove('hidden');
             },
 
@@ -1852,14 +1915,20 @@
                 e.preventDefault();
                 
                 const reportId = document.getElementById('accept-report-id').value;
-                const note = document.getElementById('admin-accept-note').value.trim();
+                const responseText = document.getElementById('admin-accept-text').value.trim();
+                
+                if (!responseText) {
+                    App.toast('error', 'กรอกข้อมูลไม่ครบ', 'กรุณากรอกรายละเอียดการดำเนินการ');
+                    return;
+                }
                 
                 App.showLoading(true);
                 try {
                     const { data: report, error: updateError } = await sb.from('admin_reports')
                         .update({
-                            status: 'investigating',
-                            admin_response: note || 'ได้รับคำร้องแล้ว กำลังดำเนินการตรวจสอบ...',
+                            status: 'resolved',
+                            admin_response: responseText,
+                            resolved_at: new Date().toISOString()
                         })
                         .eq('id', reportId)
                         .select('user_id, subject')
@@ -1867,15 +1936,16 @@
                     
                     if (updateError) throw updateError;
                     
+                    // สร้าง notification ให้ผู้ส่ง (ใช้ RPC)
                     await sb.rpc('create_notification', {
                         p_user_id: report.user_id,
-                        p_type: 'admin_investigating',
+                        p_type: 'admin_response',
                         p_admin_report_id: reportId,
-                        p_title: `คำร้อง "${report.subject}" กำลังดำเนินการตรวจสอบ`,
-                        p_message: note || 'ผู้ดูแลระบบได้รับคำร้องของคุณแล้ว และกำลังดำเนินการตรวจสอบ'
+                        p_title: `คำร้อง "${report.subject}" ได้รับการดำเนินการแล้ว`,
+                        p_message: responseText
                     });
                     
-                    App.toast('success', 'สำเร็จ', 'รับคำร้องขอแล้วและแจ้งเตือนผู้ใช้งาน');
+                    App.toast('success', 'สำเร็จ', 'ส่งคำตอบให้ผู้ใช้งานแล้ว');
                     App.closeAdminAcceptModal();
                     App.loadAdminReports();
                     App.loadDashboardStats();
@@ -1887,188 +1957,77 @@
                 }
             },
 
-            // Admin Investigate (กรอกรายละเอียดระหว่างตรวจสอบ)
-            openAdminInvestigateModal: async (reportId) => {
-                try {
-                    const { data: report, error } = await sb.from('admin_reports')
-                        .select('*')
-                        .eq('id', reportId)
-                        .single();
-                    
-                    if (error) throw error;
-                    
-                    const authorName = App.getProfileName(report.user_id);
-                    const authorProfile = App.profilesCache[report.user_id];
-                    
-                    document.getElementById('investigate-content').innerHTML = `
-                        <div style="background:#EDE9FE; padding:16px; border-radius:var(--radius); margin-bottom:20px; border-left:4px solid var(--investigate-purple);">
-                            <strong><i class="fa-solid fa-magnifying-glass"></i> สถานะ: ดำเนินการตรวจสอบ</strong>
-                            <p style="font-size:13px; margin-top:8px; color:#5B21B6;">กรอกรายละเอียดการตรวจสอบด้านล่าง แล้วกด "เสร็จสิ้น" เพื่อเลือกสถานะสุดท้าย</p>
-                        </div>
-                        
-                        <div style="margin-bottom:20px;">
-                            <h4 style="margin-bottom:12px; color:var(--text-muted);">ข้อมูลผู้ส่ง:</h4>
-                            <div style="background:#EEF2FF; padding:16px; border-radius:var(--radius); display:flex; align-items:center; gap:16px;">
-                                <img src="${authorProfile?.avatar_url || `https://ui-avatars.com/api/?name=${(authorName || 'U').charAt(0)}&background=6366F1&color=fff`}" 
-                                     style="width:50px; height:50px; border-radius:50%; object-fit:cover;">
-                                <div>
-                                    <div style="font-weight:600;">${authorName}</div>
-                                    <div style="font-size:13px; color:var(--text-muted);">${authorProfile?.email || '-'}</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-bottom:20px;">
-                            <h4 style="margin-bottom:12px; color:var(--text-muted);">หัวข้อเรื่อง:</h4>
-                            <div style="background:#F9FAFB; padding:16px; border-radius:var(--radius); font-weight:600;">
-                                ${report.subject}
-                            </div>
-                        </div>
-                        
-                        <div style="margin-bottom:20px;">
-                            <h4 style="margin-bottom:12px; color:var(--text-muted);">รายละเอียดจากผู้ส่ง:</h4>
-                            <div style="background:#F9FAFB; padding:16px; border-radius:var(--radius); white-space: pre-wrap; line-height:1.6;">
-                                ${report.description}
-                            </div>
-                        </div>
-                        
-                        ${report.image_url ? `
-                            <div style="margin-bottom:20px;">
-                                <h4 style="margin-bottom:12px; color:var(--text-muted);">รูปภาพประกอบ:</h4>
-                                <img src="${report.image_url}" style="max-width:100%; border-radius:var(--radius); border:2px solid var(--border);">
-                            </div>
-                        ` : ''}
-                        
-                        <div style="margin-bottom:20px;">
-                            <h4 style="margin-bottom:12px; color:var(--investigate-purple);"><i class="fa-solid fa-pen"></i> รายละเอียดการตรวจสอบ <span style="color:var(--danger);">*</span></h4>
-                            <textarea id="investigate-response" class="form-control" placeholder="กรอกรายละเอียดผลการตรวจสอบ..." style="min-height:120px;">${report.admin_response || ''}</textarea>
-                        </div>
-                        
-                        <button class="btn btn-success btn-lg" onclick="App.openFinalStatusModal('${reportId}')">
-                            <i class="fa-solid fa-flag-checkered"></i> เสร็จสิ้น - เลือกสถานะสุดท้าย
-                        </button>
-                    `;
-                    
-                    document.getElementById('admin-investigate-modal').classList.remove('hidden');
-                } catch (err) {
-                    App.toast('error', 'โหลดข้อมูลไม่สำเร็จ', err.message);
-                }
+            openAdminRejectModal: (reportId) => {
+                document.getElementById('reject-report-id').value = reportId;
+                document.getElementById('admin-reject-reason').value = '';
+                document.getElementById('admin-reject-modal').classList.remove('hidden');
             },
 
-            closeAdminInvestigateModal: (event) => {
+            closeAdminRejectModal: (event) => {
                 if (!event || event.target === event.currentTarget) {
-                    document.getElementById('admin-investigate-modal').classList.add('hidden');
+                    document.getElementById('admin-reject-modal').classList.add('hidden');
                 }
             },
 
-            openFinalStatusModal: (reportId) => {
-                const responseText = document.getElementById('investigate-response').value.trim();
+            handleAdminReject: async (e) => {
+                e.preventDefault();
                 
-                if (!responseText) {
-                    App.toast('error', 'กรอกข้อมูลไม่ครบ', 'กรุณากรอกรายละเอียดการตรวจสอบ');
+                const reportId = document.getElementById('reject-report-id').value;
+                const rejectReason = document.getElementById('admin-reject-reason').value.trim();
+                
+                if (!rejectReason) {
+                    App.toast('error', 'กรอกข้อมูลไม่ครบ', 'กรุณากรอกเหตุผลในการลบ');
                     return;
                 }
                 
-                // บันทึกรายละเอียดก่อน
-                App.currentInvestigateResponse = responseText;
-                App.currentFinalReportId = reportId;
-                
-                document.getElementById('admin-investigate-modal').classList.add('hidden');
-                
-                document.getElementById('final-status-content').innerHTML = `
-                    <div class="alert-box investigating">
-                        <i class="fa-solid fa-flag-checkered"></i>
-                        <span>เลือกสถานะสุดท้ายสำหรับคำร้องนี้ การดำเนินการจะส่งแจ้งเตือนให้ผู้ใช้งานทันที</span>
-                    </div>
-                    
-                    <div style="background:#F9FAFB; padding:16px; border-radius:var(--radius); margin-bottom:20px;">
-                        <h4 style="margin-bottom:8px; font-size:14px; color:var(--text-muted);">รายละเอียดที่จะส่ง:</h4>
-                        <p style="white-space:pre-wrap; font-size:14px;">${responseText}</p>
-                    </div>
-                    
-                    <div class="final-status-selection">
-                        <div class="final-status-option resolved" onclick="App.submitFinalStatus('${reportId}', 'resolved')">
-                            <i class="fa-solid fa-check-circle"></i>
-                            <h4>รับแก้ไขเรียบร้อยแล้ว</h4>
-                            <p>คำร้องได้รับการดำเนินการสำเร็จ</p>
-                        </div>
-                        <div class="final-status-option rejected" onclick="App.submitFinalStatus('${reportId}', 'rejected')">
-                            <i class="fa-solid fa-times-circle"></i>
-                            <h4>ปฏิเสธคำร้องขอ</h4>
-                            <p>ไม่สามารถดำเนินการตามคำร้องได้</p>
-                        </div>
-                    </div>
-                    
-                    <button class="btn btn-outline" style="margin-top:20px;" onclick="App.closeAdminFinalStatusModal()">
-                        <i class="fa-solid fa-xmark"></i> ยกเลิก
-                    </button>
-                `;
-                
-                document.getElementById('admin-final-status-modal').classList.remove('hidden');
-            },
-
-            closeAdminFinalStatusModal: (event) => {
-                if (!event || event.target === event.currentTarget) {
-                    document.getElementById('admin-final-status-modal').classList.add('hidden');
-                }
-            },
-
-            submitFinalStatus: async (reportId, finalStatus) => {
-                const responseText = App.currentInvestigateResponse;
-                
-                if (!confirm(`ยืนยันการเลือกสถานะ "${finalStatus === 'resolved' ? 'รับแก้ไขเรียบร้อยแล้ว' : 'ปฏิเสธคำร้องขอ'}"?`)) return;
+                if (!confirm('ยืนยันการลบคำร้องนี้? ผู้ใช้จะได้รับการแจ้งเตือนพร้อมเหตุผล')) return;
                 
                 App.showLoading(true);
                 try {
-                    const updateData = {
-                        status: finalStatus,
-                        admin_response: responseText,
-                        resolved_at: new Date().toISOString()
-                    };
-                    
-                    if (finalStatus === 'rejected') {
-                        updateData.admin_reason = responseText;
-                    }
-                    
-                    const { data: report, error: updateError } = await sb.from('admin_reports')
-                        .update(updateData)
+                    const { data: report, error: fetchError } = await sb.from('admin_reports')
+                        .select('user_id, subject, image_url')
                         .eq('id', reportId)
-                        .select('user_id, subject')
                         .single();
                     
-                    if (updateError) throw updateError;
+                    if (fetchError) throw fetchError;
                     
-                    const notifType = finalStatus === 'resolved' ? 'admin_response' : 'admin_reject';
-                    const notifTitle = finalStatus === 'resolved' 
-                        ? `คำร้อง "${report.subject}" ได้รับการดำเนินการแล้ว`
-                        : `คำร้อง "${report.subject}" ถูกปฏิเสธ`;
+                    if (report.image_url) {
+                        const fileName = report.image_url.split('/').pop();
+                        await sb.storage.from('item-images').remove([fileName]);
+                    }
                     
+                    // สร้าง notification ก่อนลบ
                     await sb.rpc('create_notification', {
                         p_user_id: report.user_id,
-                        p_type: notifType,
+                        p_type: 'admin_reject',
                         p_admin_report_id: reportId,
-                        p_title: notifTitle,
-                        p_message: responseText
+                        p_title: `คำร้อง "${report.subject}" ถูกปฏิเสธ`,
+                        p_message: `เหตุผล: ${rejectReason}`
                     });
                     
-                    App.toast('success', 'สำเร็จ', `ส่งผลการดำเนินการให้ผู้ใช้งานแล้ว (${finalStatus === 'resolved' ? 'รับแก้ไขเรียบร้อยแล้ว' : 'ปฏิเสธคำร้องขอ'})`);
-                    App.closeAdminFinalStatusModal();
+                    const { error: deleteError } = await sb.from('admin_reports').delete().eq('id', reportId);
+                    if (deleteError) throw deleteError;
+                    
+                    App.toast('success', 'สำเร็จ', 'ลบคำร้องและส่งเหตุผลให้ผู้ใช้งานแล้ว');
+                    App.closeAdminRejectModal();
                     App.loadAdminReports();
                     App.loadDashboardStats();
                 } catch (err) {
                     App.toast('error', 'เกิดข้อผิดพลาด', err.message);
-                    console.error('Final status error:', err);
+                    console.error('Admin reject error:', err);
                 } finally {
                     App.showLoading(false);
                 }
             },
 
-            deleteReport: async (reportId) => {
-                if (!confirm('คุณแน่ใจว่าต้องการลบคำร้องนี้? การกระทำนี้ไม่สามารถย้อนกลับได้')) return;
+            // ลบคำร้อง (ของตัวเอง - ไม่ลบ notification ที่ส่งไป)
+            deleteAdminReportOwn: async (reportId) => {
+                if (!confirm('ยืนยันการลบคำร้องนี้? (การแจ้งเตือนที่ส่งให้ผู้ใช้จะไม่ถูกลบ)')) return;
                 
                 App.showLoading(true);
                 try {
                     const { data: report } = await sb.from('admin_reports').select('image_url').eq('id', reportId).single();
+                    
                     if (report && report.image_url) {
                         const fileName = report.image_url.split('/').pop();
                         await sb.storage.from('item-images').remove([fileName]);
@@ -2077,11 +2036,40 @@
                     const { error } = await sb.from('admin_reports').delete().eq('id', reportId);
                     if (error) throw error;
                     
-                    App.toast('success', 'สำเร็จ', 'ลบคำร้องเรียบร้อยแล้ว');
+                    App.toast('success', 'สำเร็จ', 'ลบคำร้องเรียบร้อยแล้ว (การแจ้งเตือนของผู้ใช้ยังคงอยู่)');
                     App.loadAdminReports();
                     App.loadDashboardStats();
                 } catch (err) {
-                    App.toast('error', 'ลบไม่สำเร็จ', err.message);
+                    App.toast('error', 'เกิดข้อผิดพลาด', err.message);
+                } finally {
+                    App.showLoading(false);
+                }
+            },
+
+            // ลบทั้งหมด (ลบคำร้อง + notification ที่ส่งไป)
+            deleteAdminReportAll: async (reportId) => {
+                if (!confirm('ยืนยันการลบคำร้องนี้และลบการแจ้งเตือนทั้งหมดที่ส่งให้ผู้ใช้?')) return;
+                
+                App.showLoading(true);
+                try {
+                    const { data: report } = await sb.from('admin_reports').select('image_url').eq('id', reportId).single();
+                    
+                    if (report && report.image_url) {
+                        const fileName = report.image_url.split('/').pop();
+                        await sb.storage.from('item-images').remove([fileName]);
+                    }
+                    
+                    // ลบ notification ที่เกี่ยวข้อง
+                    await sb.rpc('delete_notifications_by_admin_report', { p_admin_report_id: reportId });
+                    
+                    const { error } = await sb.from('admin_reports').delete().eq('id', reportId);
+                    if (error) throw error;
+                    
+                    App.toast('success', 'สำเร็จ', 'ลบคำร้องและการแจ้งเตือนทั้งหมดแล้ว');
+                    App.loadAdminReports();
+                    App.loadDashboardStats();
+                } catch (err) {
+                    App.toast('error', 'เกิดข้อผิดพลาด', err.message);
                 } finally {
                     App.showLoading(false);
                 }
@@ -2278,10 +2266,10 @@
                 toast.className = `toast ${type}`;
                 toast.innerHTML = `
                     <i class="fa-solid ${type==='success'?'fa-circle-check':type==='warning'?'fa-triangle-exclamation':'fa-circle-xmark'}" 
-                       style="font-size:24px; color:${type==='success'?'var(--success)':type==='warning'?'var(--warning)':'var(--danger)'}"></i>
+                       style="font-size:22px; color:${type==='success'?'var(--success)':type==='warning'?'var(--warning)':'var(--danger)'}"></i>
                     <div>
-                        <div style="font-weight:700; font-size:16px;">${title}</div>
-                        <div style="font-size:14px; color:var(--text-muted);">${msg}</div>
+                        <div style="font-weight:700; font-size:15px;">${title}</div>
+                        <div style="font-size:13px; color:var(--text-muted);">${msg}</div>
                     </div>
                 `;
                 container.appendChild(toast);
@@ -2324,17 +2312,22 @@
         };
         setInterval(detectDevTools, 500);
 
-        // Event Listeners - ใช้ Event Delegation สำหรับ forms ใน modal
-        document.addEventListener('submit', (e) => {
-            const form = e.target;
-            if (form.id === 'form-login') App.handleLogin(e);
-            else if (form.id === 'form-register') App.handleRegister(e);
-            else if (form.id === 'form-lost') App.handleLost(e);
-            else if (form.id === 'form-found') App.handleFound(e);
-            else if (form.id === 'form-admin-report') App.handleAdminReport(e);
-            else if (form.id === 'form-reply') App.handleReply(e);
-            else if (form.id === 'form-admin-accept') App.handleAdminAccept(e);
-        });
+        // Event Listeners
+        const bindForm = (formId, handler) => {
+            const form = document.getElementById(formId);
+            if (form) {
+                form.addEventListener('submit', handler);
+            }
+        };
+
+        bindForm('form-login', App.handleLogin);
+        bindForm('form-register', App.handleRegister);
+        bindForm('form-lost', App.handleLost);
+        bindForm('form-found', App.handleFound);
+        bindForm('form-admin-report', App.handleAdminReport);
+        bindForm('form-reply', App.handleReply);
+        bindForm('form-admin-accept', App.handleAdminAccept);
+        bindForm('form-admin-reject', App.handleAdminReject);
         
         document.getElementById('settings-avatar-input').addEventListener('change', App.handleAvatarUpload);
         
