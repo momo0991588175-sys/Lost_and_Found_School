@@ -361,6 +361,12 @@
         .alert-box.info { background: #D1FAE5; border-left: 4px solid var(--success); color: #065F46; }
         .alert-box.danger { background: #FEE2E2; border-left: 4px solid var(--danger); color: #991B1B; }
 
+        /* User Detail Modal */
+        .user-detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .user-detail-item { background: #F9FAFB; padding: 14px; border-radius: 8px; }
+        .user-detail-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+        .user-detail-value { font-size: 14px; font-weight: 600; color: var(--text); word-break: break-all; }
+
         @media (max-width: 768px) {
             .app-layout { flex-direction: column; }
             .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; flex-wrap: wrap; padding: 12px; gap: 8px; }
@@ -377,6 +383,7 @@
             .page-title { font-size: 22px; }
             .admin-report-actions { flex-direction: column; }
             .notification-page-header { flex-direction: column; align-items: flex-start; }
+            .user-detail-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -436,7 +443,6 @@
                 </div>
             </div>
             <div class="header-right">
-                <!-- ปุ่มแจ้งเตือน - แสดงทุกหน้า -->
                 <button class="header-notification-btn" onclick="App.nav('notifications')" title="การแจ้งเตือน">
                     <i class="fa-solid fa-bell"></i>
                     <span class="notification-dot" id="notification-dot"></span>
@@ -471,7 +477,7 @@
                     </div>
                 </div>
 
-                <!-- REPORT (Landing Page) -->
+                <!-- REPORT -->
                 <div id="page-report" class="page-section hidden fade-in">
                     <div class="page-header">
                         <button class="back-btn" onclick="App.nav('home')"><i class="fa-solid fa-arrow-left"></i></button>
@@ -671,11 +677,38 @@
                             </div>
                         </div>
                         <div class="settings-section">
-                            <h3 class="settings-title"><i class="fa-solid fa-user-pen"></i> ชื่อ-นามสกุล</h3>
+                            <h3 class="settings-title"><i class="fa-solid fa-user-pen"></i> ข้อมูลส่วนตัว</h3>
                             <div class="settings-row">
-                                <input type="text" id="settings-username" class="form-control" placeholder="ชื่อ-นามสกุลใหม่">
+                                <input type="text" id="settings-username" class="form-control" placeholder="ชื่อ-นามสกุล">
                                 <button class="btn btn-primary" style="width: auto;" onclick="App.updateUsername()">
                                     <i class="fa-solid fa-save"></i> บันทึกชื่อ
+                                </button>
+                            </div>
+                            <div class="settings-row">
+                                <input type="date" id="settings-birthday" class="form-control" placeholder="วัน/เดือน/ปีเกิด">
+                                <button class="btn btn-primary" style="width: auto;" onclick="App.updateBirthday()">
+                                    <i class="fa-solid fa-save"></i> บันทึกวันเกิด
+                                </button>
+                            </div>
+                            <div class="settings-row">
+                                <input type="text" id="settings-homeroom" class="form-control" placeholder="ห้อง Homeroom (เช่น 101, 205)">
+                                <button class="btn btn-primary" style="width: auto;" onclick="App.updateHomeroom()">
+                                    <i class="fa-solid fa-save"></i> บันทึกห้อง
+                                </button>
+                            </div>
+                            <div class="settings-row">
+                                <select id="settings-grade" class="form-control">
+                                    <option value="">เลือกระดับชั้น</option>
+                                    <!-- จะถูก generate โดย JS -->
+                                </select>
+                                <button class="btn btn-primary" style="width: auto;" onclick="App.updateGrade()">
+                                    <i class="fa-solid fa-save"></i> บันทึกระดับชั้น
+                                </button>
+                            </div>
+                            <div class="settings-row">
+                                <input type="tel" id="settings-phone" class="form-control" placeholder="เบอร์ติดต่อ (เช่น 0812345678)">
+                                <button class="btn btn-primary" style="width: auto;" onclick="App.updatePhone()">
+                                    <i class="fa-solid fa-save"></i> บันทึกเบอร์
                                 </button>
                             </div>
                         </div>
@@ -756,72 +789,66 @@
         </div>
     </div>
 
-    <!-- Modal สำหรับ Admin รับคำร้อง -->
+    <!-- Modal สำหรับ Admin รับเรื่อง -->
     <div id="admin-accept-modal" class="hidden">
         <div class="modal-overlay" onclick="App.closeAdminAcceptModal(event)">
             <div class="modal-content" onclick="event.stopPropagation()">
                 <div class="modal-header">
-                    <h3 class="modal-title"><i class="fa-solid fa-hand-holding-heart" style="color: var(--success);"></i> รับคำร้องขอ</h3>
+                    <h3 class="modal-title"><i class="fa-solid fa-hand-holding-heart" style="color: var(--success);"></i> รับเรื่อง</h3>
                     <button class="modal-close" onclick="App.closeAdminAcceptModal()"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 <form id="form-admin-accept">
                     <input type="hidden" id="accept-report-id">
                     <div class="alert-box info">
                         <i class="fa-solid fa-circle-info"></i>
-                        <span>กรอกรายละเอียดการดำเนินการ เมื่อเสร็จแล้วกดปุ่ม "เสร็จสิ้น" เพื่อส่งให้ผู้ใช้ทราบ</span>
+                        <span>กรอกผลลัพธ์การดำเนินการ เมื่อส่งแล้วข้อมูลจะเปลี่ยนเป็นสำเนาใหม่</span>
                     </div>
                     <div class="form-group">
-                        <label>รายละเอียดการดำเนินการ <span style="color:var(--danger)">*</span></label>
-                        <textarea id="admin-accept-text" class="form-control" placeholder="เช่น ได้ดำเนินการตรวจสอบแล้ว, กำลังติดต่อกลับ, ฯลฯ" required></textarea>
+                        <label>สถานะ <span style="color:var(--danger)">*</span></label>
+                        <select id="accept-status" class="form-control" required>
+                            <option value="resolved">คำร้องได้รับการดำเนินการ</option>
+                            <option value="rejected">คำร้องถูกปฏิเสธ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>หัวข้อ <span style="color:var(--danger)">*</span></label>
+                        <input type="text" id="accept-title" class="form-control" placeholder="เช่น แจ้งผลการดำเนินการ, แจ้งปฏิเสธคำร้อง" required>
+                    </div>
+                    <div class="form-group">
+                        <label>รายละเอียด <span style="color:var(--danger)">*</span></label>
+                        <textarea id="accept-detail" class="form-control" placeholder="กรอกรายละเอียดผลการดำเนินการ" required></textarea>
                     </div>
                     <button type="submit" class="btn btn-success">
-                        <i class="fa-solid fa-check"></i> เสร็จสิ้นและส่งให้ผู้ใช้ทราบ
+                        <i class="fa-solid fa-check"></i> ส่งผลลัพธ์ให้ผู้ใช้ทราบ
                     </button>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Modal สำหรับ Admin ลบคำร้อง -->
-    <div id="admin-reject-modal" class="hidden">
-        <div class="modal-overlay" onclick="App.closeAdminRejectModal(event)">
-            <div class="modal-content" onclick="event.stopPropagation()">
+    <!-- Modal สำหรับดูรายละเอียดผู้ใช้ -->
+    <div id="user-detail-modal" class="hidden">
+        <div class="modal-overlay" onclick="App.closeUserDetailModal(event)">
+            <div class="modal-content large" onclick="event.stopPropagation()">
                 <div class="modal-header">
-                    <h3 class="modal-title"><i class="fa-solid fa-times-circle" style="color: var(--danger);"></i> ลบคำร้อง (ต้องระบุเหตุผล)</h3>
-                    <button class="modal-close" onclick="App.closeAdminRejectModal()"><i class="fa-solid fa-xmark"></i></button>
+                    <h3 class="modal-title"><i class="fa-solid fa-user-circle" style="color: var(--primary);"></i> รายละเอียดผู้ใช้</h3>
+                    <button class="modal-close" onclick="App.closeUserDetailModal()"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                <form id="form-admin-reject">
-                    <input type="hidden" id="reject-report-id">
-                    <div class="alert-box danger">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span>การลบคำร้องจะต้องระบุเหตุผล เพื่อให้ผู้ส่งคำร้องทราบ</span>
-                    </div>
-                    <div class="form-group">
-                        <label>เหตุผลในการลบ <span style="color:var(--danger)">*</span></label>
-                        <textarea id="admin-reject-reason" class="form-control" placeholder="เช่น ข้อมูลไม่ครบถ้วน, ไม่เกี่ยวข้องกับระบบ, ซ้ำซ้อนกับคำร้องอื่น, ฯลฯ" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fa-solid fa-trash"></i> ยืนยันการลบและส่งเหตุผลให้ผู้ใช้ทราบ
-                    </button>
-                </form>
+                <div id="user-detail-content"></div>
             </div>
         </div>
     </div>
 
-    <!-- Modal สำหรับเปลี่ยนยศสมาชิก -->
+    <!-- Modal สำหรับเปลี่ยนยศ -->
     <div id="change-role-modal" class="hidden">
         <div class="modal-overlay" onclick="App.closeChangeRoleModal(event)">
             <div class="modal-content" onclick="event.stopPropagation()">
                 <div class="modal-header">
-                    <h3 class="modal-title"><i class="fa-solid fa-user-tag" style="color: var(--primary);"></i> เปลี่ยนยศสมาชิก</h3>
+                    <h3 class="modal-title"><i class="fa-solid fa-user-tag" style="color: var(--primary);"></i> เปลี่ยนยศ</h3>
                     <button class="modal-close" onclick="App.closeChangeRoleModal()"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 <form id="form-change-role">
                     <input type="hidden" id="change-role-user-id">
-                    <div class="alert-box info">
-                        <i class="fa-solid fa-circle-info"></i>
-                        <span>เลือกยศใหม่สำหรับสมาชิก (สามารถเปลี่ยนระหว่าง นักเรียน และ ครู เท่านั้น)</span>
-                    </div>
                     <div class="form-group">
                         <label>ยศใหม่ <span style="color:var(--danger)">*</span></label>
                         <select id="new-role" class="form-control" required>
@@ -830,7 +857,29 @@
                         </select>
                     </div>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-save"></i> บันทึกการเปลี่ยนแปลง
+                        <i class="fa-solid fa-save"></i> บันทึก
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับเปลี่ยนชื่อ -->
+    <div id="change-name-modal" class="hidden">
+        <div class="modal-overlay" onclick="App.closeChangeNameModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h3 class="modal-title"><i class="fa-solid fa-user-pen" style="color: var(--primary);"></i> เปลี่ยนชื่อ-นามสกุล</h3>
+                    <button class="modal-close" onclick="App.closeChangeNameModal()"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <form id="form-change-name">
+                    <input type="hidden" id="change-name-user-id">
+                    <div class="form-group">
+                        <label>ชื่อ-นามสกุลใหม่ <span style="color:var(--danger)">*</span></label>
+                        <input type="text" id="new-name" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-save"></i> บันทึก
                     </button>
                 </form>
             </div>
@@ -880,6 +929,23 @@
                         App.showAuth();
                     }
                 });
+
+                // Generate grade options
+                App.generateGradeOptions();
+            },
+
+            generateGradeOptions: () => {
+                const select = document.getElementById('settings-grade');
+                if (!select) return;
+                
+                let html = '<option value="">เลือกระดับชั้น</option>';
+                for (let grade = 1; grade <= 6; grade++) {
+                    for (let room = 1; room <= 14; room++) {
+                        const value = `ม.${grade}/${room}`;
+                        html += `<option value="${value}">${value}</option>`;
+                    }
+                }
+                select.innerHTML = html;
             },
 
             showAuth: () => {
@@ -997,6 +1063,19 @@
                 
                 const usernameInput = document.getElementById('settings-username');
                 if(usernameInput) usernameInput.value = App.profile.full_name || '';
+                
+                // Load settings data
+                const birthdayInput = document.getElementById('settings-birthday');
+                if(birthdayInput) birthdayInput.value = App.profile.birthday || '';
+                
+                const homeroomInput = document.getElementById('settings-homeroom');
+                if(homeroomInput) homeroomInput.value = App.profile.homeroom || '';
+                
+                const gradeSelect = document.getElementById('settings-grade');
+                if(gradeSelect) gradeSelect.value = App.profile.grade_level || '';
+                
+                const phoneInput = document.getElementById('settings-phone');
+                if(phoneInput) phoneInput.value = App.profile.phone || '';
             },
 
             loadDashboardStats: async () => {
@@ -1267,7 +1346,7 @@
 
             loadProfilesCache: async () => {
                 try {
-                    const { data: profiles } = await sb.from('profiles').select('id, full_name, email, avatar_url, role');
+                    const { data: profiles } = await sb.from('profiles').select('id, full_name, email, avatar_url, role, birthday, homeroom, grade_level, phone, is_banned');
                     if (profiles) {
                         profiles.forEach(p => {
                             App.profilesCache[p.id] = p;
@@ -1609,7 +1688,7 @@
                         if (report.status === 'pending') {
                             statusBadge = '<span class="status-badge pending">รอดำเนินการ</span>';
                         } else if (report.status === 'resolved') {
-                            statusBadge = '<span class="status-badge resolved">เสร็จสิ้น</span>';
+                            statusBadge = '<span class="status-badge resolved">ได้รับการดำเนินการ</span>';
                         } else if (report.status === 'rejected') {
                             statusBadge = '<span class="status-badge rejected">ถูกปฏิเสธ</span>';
                         }
@@ -1629,7 +1708,7 @@
                                     <p class="admin-report-desc">${report.description}</p>
                                     ${report.admin_response ? `
                                         <div class="admin-report-response">
-                                            <strong><i class="fa-solid fa-check-circle"></i> ตอบกลับแล้ว:</strong><br>
+                                            <strong><i class="fa-solid fa-check-circle"></i> ${report.admin_title || 'ตอบกลับ'}:</strong><br>
                                             ${report.admin_response}
                                         </div>
                                     ` : ''}
@@ -1639,17 +1718,14 @@
                                         </button>
                                         ${report.status === 'pending' ? `
                                             <button class="btn btn-success btn-sm" onclick="App.openAdminAcceptModal('${report.id}')">
-                                                <i class="fa-solid fa-hand-holding-heart"></i> รับคำร้อง
-                                            </button>
-                                            <button class="btn btn-danger btn-sm" onclick="App.openAdminRejectModal('${report.id}')">
-                                                <i class="fa-solid fa-trash"></i> ลบ
+                                                <i class="fa-solid fa-hand-holding-heart"></i> รับเรื่อง
                                             </button>
                                         ` : `
                                             <button class="btn btn-outline btn-sm" onclick="App.deleteAdminReportOwn('${report.id}')">
-                                                <i class="fa-solid fa-trash"></i> ลบ (ของตัวเอง)
+                                                <i class="fa-solid fa-trash"></i> ลบ
                                             </button>
-                                            <button class="btn btn-danger btn-sm" onclick="App.deleteAdminReportAll('${report.id}')">
-                                                <i class="fa-solid fa-trash-can"></i> ลบทั้งหมด
+                                            <button class="btn btn-danger btn-sm" onclick="App.deleteAdminReportNotif('${report.id}')">
+                                                <i class="fa-solid fa-bell-slash"></i> ลบแจ้งเตือน
                                             </button>
                                         `}
                                     </div>
@@ -1681,7 +1757,7 @@
                     if (report.status === 'pending') {
                         statusBadge = '<span class="status-badge pending">รอดำเนินการ</span>';
                     } else if (report.status === 'resolved') {
-                        statusBadge = '<span class="status-badge resolved">เสร็จสิ้น</span>';
+                        statusBadge = '<span class="status-badge resolved">ได้รับการดำเนินการ</span>';
                     } else if (report.status === 'rejected') {
                         statusBadge = '<span class="status-badge rejected">ถูกปฏิเสธ</span>';
                     }
@@ -1719,17 +1795,10 @@
                         </div>
                         ${report.admin_response ? `
                             <div style="margin-bottom:16px;">
-                                <h4 style="margin-bottom:8px; color:var(--success); font-size:14px;"><i class="fa-solid fa-check-circle"></i> ตอบกลับจาก Admin:</h4>
+                                <h4 style="margin-bottom:8px; color:var(--success); font-size:14px;"><i class="fa-solid fa-check-circle"></i> ผลการดำเนินการ:</h4>
                                 <div style="background:#D1FAE5; padding:14px; border-radius:var(--radius); white-space: pre-wrap; line-height:1.5; font-size:14px;">
+                                    <strong>หัวข้อ:</strong> ${report.admin_title || '-'}<br><br>
                                     ${report.admin_response}
-                                </div>
-                            </div>
-                        ` : ''}
-                        ${report.admin_reason ? `
-                            <div style="margin-bottom:16px;">
-                                <h4 style="margin-bottom:8px; color:var(--danger); font-size:14px;"><i class="fa-solid fa-times-circle"></i> เหตุผลที่ปฏิเสธ:</h4>
-                                <div style="background:#FEE2E2; padding:14px; border-radius:var(--radius); white-space: pre-wrap; line-height:1.5; font-size:14px;">
-                                    ${report.admin_reason}
                                 </div>
                             </div>
                         ` : ''}
@@ -1740,17 +1809,14 @@
                         <div style="display:flex; gap:10px; margin-top:16px;">
                             ${report.status === 'pending' ? `
                                 <button class="btn btn-success" onclick="App.openAdminAcceptModal('${report.id}'); App.closeReportDetailModal();">
-                                    <i class="fa-solid fa-hand-holding-heart"></i> รับคำร้อง
-                                </button>
-                                <button class="btn btn-danger" onclick="App.openAdminRejectModal('${report.id}'); App.closeReportDetailModal();">
-                                    <i class="fa-solid fa-trash"></i> ลบคำร้อง
+                                    <i class="fa-solid fa-hand-holding-heart"></i> รับเรื่อง
                                 </button>
                             ` : `
                                 <button class="btn btn-outline" onclick="App.deleteAdminReportOwn('${report.id}'); App.closeReportDetailModal();">
-                                    <i class="fa-solid fa-trash"></i> ลบ (ของตัวเอง)
+                                    <i class="fa-solid fa-trash"></i> ลบ (เฉพาะในแผงควบคุม)
                                 </button>
-                                <button class="btn btn-danger" onclick="App.deleteAdminReportAll('${report.id}'); App.closeReportDetailModal();">
-                                    <i class="fa-solid fa-trash-can"></i> ลบทั้งหมด
+                                <button class="btn btn-danger" onclick="App.deleteAdminReportNotif('${report.id}'); App.closeReportDetailModal();">
+                                    <i class="fa-solid fa-bell-slash"></i> ลบแจ้งเตือนของผู้ใช้
                                 </button>
                             `}
                             <button class="btn btn-outline" onclick="App.closeReportDetailModal()">
@@ -1774,7 +1840,9 @@
 
             openAdminAcceptModal: (reportId) => {
                 document.getElementById('accept-report-id').value = reportId;
-                document.getElementById('admin-accept-text').value = '';
+                document.getElementById('accept-status').value = 'resolved';
+                document.getElementById('accept-title').value = '';
+                document.getElementById('accept-detail').value = '';
                 document.getElementById('admin-accept-modal').classList.remove('hidden');
             },
 
@@ -1788,40 +1856,59 @@
                 e.preventDefault();
                 
                 const reportId = document.getElementById('accept-report-id').value;
-                const responseText = document.getElementById('admin-accept-text').value.trim();
+                const status = document.getElementById('accept-status').value;
+                const title = document.getElementById('accept-title').value.trim();
+                const detail = document.getElementById('accept-detail').value.trim();
                 
-                if (!responseText) {
-                    App.toast('error', 'กรอกข้อมูลไม่ครบ', 'กรุณากรอกรายละเอียดการดำเนินการ');
+                if (!title || !detail) {
+                    App.toast('error', 'กรอกข้อมูลไม่ครบ', 'กรุณากรอกหัวข้อและรายละเอียด');
                     return;
                 }
                 
+                if (!confirm(`ยืนยันการส่งผลลัพธ์? ข้อมูลจะเปลี่ยนเป็นสำเนาใหม่`)) return;
+                
                 App.showLoading(true);
                 try {
-                    const { data: report, error: updateError } = await sb.from('admin_reports')
-                        .update({
-                            status: 'resolved',
-                            admin_response: responseText,
-                            resolved_at: new Date().toISOString()
-                        })
+                    // สร้างสำเนาใหม่ (insert ข้อมูลใหม่)
+                    const { data: originalReport } = await sb.from('admin_reports')
+                        .select('user_id, subject, description, image_url')
                         .eq('id', reportId)
-                        .select('user_id, subject')
                         .single();
                     
-                    if (updateError) throw updateError;
+                    if (!originalReport) throw new Error('ไม่พบคำร้อง');
+                    
+                    // ลบคำร้องเดิม
+                    const { error: deleteError } = await sb.from('admin_reports').delete().eq('id', reportId);
+                    if (deleteError) throw deleteError;
+                    
+                    // สร้างคำร้องใหม่ (สำเนา) พร้อมผลลัพธ์
+                    const { data: newReport, error: insertError } = await sb.from('admin_reports').insert({
+                        user_id: originalReport.user_id,
+                        subject: `[สำเนา] ${originalReport.subject}`,
+                        description: originalReport.description,
+                        image_url: originalReport.image_url,
+                        status: status,
+                        admin_title: title,
+                        admin_response: detail,
+                        resolved_at: new Date().toISOString()
+                    }).select().single();
+                    
+                    if (insertError) throw insertError;
                     
                     // สร้าง notification ให้ผู้ส่ง
+                    const notifType = status === 'resolved' ? 'admin_response' : 'admin_reject';
                     const { error: notifError } = await sb.from('notifications').insert({
-                        user_id: report.user_id,
-                        type: 'admin_response',
-                        admin_report_id: reportId,
-                        title: `คำร้อง "${report.subject}" ได้รับการดำเนินการแล้ว`,
-                        message: responseText,
+                        user_id: originalReport.user_id,
+                        type: notifType,
+                        admin_report_id: newReport.id,
+                        title: title,
+                        message: detail,
                         is_read: false
                     });
                     
                     if (notifError) throw notifError;
                     
-                    App.toast('success', 'สำเร็จ', 'ส่งคำตอบให้ผู้ใช้งานแล้ว');
+                    App.toast('success', 'สำเร็จ', 'ส่งผลลัพธ์ให้ผู้ใช้แล้ว (ข้อมูลเปลี่ยนเป็นสำเนาใหม่)');
                     App.closeAdminAcceptModal();
                     App.loadAdminReports();
                     App.loadDashboardStats();
@@ -1833,75 +1920,9 @@
                 }
             },
 
-            openAdminRejectModal: (reportId) => {
-                document.getElementById('reject-report-id').value = reportId;
-                document.getElementById('admin-reject-reason').value = '';
-                document.getElementById('admin-reject-modal').classList.remove('hidden');
-            },
-
-            closeAdminRejectModal: (event) => {
-                if (!event || event.target === event.currentTarget) {
-                    document.getElementById('admin-reject-modal').classList.add('hidden');
-                }
-            },
-
-            handleAdminReject: async (e) => {
-                e.preventDefault();
-                
-                const reportId = document.getElementById('reject-report-id').value;
-                const rejectReason = document.getElementById('admin-reject-reason').value.trim();
-                
-                if (!rejectReason) {
-                    App.toast('error', 'กรอกข้อมูลไม่ครบ', 'กรุณากรอกเหตุผลในการลบ');
-                    return;
-                }
-                
-                if (!confirm('ยืนยันการลบคำร้องนี้? ผู้ใช้จะได้รับการแจ้งเตือนพร้อมเหตุผล')) return;
-                
-                App.showLoading(true);
-                try {
-                    const { data: report, error: fetchError } = await sb.from('admin_reports')
-                        .select('user_id, subject, image_url')
-                        .eq('id', reportId)
-                        .single();
-                    
-                    if (fetchError) throw fetchError;
-                    
-                    if (report.image_url) {
-                        const fileName = report.image_url.split('/').pop();
-                        await sb.storage.from('item-images').remove([fileName]);
-                    }
-                    
-                    // สร้าง notification ก่อนลบ
-                    const { error: notifError } = await sb.from('notifications').insert({
-                        user_id: report.user_id,
-                        type: 'admin_reject',
-                        admin_report_id: reportId,
-                        title: `คำร้อง "${report.subject}" ถูกปฏิเสธ`,
-                        message: `เหตุผล: ${rejectReason}`,
-                        is_read: false
-                    });
-                    
-                    if (notifError) throw notifError;
-                    
-                    const { error: deleteError } = await sb.from('admin_reports').delete().eq('id', reportId);
-                    if (deleteError) throw deleteError;
-                    
-                    App.toast('success', 'สำเร็จ', 'ลบคำร้องและส่งเหตุผลให้ผู้ใช้งานแล้ว');
-                    App.closeAdminRejectModal();
-                    App.loadAdminReports();
-                    App.loadDashboardStats();
-                } catch (err) {
-                    App.toast('error', 'เกิดข้อผิดพลาด', err.message);
-                    console.error('Admin reject error:', err);
-                } finally {
-                    App.showLoading(false);
-                }
-            },
-
-            // ลบคำร้อง (ของตัวเอง - ไม่ลบ notification)
+            // ลบเฉพาะในแผงควบคุม (ไม่ลบ notification)
             deleteAdminReportOwn: async (reportId) => {
-                if (!confirm('ยืนยันการลบคำร้องนี้? (การแจ้งเตือนที่ส่งให้ผู้ใช้จะไม่ถูกลบ)')) return;
+                if (!confirm('ยืนยันการลบ? (ลบเฉพาะในแผงควบคุม ไม่ลบการแจ้งเตือนของผู้ใช้)')) return;
                 
                 App.showLoading(true);
                 try {
@@ -1915,7 +1936,7 @@
                     const { error } = await sb.from('admin_reports').delete().eq('id', reportId);
                     if (error) throw error;
                     
-                    App.toast('success', 'สำเร็จ', 'ลบคำร้องเรียบร้อยแล้ว (การแจ้งเตือนของผู้ใช้ยังคงอยู่)');
+                    App.toast('success', 'สำเร็จ', 'ลบคำร้องแล้ว (การแจ้งเตือนของผู้ใช้ยังคงอยู่)');
                     App.loadAdminReports();
                     App.loadDashboardStats();
                 } catch (err) {
@@ -1925,32 +1946,20 @@
                 }
             },
 
-            // ลบทั้งหมด (ลบคำร้อง + notification)
-            deleteAdminReportAll: async (reportId) => {
-                if (!confirm('ยืนยันการลบคำร้องนี้และลบการแจ้งเตือนทั้งหมดที่ส่งให้ผู้ใช้?')) return;
+            // ลบ notification ของผู้ใช้
+            deleteAdminReportNotif: async (reportId) => {
+                if (!confirm('ยืนยันการลบการแจ้งเตือนของผู้ใช้?')) return;
                 
                 App.showLoading(true);
                 try {
-                    const { data: report } = await sb.from('admin_reports').select('image_url').eq('id', reportId).single();
-                    
-                    if (report && report.image_url) {
-                        const fileName = report.image_url.split('/').pop();
-                        await sb.storage.from('item-images').remove([fileName]);
-                    }
-                    
-                    // ลบ notification ที่เกี่ยวข้อง
-                    const { error: deleteNotifError } = await sb.from('notifications')
+                    const { error } = await sb.from('notifications')
                         .delete()
                         .eq('admin_report_id', reportId);
                     
-                    if (deleteNotifError) throw deleteNotifError;
-                    
-                    const { error } = await sb.from('admin_reports').delete().eq('id', reportId);
                     if (error) throw error;
                     
-                    App.toast('success', 'สำเร็จ', 'ลบคำร้องและการแจ้งเตือนทั้งหมดแล้ว');
+                    App.toast('success', 'สำเร็จ', 'ลบการแจ้งเตือนของผู้ใช้แล้ว');
                     App.loadAdminReports();
-                    App.loadDashboardStats();
                 } catch (err) {
                     App.toast('error', 'เกิดข้อผิดพลาด', err.message);
                 } finally {
@@ -1995,11 +2004,22 @@
                                             <td>${roleBadge}</td>
                                             <td>${user.is_banned ? '<span class="banned-badge">ถูกแบน</span>' : '<span style="color:var(--success);">ปกติ</span>'}</td>
                                             <td>
-                                                ${user.role !== 'admin' ? `
-                                                    <button class="btn btn-primary btn-sm" onclick="App.openChangeRoleModal('${user.id}', '${user.role}')">
-                                                        <i class="fa-solid fa-user-tag"></i> เปลี่ยนยศ
-                                                    </button>
-                                                ` : '<span style="color:var(--text-muted);">-</span>'}
+                                                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                                    ${user.role !== 'admin' ? `
+                                                        <button class="btn btn-primary btn-sm" onclick="App.openUserDetailModal('${user.id}')" title="ดูรายละเอียด">
+                                                            <i class="fa-solid fa-eye"></i>
+                                                        </button>
+                                                        <button class="btn btn-info btn-sm" onclick="App.openChangeNameModal('${user.id}', '${user.full_name || ''}')" title="เปลี่ยนชื่อ">
+                                                            <i class="fa-solid fa-user-pen"></i>
+                                                        </button>
+                                                        <button class="btn btn-warning btn-sm" onclick="App.openChangeRoleModal('${user.id}', '${user.role}')" title="เปลี่ยนยศ">
+                                                            <i class="fa-solid fa-user-tag"></i>
+                                                        </button>
+                                                        <button class="btn btn-${user.is_banned ? 'success' : 'danger'} btn-sm" onclick="App.toggleBanUser('${user.id}', ${!user.is_banned})" title="${user.is_banned ? 'ปลดแบน' : 'แบน'}">
+                                                            <i class="fa-solid fa-${user.is_banned ? 'unlock' : 'ban'}"></i>
+                                                        </button>
+                                                    ` : '<span style="color:var(--text-muted);">-</span>'}
+                                                </div>
                                             </td>
                                         </tr>
                                     `;
@@ -2010,6 +2030,76 @@
                 } catch (err) {
                     console.error('Load users error:', err);
                     container.innerHTML = '<div style="color:var(--danger); padding:20px;">เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err.message + '</div>';
+                }
+            },
+
+            openUserDetailModal: (userId) => {
+                const user = App.profilesCache[userId];
+                if (!user) {
+                    App.toast('error', 'ไม่พบข้อมูล', 'ไม่พบข้อมูลผู้ใช้');
+                    return;
+                }
+                
+                let roleText = '';
+                if (user.role === 'admin') roleText = 'ผู้ดูแลระบบ';
+                else if (user.role === 'teacher') roleText = 'ครู';
+                else roleText = 'นักเรียน';
+                
+                document.getElementById('user-detail-content').innerHTML = `
+                    <div style="text-align:center; margin-bottom:20px;">
+                        <img src="${user.avatar_url || `https://ui-avatars.com/api/?name=${(user.full_name || 'U').charAt(0)}&background=6366F1&color=fff&size=150`}" 
+                             style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:4px solid var(--primary);">
+                        <h3 style="margin-top:12px; font-size:20px;">${user.full_name || 'ไม่ระบุชื่อ'}</h3>
+                        <p style="color:var(--text-muted);">${user.email}</p>
+                        <span class="role-badge ${user.role}" style="margin-top:8px;">${roleText}</span>
+                    </div>
+                    <div class="user-detail-grid">
+                        <div class="user-detail-item">
+                            <div class="user-detail-label"><i class="fa-solid fa-envelope"></i> อีเมล</div>
+                            <div class="user-detail-value">${user.email || '-'}</div>
+                        </div>
+                        <div class="user-detail-item">
+                            <div class="user-detail-label"><i class="fa-solid fa-shield-halved"></i> ยศ</div>
+                            <div class="user-detail-value">${roleText}</div>
+                        </div>
+                        <div class="user-detail-item">
+                            <div class="user-detail-label"><i class="fa-solid fa-calendar"></i> วันเกิด</div>
+                            <div class="user-detail-value">${user.birthday ? new Date(user.birthday).toLocaleDateString('th-TH') : '-'}</div>
+                        </div>
+                        <div class="user-detail-item">
+                            <div class="user-detail-label"><i class="fa-solid fa-door-open"></i> ห้อง Homeroom</div>
+                            <div class="user-detail-value">${user.homeroom || '-'}</div>
+                        </div>
+                        <div class="user-detail-item">
+                            <div class="user-detail-label"><i class="fa-solid fa-graduation-cap"></i> ระดับชั้น</div>
+                            <div class="user-detail-value">${user.grade_level || '-'}</div>
+                        </div>
+                        <div class="user-detail-item">
+                            <div class="user-detail-label"><i class="fa-solid fa-phone"></i> เบอร์ติดต่อ</div>
+                            <div class="user-detail-value">${user.phone || '-'}</div>
+                        </div>
+                        <div class="user-detail-item">
+                            <div class="user-detail-label"><i class="fa-solid fa-clock"></i> สร้างเมื่อ</div>
+                            <div class="user-detail-value">${user.created_at ? new Date(user.created_at).toLocaleDateString('th-TH') : '-'}</div>
+                        </div>
+                        <div class="user-detail-item">
+                            <div class="user-detail-label"><i class="fa-solid fa-ban"></i> สถานะ</div>
+                            <div class="user-detail-value">${user.is_banned ? '<span style="color:var(--danger);">ถูกแบน</span>' : '<span style="color:var(--success);">ปกติ</span>'}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:20px; text-align:center;">
+                        <button class="btn btn-outline" onclick="App.closeUserDetailModal()">
+                            <i class="fa-solid fa-xmark"></i> ปิด
+                        </button>
+                    </div>
+                `;
+                
+                document.getElementById('user-detail-modal').classList.remove('hidden');
+            },
+
+            closeUserDetailModal: (event) => {
+                if (!event || event.target === event.currentTarget) {
+                    document.getElementById('user-detail-modal').classList.add('hidden');
                 }
             },
 
@@ -2048,6 +2138,80 @@
                     
                     App.toast('success', 'สำเร็จ', `เปลี่ยนยศเป็น ${newRole === 'student' ? 'นักเรียน' : 'ครู'} แล้ว`);
                     App.closeChangeRoleModal();
+                    App.loadAdminUsers();
+                } catch (err) {
+                    App.toast('error', 'เกิดข้อผิดพลาด', err.message);
+                } finally {
+                    App.showLoading(false);
+                }
+            },
+
+            openChangeNameModal: (userId, currentName) => {
+                document.getElementById('change-name-user-id').value = userId;
+                document.getElementById('new-name').value = currentName || '';
+                document.getElementById('change-name-modal').classList.remove('hidden');
+            },
+
+            closeChangeNameModal: (event) => {
+                if (!event || event.target === event.currentTarget) {
+                    document.getElementById('change-name-modal').classList.add('hidden');
+                }
+            },
+
+            handleChangeName: async (e) => {
+                e.preventDefault();
+                
+                const userId = document.getElementById('change-name-user-id').value;
+                const newName = document.getElementById('new-name').value.trim();
+                
+                if (!newName) {
+                    App.toast('error', 'กรอกข้อมูลไม่ครบ', 'กรุณากรอกชื่อ-นามสกุล');
+                    return;
+                }
+                
+                if (!confirm(`ยืนยันการเปลี่ยนชื่อเป็น "${newName}"?`)) return;
+                
+                App.showLoading(true);
+                try {
+                    const { error } = await sb.from('profiles').update({ 
+                        full_name: newName
+                    }).eq('id', userId);
+                    
+                    if (error) throw error;
+                    
+                    App.toast('success', 'สำเร็จ', 'เปลี่ยนชื่อ-นามสกุลแล้ว');
+                    App.closeChangeNameModal();
+                    App.loadAdminUsers();
+                } catch (err) {
+                    App.toast('error', 'เกิดข้อผิดพลาด', err.message);
+                } finally {
+                    App.showLoading(false);
+                }
+            },
+
+            toggleBanUser: async (userId, ban) => {
+                const reason = ban ? prompt('ระบุเหตุผลในการแบน:') : null;
+                if (ban && !reason) return;
+                
+                App.showLoading(true);
+                try {
+                    if (ban) {
+                        const { error } = await sb.from('profiles').update({ 
+                            is_banned: true, 
+                            banned_reason: reason,
+                            banned_at: new Date().toISOString()
+                        }).eq('id', userId);
+                        if (error) throw error;
+                        App.toast('success', 'สำเร็จ', 'แบนผู้ใช้เรียบร้อยแล้ว');
+                    } else {
+                        const { error } = await sb.from('profiles').update({ 
+                            is_banned: false, 
+                            banned_reason: null,
+                            banned_at: null
+                        }).eq('id', userId);
+                        if (error) throw error;
+                        App.toast('success', 'สำเร็จ', 'ปลดแบนผู้ใช้เรียบร้อยแล้ว');
+                    }
                     App.loadAdminUsers();
                 } catch (err) {
                     App.toast('error', 'เกิดข้อผิดพลาด', err.message);
@@ -2130,6 +2294,66 @@
                     App.toast('success', 'สำเร็จ', 'เปลี่ยนชื่อ-นามสกุลเรียบร้อยแล้ว');
                 } catch (err) {
                     App.toast('error', 'เปลี่ยนไม่สำเร็จ', err.message);
+                } finally {
+                    App.showLoading(false);
+                }
+            },
+
+            updateBirthday: async () => {
+                const birthday = document.getElementById('settings-birthday').value;
+                App.showLoading(true);
+                try {
+                    const { error } = await sb.from('profiles').update({ birthday: birthday || null }).eq('id', App.user.id);
+                    if (error) throw error;
+                    App.profile.birthday = birthday;
+                    App.toast('success', 'สำเร็จ', 'บันทึกวันเกิดแล้ว');
+                } catch (err) {
+                    App.toast('error', 'บันทึกไม่สำเร็จ', err.message);
+                } finally {
+                    App.showLoading(false);
+                }
+            },
+
+            updateHomeroom: async () => {
+                const homeroom = document.getElementById('settings-homeroom').value.trim();
+                App.showLoading(true);
+                try {
+                    const { error } = await sb.from('profiles').update({ homeroom: homeroom || null }).eq('id', App.user.id);
+                    if (error) throw error;
+                    App.profile.homeroom = homeroom;
+                    App.toast('success', 'สำเร็จ', 'บันทึกห้อง Homeroom แล้ว');
+                } catch (err) {
+                    App.toast('error', 'บันทึกไม่สำเร็จ', err.message);
+                } finally {
+                    App.showLoading(false);
+                }
+            },
+
+            updateGrade: async () => {
+                const grade = document.getElementById('settings-grade').value;
+                App.showLoading(true);
+                try {
+                    const { error } = await sb.from('profiles').update({ grade_level: grade || null }).eq('id', App.user.id);
+                    if (error) throw error;
+                    App.profile.grade_level = grade;
+                    App.toast('success', 'สำเร็จ', 'บันทึกระดับชั้นแล้ว');
+                } catch (err) {
+                    App.toast('error', 'บันทึกไม่สำเร็จ', err.message);
+                } finally {
+                    App.showLoading(false);
+                }
+            },
+
+            updatePhone: async () => {
+                const phone = document.getElementById('settings-phone').value.trim();
+                App.showLoading(true);
+                try {
+                    const { error } = await sb.from('profiles').update({ phone: phone || null }).eq('id', App.user.id);
+                    if (error) throw error;
+                    App.profile.phone = phone;
+                    App.toast('success', 'สำเร็จ', 'บันทึกเบอร์ติดต่อแล้ว');
+                } catch (err) {
+                    App.toast('error', 'บันทึกไม่สำเร็จ', err.message);
                 } finally {
                     App.showLoading(false);
                 }
@@ -2232,8 +2456,8 @@
         bindForm('form-found', App.handleFound);
         bindForm('form-admin-report', App.handleAdminReport);
         bindForm('form-admin-accept', App.handleAdminAccept);
-        bindForm('form-admin-reject', App.handleAdminReject);
         bindForm('form-change-role', App.handleChangeRole);
+        bindForm('form-change-name', App.handleChangeName);
         
         document.getElementById('settings-avatar-input').addEventListener('change', App.handleAvatarUpload);
         
