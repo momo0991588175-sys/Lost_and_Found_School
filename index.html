@@ -138,6 +138,9 @@
         .item-content { padding: 24px; flex: 1; display: flex; flex-direction: column; }
         .item-badge { display: inline-block; padding: 6px 16px; border-radius: 24px; font-size: 12px; font-weight: 600; margin-bottom: 14px; background: #FEE2E2; color: var(--danger); width: fit-content; }
         .item-badge.found { background: #D1FAE5; color: var(--success); }
+        .item-badge.reply { background: #DBEAFE; color: var(--primary); }
+        .item-badge.admin-response { background: #D1FAE5; color: var(--success); }
+        .item-badge.admin-reject { background: #FEE2E2; color: var(--danger); }
         .item-title { font-size: 20px; font-weight: 600; margin-bottom: 10px; color: var(--text); }
         .item-info { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
         .item-author { font-size: 13px; color: var(--primary); font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
@@ -209,7 +212,6 @@
         .toast.success { border-left-color: var(--success); }
         .toast.error { border-left-color: var(--danger); }
         .toast.warning { border-left-color: var(--warning); }
-        .toast.info { border-left-color: var(--primary); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
         #loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9998; }
@@ -249,50 +251,111 @@
         .alert-box.info { background: #D1FAE5; border-left: 4px solid var(--success); color: #065F46; }
         .alert-box.danger { background: #FEE2E2; border-left: 4px solid var(--danger); color: #991B1B; }
 
-        /* Reply Modal - UI ใหม่ */
-        .reply-modal-header { 
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
-            color: white; 
-            padding: 24px 32px; 
-            border-radius: 24px 24px 0 0;
-            margin: -40px -40px 24px -40px;
+        /* Notification Card (ใหม่ - คล้าย item-card) */
+        .notification-card { 
+            background: white; 
+            border-radius: var(--radius); 
+            overflow: hidden; 
+            box-shadow: var(--shadow-lg); 
+            transition: all 0.3s; 
+            display: flex; 
+            flex-direction: column;
+            border-left: 4px solid var(--primary);
         }
-        .reply-modal-header.found {
-            background: linear-gradient(135deg, var(--success), #059669);
+        .notification-card:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15); 
         }
-        .reply-modal-header h3 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 8px;
+        .notification-card.unread { 
+            border-left-color: var(--danger);
+            background: linear-gradient(135deg, #FEF2F2, white);
         }
-        .reply-modal-header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        .reply-info-box {
-            background: #F9FAFB;
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-        .reply-info-box h4 {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-        .reply-info-box .info-item {
+        .notification-card.reply { border-left-color: var(--primary); }
+        .notification-card.admin-response { border-left-color: var(--success); }
+        .notification-card.admin-reject { border-left-color: var(--danger); }
+        
+        .notification-header { 
+            padding: 16px 20px; 
+            background: linear-gradient(135deg, #F9FAFB, white);
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 14px;
+            gap: 12px;
+        }
+        .notification-icon { 
+            width: 48px; 
+            height: 48px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 20px; 
+            color: white;
+            flex-shrink: 0;
+        }
+        .notification-icon.reply { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+        .notification-icon.admin-response { background: linear-gradient(135deg, var(--success), #059669); }
+        .notification-icon.admin-reject { background: linear-gradient(135deg, var(--danger), #DC2626); }
+        
+        .notification-title-section { flex: 1; }
+        .notification-type-badge { 
+            display: inline-block; 
+            padding: 4px 12px; 
+            border-radius: 12px; 
+            font-size: 11px; 
+            font-weight: 600; 
+            margin-bottom: 6px;
+        }
+        .notification-type-badge.reply { background: #DBEAFE; color: var(--primary); }
+        .notification-type-badge.admin-response { background: #D1FAE5; color: var(--success); }
+        .notification-type-badge.admin-reject { background: #FEE2E2; color: var(--danger); }
+        
+        .notification-title { 
+            font-size: 16px; 
+            font-weight: 600; 
             color: var(--text);
             margin-bottom: 4px;
         }
-        .reply-info-box .info-item i {
-            color: var(--primary);
-            width: 16px;
+        .notification-time { 
+            font-size: 12px; 
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
+        
+        .notification-body { 
+            padding: 20px; 
+            flex: 1;
+        }
+        .notification-message { 
+            font-size: 14px; 
+            color: var(--text);
+            line-height: 1.6;
+            white-space: pre-wrap;
+            background: #F9FAFB;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 3px solid var(--border);
+        }
+        
+        .notification-footer {
+            padding: 12px 20px;
+            background: #F9FAFB;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .notification-status {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .notification-status.unread { color: var(--danger); font-weight: 600; }
+        .notification-status.read { color: var(--success); }
 
         @media (max-width: 768px) {
             .app-layout { flex-direction: column; }
@@ -709,23 +772,14 @@
         </div>
     </div>
 
-    <!-- Modal สำหรับตอบกลับโพสต์ (UI ใหม่) -->
+    <!-- Modal สำหรับตอบกลับโพสต์ -->
     <div id="reply-modal" class="hidden">
         <div class="modal-overlay" onclick="App.closeReplyModal(event)">
-            <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 650px;">
-                <div class="reply-modal-header" id="reply-modal-header">
-                    <h3 id="reply-modal-title"><i class="fa-solid fa-reply"></i> ตอบกลับ</h3>
-                    <p id="reply-modal-subtitle">กรอกข้อมูลเพื่อตอบกลับโพสต์นี้</p>
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="reply-modal-title"><i class="fa-solid fa-reply" style="color: var(--primary);"></i> ตอบกลับ</h3>
+                    <button class="modal-close" onclick="App.closeReplyModal()"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                
-                <!-- ข้อมูลโพสต์ -->
-                <div class="reply-info-box" id="reply-post-info">
-                    <h4><i class="fa-solid fa-info-circle"></i> ข้อมูลโพสต์</h4>
-                    <div class="info-item"><i class="fa-solid fa-heading"></i> <span id="reply-post-title">-</span></div>
-                    <div class="info-item"><i class="fa-solid fa-user"></i> <span id="reply-post-author">-</span></div>
-                    <div class="info-item"><i class="fa-solid fa-location-dot"></i> <span id="reply-post-location">-</span></div>
-                </div>
-                
                 <form id="form-reply">
                     <input type="hidden" id="reply-item-id">
                     <input type="hidden" id="reply-item-type">
@@ -785,7 +839,7 @@
         </div>
     </div>
 
-    <!-- Modal สำหรับดูการแจ้งเตือน -->
+    <!-- Modal สำหรับดูการแจ้งเตือน (ใหม่ - คล้าย item-card) -->
     <div id="notifications-modal" class="hidden">
         <div class="modal-overlay" onclick="App.closeNotificationsModal(event)">
             <div class="modal-content large" onclick="event.stopPropagation()">
@@ -793,7 +847,7 @@
                     <h3 class="modal-title"><i class="fa-solid fa-bell" style="color: var(--primary);"></i> การแจ้งเตือน</h3>
                     <button class="modal-close" onclick="App.closeNotificationsModal()"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                <div id="notifications-list"></div>
+                <div id="notifications-list" class="items-grid"></div>
             </div>
         </div>
     </div>
@@ -815,7 +869,6 @@
             currentReplyItemType: null,
             profilesCache: {},
             unreadNotifications: 0,
-            notificationCheckInterval: null,
 
             init: async () => {
                 try {
@@ -825,7 +878,6 @@
                         App.user = session.user;
                         await App.loadProfile();
                         App.showApp();
-                        App.startNotificationPolling();
                     } else {
                         App.showAuth();
                     }
@@ -837,13 +889,9 @@
                 sb.auth.onAuthStateChange((event, session) => {
                     if (event === 'SIGNED_IN') { 
                         App.user = session.user; 
-                        App.loadProfile().then(() => {
-                            App.showApp();
-                            App.startNotificationPolling();
-                        }); 
+                        App.loadProfile().then(() => App.showApp()); 
                     } else if (event === 'SIGNED_OUT') { 
                         App.user = null; 
-                        App.stopNotificationPolling();
                         App.showAuth();
                     }
                 });
@@ -987,18 +1035,13 @@
                         .eq('user_id', App.user.id)
                         .eq('is_read', false);
                     
-                    if (error) throw error;
-                    
-                    const newCount = count || 0;
-                    const dot = document.getElementById('notification-dot');
-                    
-                    // แสดง popup ถ้ามีการแจ้งเตือนใหม่
-                    if (newCount > App.unreadNotifications && App.unreadNotifications > 0) {
-                        const diff = newCount - App.unreadNotifications;
-                        App.toast('info', 'มีการแจ้งเตือนใหม่', `คุณมี ${diff} การแจ้งเตือนใหม่`);
+                    if (error) {
+                        console.error('Load unread notifications error:', error);
+                        return;
                     }
                     
-                    App.unreadNotifications = newCount;
+                    App.unreadNotifications = count || 0;
+                    const dot = document.getElementById('notification-dot');
                     if (App.unreadNotifications > 0) {
                         dot.classList.add('active');
                     } else {
@@ -1006,20 +1049,6 @@
                     }
                 } catch (err) {
                     console.error('Load notifications error:', err);
-                }
-            },
-
-            startNotificationPolling: () => {
-                App.stopNotificationPolling();
-                App.notificationCheckInterval = setInterval(() => {
-                    App.loadUnreadNotifications();
-                }, 30000); // ตรวจสอบทุก 30 วินาที
-            },
-
-            stopNotificationPolling: () => {
-                if (App.notificationCheckInterval) {
-                    clearInterval(App.notificationCheckInterval);
-                    App.notificationCheckInterval = null;
                 }
             },
 
@@ -1340,7 +1369,7 @@
             },
 
             // Reply Functions - แก้ไขแล้ว
-            openReplyModal: async (itemId, itemType) => {
+            openReplyModal: (itemId, itemType) => {
                 App.currentReplyItemId = itemId;
                 App.currentReplyItemType = itemType;
                 
@@ -1353,31 +1382,13 @@
                 document.getElementById('reply-preview').innerHTML = '';
                 document.getElementById('reply-preview-found').innerHTML = '';
                 
-                // โหลดข้อมูลโพสต์
-                try {
-                    const { data: item, error } = await sb.from('items').select('*').eq('id', itemId).single();
-                    if (error) throw error;
-                    
-                    const authorName = App.getProfileName(item.user_id);
-                    document.getElementById('reply-post-title').textContent = item.title;
-                    document.getElementById('reply-post-author').textContent = authorName;
-                    document.getElementById('reply-post-location').textContent = item.location || 'ไม่ระบุ';
-                } catch (err) {
-                    console.error('Load item error:', err);
-                }
-                
                 // แสดง fields ตามประเภทโพสต์
-                const header = document.getElementById('reply-modal-header');
                 if (itemType === 'lost') {
-                    header.className = 'reply-modal-header';
-                    document.getElementById('reply-modal-title').innerHTML = '<i class="fa-solid fa-reply"></i> ตอบกลับโพสต์ "ของหาย"';
-                    document.getElementById('reply-modal-subtitle').textContent = 'กรุณากรอกสถานที่พบและอัปโหลดหลักฐาน (บังคับ)';
+                    document.getElementById('reply-modal-title').innerHTML = '<i class="fa-solid fa-reply" style="color: var(--danger);"></i> ตอบกลับโพสต์ "ของหาย"';
                     document.getElementById('reply-lost-fields').classList.remove('hidden');
                     document.getElementById('reply-found-fields').classList.add('hidden');
                 } else {
-                    header.className = 'reply-modal-header found';
-                    document.getElementById('reply-modal-title').innerHTML = '<i class="fa-solid fa-reply"></i> ตอบกลับโพสต์ "เก็บของได้"';
-                    document.getElementById('reply-modal-subtitle').textContent = 'กรุณากรอกสถานที่พบ (รูปภาพ/วิดีโอไม่บังคับ)';
+                    document.getElementById('reply-modal-title').innerHTML = '<i class="fa-solid fa-reply" style="color: var(--success);"></i> ตอบกลับโพสต์ "เก็บของได้"';
                     document.getElementById('reply-lost-fields').classList.add('hidden');
                     document.getElementById('reply-found-fields').classList.remove('hidden');
                 }
@@ -1447,12 +1458,26 @@
                         image_url: image_url
                     }).select().single();
                     
-                    if (replyError) throw replyError;
+                    if (replyError) {
+                        console.error('Reply insert error:', replyError);
+                        throw replyError;
+                    }
                     
-                    // สร้าง notification ให้เจ้าของโพสต์
-                    const { data: item } = await sb.from('items').select('user_id, title').eq('id', itemId).single();
-                    if (item && item.user_id !== App.user.id) {
-                        await sb.from('notifications').insert({
+                    console.log('Reply created:', reply);
+                    
+                    // ดึงข้อมูลโพสต์เพื่อหาเจ้าของ
+                    const { data: item, error: itemError } = await sb.from('items').select('user_id, title').eq('id', itemId).single();
+                    
+                    if (itemError) {
+                        console.error('Item fetch error:', itemError);
+                        throw itemError;
+                    }
+                    
+                    console.log('Item owner:', item.user_id, 'Current user:', App.user.id);
+                    
+                    // สร้าง notification ให้เจ้าของโพสต์ (ถ้าไม่ใช่ตัวเอง)
+                    if (item.user_id !== App.user.id) {
+                        const notificationData = {
                             user_id: item.user_id,
                             type: 'reply',
                             item_id: itemId,
@@ -1460,30 +1485,48 @@
                             title: `มีผู้ตอบกลับโพสต์ "${item.title}"`,
                             message: fullDescription,
                             is_read: false
-                        });
+                        };
+                        
+                        console.log('Creating notification:', notificationData);
+                        
+                        const { data: notif, error: notifError } = await sb.from('notifications').insert(notificationData).select().single();
+                        
+                        if (notifError) {
+                            console.error('Notification insert error:', notifError);
+                            // ไม่ throw error เพราะ reply สำเร็จแล้ว
+                            App.toast('warning', 'ส่งตอบกลับสำเร็จ แต่แจ้งเตือนล้มเหลว', 'เจ้าของโพสต์จะไม่ได้รับการแจ้งเตือน');
+                        } else {
+                            console.log('Notification created:', notif);
+                            App.toast('success', 'ส่งตอบกลับสำเร็จ', 'เจ้าของโพสต์จะได้รับการแจ้งเตือน');
+                        }
+                    } else {
+                        App.toast('success', 'ส่งตอบกลับสำเร็จ', 'บันทึกคำตอบแล้ว');
                     }
                     
-                    App.toast('success', 'ส่งตอบกลับสำเร็จ', 'เจ้าของโพสต์จะได้รับการแจ้งเตือน');
                     App.closeReplyModal();
                     App.loadLostItems();
                 } catch (err) {
-                    App.toast('error', 'ส่งไม่สำเร็จ', err.message);
                     console.error('Reply error:', err);
+                    App.toast('error', 'ส่งไม่สำเร็จ', err.message || 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ');
                 } finally {
                     App.showLoading(false);
                 }
             },
 
-            // Notifications Functions
+            // Notifications Functions - ปรับปรุงใหม่
             openNotifications: async () => {
                 document.getElementById('notifications-modal').classList.remove('hidden');
                 await App.loadNotifications();
                 
                 // Mark all as read
-                await sb.from('notifications')
+                const { error } = await sb.from('notifications')
                     .update({ is_read: true })
                     .eq('user_id', App.user.id)
                     .eq('is_read', false);
+                
+                if (error) {
+                    console.error('Mark as read error:', error);
+                }
                 
                 App.unreadNotifications = 0;
                 document.getElementById('notification-dot').classList.remove('active');
@@ -1497,7 +1540,7 @@
 
             loadNotifications: async () => {
                 const container = document.getElementById('notifications-list');
-                container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner" style="margin:0 auto;"></div></div>';
+                container.innerHTML = '<div style="text-align:center; padding:60px; grid-column: span 3;"><div class="spinner" style="margin:0 auto;"></div></div>';
                 
                 try {
                     const { data: notifications, error } = await sb.from('notifications')
@@ -1505,49 +1548,81 @@
                         .eq('user_id', App.user.id)
                         .order('created_at', { ascending: false });
                     
-                    if (error) throw error;
+                    if (error) {
+                        console.error('Load notifications error:', error);
+                        throw error;
+                    }
+                    
+                    console.log('Notifications loaded:', notifications);
                     
                     if (!notifications || notifications.length === 0) {
-                        container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);"><i class="fa-solid fa-bell-slash" style="font-size:48px; margin-bottom:16px; opacity:0.5;"></i><p>ไม่มีการแจ้งเตือน</p></div>';
+                        container.innerHTML = '<div style="text-align:center; padding:60px; color:white; background:rgba(255,255,255,0.1); border-radius:16px; grid-column: span 3;"><i class="fa-solid fa-bell-slash" style="font-size:48px; margin-bottom:16px; opacity:0.5;"></i><p style="font-size:18px;">ไม่มีการแจ้งเตือน</p></div>';
                         return;
                     }
                     
                     container.innerHTML = notifications.map(notif => {
                         const dateTime = App.formatDateTime(notif.created_at);
-                        let icon, title, message, badgeClass;
+                        let icon, title, message, badgeClass, cardClass;
                         
                         if (notif.type === 'reply') {
                             icon = 'fa-reply';
                             title = notif.title || 'มีการตอบกลับ';
                             message = notif.message || '';
-                            badgeClass = 'item-badge';
+                            badgeClass = 'reply';
+                            cardClass = 'reply';
                         } else if (notif.type === 'admin_response') {
                             icon = 'fa-check-circle';
                             title = 'ผู้ดูแลระบบตอบกลับคำร้องของคุณ';
                             message = notif.message || '';
-                            badgeClass = 'item-badge found';
+                            badgeClass = 'admin-response';
+                            cardClass = 'admin-response';
                         } else if (notif.type === 'admin_reject') {
                             icon = 'fa-times-circle';
                             title = 'คำร้องของคุณถูกปฏิเสธ';
                             message = notif.message || '';
-                            badgeClass = 'item-badge';
+                            badgeClass = 'admin-reject';
+                            cardClass = 'admin-reject';
+                        } else {
+                            icon = 'fa-bell';
+                            title = 'การแจ้งเตือน';
+                            message = notif.message || '';
+                            badgeClass = 'reply';
+                            cardClass = '';
                         }
                         
+                        const unreadClass = notif.is_read ? '' : 'unread';
+                        
                         return `
-                            <div class="admin-report-card" style="margin-bottom: 16px;">
-                                <div class="admin-report-content">
-                                    <span class="${badgeClass}">
-                                        <i class="fa-solid ${icon}"></i> ${title}
-                                    </span>
-                                    <div class="item-info"><i class="fa-regular fa-clock"></i> ${dateTime}</div>
-                                    <p class="admin-report-desc" style="white-space: pre-wrap;">${message}</p>
+                            <div class="notification-card ${cardClass} ${unreadClass}">
+                                <div class="notification-header">
+                                    <div class="notification-icon ${badgeClass}">
+                                        <i class="fa-solid ${icon}"></i>
+                                    </div>
+                                    <div class="notification-title-section">
+                                        <span class="notification-type-badge ${badgeClass}">
+                                            ${notif.type === 'reply' ? 'ตอบกลับโพสต์' : notif.type === 'admin_response' ? 'Admin ตอบกลับ' : 'Admin ปฏิเสธ'}
+                                        </span>
+                                        <div class="notification-title">${title}</div>
+                                        <div class="notification-time">
+                                            <i class="fa-regular fa-clock"></i> ${dateTime}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="notification-body">
+                                    <div class="notification-message">${message}</div>
+                                </div>
+                                <div class="notification-footer">
+                                    <div class="notification-status ${unreadClass}">
+                                        <i class="fa-solid ${notif.is_read ? 'fa-check' : 'fa-circle'}"></i>
+                                        ${notif.is_read ? 'อ่านแล้ว' : 'ยังไม่อ่าน'}
+                                    </div>
                                 </div>
                             </div>
                         `;
                     }).join('');
                 } catch (err) {
                     console.error('Load notifications error:', err);
-                    container.innerHTML = '<div style="color:var(--danger); padding:20px;">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
+                    container.innerHTML = '<div style="color:var(--danger); padding:20px; grid-column: span 3;">เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err.message + '</div>';
                 }
             },
 
@@ -1678,11 +1753,7 @@
                                             <button class="btn btn-danger btn-sm" style="flex:1;" onclick="App.openAdminRejectModal('${report.id}')">
                                                 <i class="fa-solid fa-trash"></i> ลบ
                                             </button>
-                                        ` : `
-                                            <button class="btn btn-danger btn-sm" style="flex:1;" onclick="App.openAdminRejectModal('${report.id}')">
-                                                <i class="fa-solid fa-trash"></i> ลบ
-                                            </button>
-                                        `}
+                                        ` : ''}
                                     </div>
                                 </div>
                             </div>
@@ -1776,11 +1847,7 @@
                                 <button class="btn btn-danger" onclick="App.openAdminRejectModal('${report.id}'); App.closeReportDetailModal();">
                                     <i class="fa-solid fa-trash"></i> ลบคำร้อง
                                 </button>
-                            ` : `
-                                <button class="btn btn-danger" onclick="App.openAdminRejectModal('${report.id}'); App.closeReportDetailModal();">
-                                    <i class="fa-solid fa-trash"></i> ลบคำร้อง
-                                </button>
-                            `}
+                            ` : ''}
                             <button class="btn btn-outline" onclick="App.closeReportDetailModal()">
                                 <i class="fa-solid fa-xmark"></i> ปิด
                             </button>
@@ -1800,7 +1867,6 @@
                 }
             },
 
-            // Admin Respond (เสร็จสิ้น) - ใหม่
             openAdminRespondModal: (reportId) => {
                 document.getElementById('respond-report-id').value = reportId;
                 document.getElementById('admin-response-text').value = '';
@@ -1826,7 +1892,6 @@
                 
                 App.showLoading(true);
                 try {
-                    // อัปเดต admin_report
                     const { data: report, error: updateError } = await sb.from('admin_reports')
                         .update({
                             status: 'resolved',
@@ -1839,7 +1904,6 @@
                     
                     if (updateError) throw updateError;
                     
-                    // สร้าง notification ให้ผู้ส่ง
                     await sb.from('notifications').insert({
                         user_id: report.user_id,
                         type: 'admin_response',
@@ -1861,7 +1925,6 @@
                 }
             },
 
-            // Admin Reject (ลบคำร้อง) - ใหม่
             openAdminRejectModal: (reportId) => {
                 document.getElementById('reject-report-id').value = reportId;
                 document.getElementById('admin-reject-reason').value = '';
@@ -1889,7 +1952,6 @@
                 
                 App.showLoading(true);
                 try {
-                    // ดึงข้อมูลก่อนลบ
                     const { data: report, error: fetchError } = await sb.from('admin_reports')
                         .select('user_id, subject, image_url')
                         .eq('id', reportId)
@@ -1897,13 +1959,11 @@
                     
                     if (fetchError) throw fetchError;
                     
-                    // ลบรูปภาพ (ถ้ามี)
                     if (report.image_url) {
                         const fileName = report.image_url.split('/').pop();
                         await sb.storage.from('item-images').remove([fileName]);
                     }
                     
-                    // สร้าง notification ให้ผู้ส่ง ก่อนลบ
                     await sb.from('notifications').insert({
                         user_id: report.user_id,
                         type: 'admin_reject',
@@ -1913,7 +1973,6 @@
                         is_read: false
                     });
                     
-                    // ลบคำร้อง
                     const { error: deleteError } = await sb.from('admin_reports').delete().eq('id', reportId);
                     if (deleteError) throw deleteError;
                     
@@ -2119,8 +2178,8 @@
                 const toast = document.createElement('div');
                 toast.className = `toast ${type}`;
                 toast.innerHTML = `
-                    <i class="fa-solid ${type==='success'?'fa-circle-check':type==='warning'?'fa-triangle-exclamation':type==='info'?'fa-circle-info':'fa-circle-xmark'}" 
-                       style="font-size:24px; color:${type==='success'?'var(--success)':type==='warning'?'var(--warning)':type==='info'?'var(--primary)':'var(--danger)'}"></i>
+                    <i class="fa-solid ${type==='success'?'fa-circle-check':type==='warning'?'fa-triangle-exclamation':'fa-circle-xmark'}" 
+                       style="font-size:24px; color:${type==='success'?'var(--success)':type==='warning'?'var(--warning)':'var(--danger)'}"></i>
                     <div>
                         <div style="font-weight:700; font-size:16px;">${title}</div>
                         <div style="font-size:14px; color:var(--text-muted);">${msg}</div>
@@ -2155,7 +2214,6 @@
             if (tagName !== 'input' && tagName !== 'textarea') { e.preventDefault(); return false; }
         });
 
-        // DevTools Detection - ปิด Tab ทันที (ยกเว้น admin)
         const detectDevTools = () => {
             const isAdmin = App.profile?.role === 'admin';
             if (isAdmin) return;
@@ -2172,10 +2230,8 @@
         setInterval(detectDevTools, 500);
 
         // ============================================
-        // Event Listeners - แก้ไขแล้ว
+        // Event Listeners
         // ============================================
-        
-        // ตรวจสอบว่า form มีอยู่ใน DOM ก่อน bind
         const bindForm = (formId, handler) => {
             const form = document.getElementById(formId);
             if (form) {
